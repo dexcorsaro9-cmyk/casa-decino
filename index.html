@@ -26,7 +26,8 @@
     .brand{display:flex;align-items:center;gap:10px}
     .brand-icon{width:36px;height:36px;border-radius:10px;background:var(--a-bg);color:var(--a-txt);display:flex;align-items:center;justify-content:center;font-size:18px}
     .brand-name{font-size:17px;font-weight:600;letter-spacing:-.01em}
-    .brand-sub{font-size:11px;color:var(--color-text-secondary,#888);margin-top:1px}
+    .brand-sub{font-size:11px;color:var(--color-text-secondary,#888);margin-top:1px;display:flex;align-items:center;gap:6px}
+    .weather-box{font-weight:600;color:var(--color-text-primary,#1a1a18);background:var(--color-background-secondary,#f0efeb);padding:2px 6px;border-radius:4px;display:inline-block}
     .add-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.25));background:var(--color-background-primary,#fff);cursor:pointer;font-size:13px;font-weight:500;color:var(--color-text-primary,#1a1a18);transition:background .1s;white-space:nowrap}
     .add-btn:hover{background:var(--color-background-secondary,#f0efeb)}
     .tabs{display:flex;gap:2px;overflow-x:auto}
@@ -127,7 +128,13 @@
       <div class="hdr-top">
         <div class="brand">
           <div class="brand-icon">🏠</div>
-          <div><div class="brand-name">Casa Decino</div><div class="brand-sub">Agenda di famiglia</div></div>
+          <div>
+            <div class="brand-name">Casa Decino</div>
+            <div class="brand-sub">
+              Agenda di famiglia 
+              <span id="weather-widget" class="weather-box" style="display:none;"></span>
+            </div>
+          </div>
         </div>
         <button class="add-btn" id="hdr-add" onclick="hdrAdd()">＋ <span id="hdr-add-lbl">Aggiungi evento</span></button>
       </div>
@@ -188,17 +195,20 @@ let view='today',filters=MEMBERS.map(m=>m.id);
 let wkStart=weekStart(new Date(TODAY)),curMonth=new Date(TODAY);
 var editId=null,form={},ricEditId=null,ricForm={};
 
-// 👇 INCOLLA IL TUO LINK SHEETDB QUI (MANTIENI GLI APICI ' ')
+// 👇 Il tuo link API SheetDB
 const API_EVENTS = 'https://sheetdb.io/api/v1/zvwyy4hugc3je';
 
 function weekStart(d){const dt=new Date(d);const dy=dt.getDay();dt.setDate(dt.getDate()+(dy===0?-6:1-dy));dt.setHours(0,0,0,0);return dt;}
 function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
+
+// 👇 Fuso Orario corretto
 function fmtD(d) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const dy = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${dy}`;
 }
+
 function M(id){return MEMBERS.find(m=>m.id===id)||MEMBERS[0];}
 function C(id){return CATS.find(c=>c.id===id)||CATS[4];}
 function ms(m){return `background:${m.bg};color:${m.txt}`;}
@@ -298,6 +308,28 @@ async function saveRic2(){
   try { localStorage.setItem('casa-decino-ric-v1', JSON.stringify(ricorrenze)); } catch {}
 }
 
+/* --- INTEGRAZIONE METEO CAP 00012 --- */
+async function loadWeather() {
+  try {
+    const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=41.99&longitude=12.72&current_weather=true');
+    const data = await res.json();
+    const w = data.current_weather;
+    const codes = {
+      0: '☀️', 1: '🌤', 2: '⛅', 3: '☁️', 
+      45: '🌫', 48: '🌫', 
+      51: '🌧', 53: '🌧', 55: '🌧', 
+      61: '☔', 63: '☔', 65: '☔', 
+      71: '❄️', 73: '❄️', 75: '❄️', 
+      95: '⛈', 96: '⛈', 99: '⛈'
+    };
+    const icon = codes[w.weathercode] || '🌡️';
+    const widget = document.getElementById('weather-widget');
+    widget.textContent = `${icon} ${Math.round(w.temperature)}°C`;
+    widget.style.display = 'inline-block';
+  } catch (error) {
+    console.error("Meteo non disponibile:", error);
+  }
+}
 
 function render(){renderFilters();renderView();}
 function renderFilters(){
@@ -595,7 +627,11 @@ async function saveRicorrenza(){
 }
 async function deleteRic(id){if(!confirm('Eliminare questa ricorrenza?'))return;ricorrenze=ricorrenze.filter(r=>r.id!==id);await saveRic2();closeModal();renderView();}
 
-async function init(){await Promise.all([loadEvents(),loadRic()]);render();}
+async function init(){
+  await Promise.all([loadEvents(),loadRic()]);
+  render();
+  loadWeather(); // Lancia il widget meteo dopo aver caricato l'app
+}
 init();
 </script>
 </body>
