@@ -85,7 +85,7 @@
     .mn-dn{font-size:12px;font-weight:600;margin-bottom:4px;display:block}
     .mn-day.td .mn-dn{color:var(--color-text-info,#0C447C)}
     .dots{display:flex;flex-wrap:wrap;gap:2px}
-    .mn-dot{width:7px;height:7px;border-radius:50%;cursor:pointer;flex-shrink:0}
+    .mn-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
     .mn-dot-r{width:7px;height:7px;border-radius:2px;flex-shrink:0}
     .mn-more{font-size:9px;color:var(--color-text-secondary,#888);margin-top:3px;font-weight:500}
     .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:20px}
@@ -139,7 +139,8 @@
         <button class="add-btn" id="hdr-add" onclick="hdrAdd()">＋ <span id="hdr-add-lbl">Aggiungi evento</span></button>
       </div>
       <div class="tabs">
-        <button class="tab active" id="t-today"    onclick="switchView('today')">📅 Oggi</button>
+        <!-- Modifica al tab "Oggi": se lo premi torna veramente a oggi -->
+        <button class="tab active" id="t-today"    onclick="viewDate=REAL_TODAY; switchView('today')">📅 Oggi</button>
         <button class="tab" id="t-week"       onclick="switchView('week')">🗓 Settimana</button>
         <button class="tab" id="t-month"      onclick="switchView('month')">📆 Mese</button>
         <button class="tab" id="t-trasporti"  onclick="switchView('trasporti')">🚗 Trasporti</button>
@@ -154,7 +155,9 @@
 
 <script>
 const d_now = new Date();
-const TODAY = `${d_now.getFullYear()}-${String(d_now.getMonth() + 1).padStart(2, '0')}-${String(d_now.getDate()).padStart(2, '0')}`;
+const REAL_TODAY = `${d_now.getFullYear()}-${String(d_now.getMonth() + 1).padStart(2, '0')}-${String(d_now.getDate()).padStart(2, '0')}`;
+// Variabile che dice all'app quale giorno stiamo visualizzando (di base è oggi)
+let viewDate = REAL_TODAY; 
 
 const MEMBERS=[
   {id:'antonio',name:'Antonio',role:'Papà',      dot:'#378ADD',bg:'var(--a-bg)',txt:'var(--a-txt)',icon:'👨'},
@@ -182,12 +185,9 @@ const RIC_TYPES=[
 ];
 const MONTHS_IT=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
 
-const SAMPLE_EVENTS=[];
-const SAMPLE_RIC=[];
-
 let events=[],ricorrenze=[];
 let view='today',filters=MEMBERS.map(m=>m.id);
-let wkStart=weekStart(new Date(TODAY)),curMonth=new Date(TODAY);
+let wkStart=weekStart(new Date(REAL_TODAY)),curMonth=new Date(REAL_TODAY);
 var editId=null,form={},ricEditId=null,ricForm={};
 
 const API_EVENTS = 'https://sheetdb.io/api/v1/zvwyy4hugc3je';
@@ -206,11 +206,12 @@ function M(id){return MEMBERS.find(m=>m.id===id)||MEMBERS[0];}
 function C(id){return CATS.find(c=>c.id===id)||CATS[4];}
 function ms(m){return `background:${m.bg};color:${m.txt}`;}
 function uid(){return 'e'+Date.now()+Math.random().toString(36).slice(2,5);}
+
 function daysUntil(md){
   const[mm,dd]=md.split('-').map(Number);
-  const today=new Date(TODAY),yr=today.getFullYear();
+  const today=new Date(REAL_TODAY),yr=today.getFullYear();
   let next=new Date(yr,mm-1,dd);
-  if(fmtD(next)<TODAY)next=new Date(yr+1,mm-1,dd);
+  if(fmtD(next)<REAL_TODAY)next=new Date(yr+1,mm-1,dd);
   return Math.round((next-today)/86400000);
 }
 function fmtMD(md){const[mm,dd]=md.split('-').map(Number);return `${dd} ${MONTHS_IT[mm-1]}`;}
@@ -289,7 +290,7 @@ async function delEvt(id){
   renderView();
 }
 
-/* --- RICORRENZE VIA SHEETDB (NUOVO FOGLIO "Ricorrenze") --- */
+/* --- RICORRENZE VIA SHEETDB (FOGLIO "Ricorrenze") --- */
 async function loadRic(){
   try {
     const res = await fetch(API_EVENTS + '?sheet=Ricorrenze');
@@ -372,28 +373,30 @@ function renderView(){
   else el.innerHTML=ricorrenzeView();
 }
 
-/* ── TODAY (COMPATTA E MULTI-UTENTE) ── */
-function bdayBanners(){
-  const md=TODAY.slice(5);
+/* ── TODAY (MOSTRA IL GIORNO SELEZIONATO) ── */
+function bdayBanners(d_str){
+  const md=d_str.slice(5);
   return ricorrenze.filter(r=>r.date===md).map(r=>{
     const mb=r.member?M(r.member):null;
     const style=mb?ms(mb):'background:var(--color-background-secondary,#f0efeb);color:var(--color-text-primary)';
     const ico=r.type==='anniversary'?'💍':'🎂';
-    return `<div class="bday-banner" style="${style}"><span style="font-size:28px">${ico}</span><div><div style="font-weight:700;font-size:14px">${r.title}</div><div style="font-size:12px;opacity:.8">Oggi! 🎉</div></div></div>`;
+    const txt = d_str === REAL_TODAY ? 'Oggi! 🎉' : 'In questa data 🎉';
+    return `<div class="bday-banner" style="${style}"><span style="font-size:28px">${ico}</span><div><div style="font-weight:700;font-size:14px">${r.title}</div><div style="font-size:12px;opacity:.8">${txt}</div></div></div>`;
   }).join('');
 }
 function todayView(){
-  const evs=events.filter(e=>e.date===TODAY && e.members.some(m=>filters.includes(m))).sort((a,b)=>a.startTime.localeCompare(b.startTime));
+  const evs=events.filter(e=>e.date===viewDate && e.members.some(m=>filters.includes(m))).sort((a,b)=>a.startTime.localeCompare(b.startTime));
   const byM={};MEMBERS.forEach(m=>byM[m.id]=[]);
   evs.forEach(e=>{
     e.members.forEach(mid => {
       if(byM[mid] && filters.includes(mid)) byM[mid].push(e);
     });
   });
-  const lbl=new Date(TODAY).toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const lbl=new Date(viewDate).toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   
-  let h=bdayBanners();
-  h+=`<div class="sec-lbl">📅 ${lbl.charAt(0).toUpperCase()+lbl.slice(1)}</div>`;
+  let h=bdayBanners(viewDate);
+  const isT = viewDate === REAL_TODAY;
+  h+=`<div class="sec-lbl" style="display:flex;align-items:center;width:100%">📅 ${lbl.charAt(0).toUpperCase()+lbl.slice(1)} ${isT?'':`<button onclick="viewDate=REAL_TODAY;renderView()" style="margin-left:auto;background:var(--color-background-secondary,#f0efeb);border:0.5px solid rgba(0,0,0,0.1);padding:4px 8px;border-radius:6px;color:var(--a-dot);font-weight:700;font-size:10px;cursor:pointer">TORNA A OGGI</button>`}</div>`;
 
   let activeHtml = '';
   let freeMembers = [];
@@ -414,14 +417,14 @@ function todayView(){
   });
 
   if(!activeHtml) {
-    activeHtml = `<div class="empty-state"><span class="big">🛋️</span><div style="font-size:16px;font-weight:600;color:var(--color-text-primary)">Giornata totalmente libera!</div><div style="font-size:13px;margin-top:6px;opacity:.7">Nessun impegno in famiglia oggi</div></div>`;
+    activeHtml = `<div class="empty-state"><span class="big">🛋️</span><div style="font-size:16px;font-weight:600;color:var(--color-text-primary)">Giornata totalmente libera!</div><div style="font-size:13px;margin-top:6px;opacity:.7">Nessun impegno in famiglia in questa data</div></div>`;
   }
 
   let freeHtml = '';
   if(freeMembers.length > 0 && activeHtml.indexOf('empty-state') === -1){
      const freeNames = freeMembers.map(m => `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--color-background-primary,#fff);padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));color:var(--color-text-primary)"><span style="font-size:14px">${m.icon}</span>${m.name}</span>`).join(' ');
      freeHtml = `<div style="margin-top:24px;padding-top:16px;border-top:0.5px dashed var(--color-border-tertiary,rgba(0,0,0,.15));text-align:center">
-       <div style="font-size:10px;color:var(--color-text-secondary,#888);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.06em;font-weight:700">🎉 Liberi da impegni oggi</div>
+       <div style="font-size:10px;color:var(--color-text-secondary,#888);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.06em;font-weight:700">🎉 Liberi da impegni</div>
        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px">${freeNames}</div>
      </div>`;
   }
@@ -463,7 +466,7 @@ function weekView(){
     <button class="nav-btn" onclick="wkStart=addDays(wkStart,7);renderView()">›</button>
   </div><div class="wk-grid">`;
   for(let i=0;i<7;i++){
-    const d=addDays(wkStart,i);const ds=fmtD(d);const it=ds===TODAY;
+    const d=addDays(wkStart,i);const ds=fmtD(d);const it=ds===REAL_TODAY;
     const de=events.filter(e=>e.date===ds && e.members.some(m=>filters.includes(m))).sort((a,b)=>a.startTime.localeCompare(b.startTime));
     const ric=ricorrenze.filter(r=>r.date===ds.slice(5));
     const ricBadge=ric.length?`<span class="wk-bday">🎂 ${ric.map(r=>r.title.split(' ')[1]||r.title).join(', ')}</span>`:'';
@@ -482,7 +485,7 @@ function weekView(){
   return h+'</div>';
 }
 
-/* ── MONTH ── */
+/* ── MONTH (CLICCARE SUL GIORNO ORA APRE LA VISTA DETTAGLIATA) ── */
 function monthView(){
   const yr=curMonth.getFullYear(),mo=curMonth.getMonth();
   const mn=curMonth.toLocaleDateString('it-IT',{month:'long',year:'numeric'});
@@ -502,7 +505,7 @@ function monthView(){
   return h+'</div>';
 }
 function mnDay(date,other){
-  const ds=fmtD(date),it=ds===TODAY;
+  const ds=fmtD(date),it=ds===REAL_TODAY;
   const de=events.filter(e=>e.date===ds && e.members.some(m=>filters.includes(m)));
   const ric=ricorrenze.filter(r=>r.date===ds.slice(5));
   
@@ -516,12 +519,14 @@ function mnDay(date,other){
   const visDots = dots.slice(0, 5);
   const more = dots.length - visDots.length;
 
-  let h=`<div class="mn-day${it?' td':''}${other?' other':''}" onclick="openModalForDate('${ds}')">
+  // L'intero riquadro del giorno ora fa saltare alla vista dettagliata di quella data
+  let h=`<div class="mn-day${it?' td':''}${other?' other':''}" onclick="viewDate='${ds}'; switchView('today')">
     <span class="mn-dn">${date.getDate()}</span><div class="dots">`;
   
+  // I puntini ora sono solo visivi (niente click), per evitare tocchi accidentali!
   visDots.forEach(d => {
     const m = M(d.mid);
-    h+=`<span class="mn-dot" style="background:${m.dot}" onclick="event.stopPropagation();openModal('${d.eId}')" title="${m.name} — ${d.title}"></span>`;
+    h+=`<span class="mn-dot" style="background:${m.dot}" title="${m.name} — ${d.title}"></span>`;
   });
   
   ric.forEach(r=>{const mb=r.member?M(r.member):null;h+=`<span class="mn-dot-r" style="background:${mb?mb.dot:'#EF9F27'}" title="${r.title}"></span>`;});
@@ -564,7 +569,7 @@ function trasportiView(){
   const byDay={};
   nonAuto.forEach(e=>{const ds=fmtD(e._d);if(!byDay[ds])byDay[ds]={d:e._d,evs:[]};byDay[ds].evs.push(e);});
   Object.entries(byDay).sort(([a],[b])=>a.localeCompare(b)).forEach(([ds,{d,evs:dayEvs}])=>{
-    const isT=ds===TODAY;
+    const isT=ds===REAL_TODAY;
     const lbl2=d.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
     h+=`<div style="margin-bottom:16px"><div class="tr-day-hdr" style="${isT?'color:var(--color-text-info,#0C447C)':''}">${lbl2.charAt(0).toUpperCase()+lbl2.slice(1)}${isT?' — oggi':''}</div>`;
     dayEvs.forEach(e=>{
@@ -635,7 +640,7 @@ function openModal(id){
     form={...e, members: [...e.members], transport:{...e.transport}};
   }
   else {
-    form={id:'',title:'',date:TODAY,startTime:'08:00',endTime:'13:00',members:['antonio'],category:'scuola',transport:{type:'autonomous',by:'',note:''},notes:''};
+    form={id:'',title:'',date:viewDate,startTime:'08:00',endTime:'13:00',members:['antonio'],category:'scuola',transport:{type:'autonomous',by:'',note:''},notes:''};
   }
   renderEvModal();showOv();
 }
