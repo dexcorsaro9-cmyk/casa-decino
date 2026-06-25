@@ -230,13 +230,28 @@ function daysUntil(md){
 function fmtMD(md){const[mm,dd]=md.split('-').map(Number);return `${dd} ${MONTHS_IT[mm-1]}`;}
 
 async function loadEvents(){
-  try{const r=await window.storage.get('casa-decino-v3');if(r&&r.value){events=JSON.parse(r.value);}else{events=[...SAMPLE_EVENTS];await saveEv2();}}catch{events=[...SAMPLE_EVENTS];}
+  try {
+    const r = localStorage.getItem('casa-decino-v3');
+    if (r) { events = JSON.parse(r); } 
+    else { events = [...SAMPLE_EVENTS]; await saveEv2(); }
+  } catch { events = [...SAMPLE_EVENTS]; }
 }
-async function saveEv2(){try{await window.storage.set('casa-decino-v3',JSON.stringify(events));}catch{}}
+
+async function saveEv2(){
+  try { localStorage.setItem('casa-decino-v3', JSON.stringify(events)); } catch {}
+}
+
 async function loadRic(){
-  try{const r=await window.storage.get('casa-decino-ric-v1');if(r&&r.value){ricorrenze=JSON.parse(r.value);}else{ricorrenze=[...SAMPLE_RIC];await saveRic2();}}catch{ricorrenze=[...SAMPLE_RIC];}
+  try {
+    const r = localStorage.getItem('casa-decino-ric-v1');
+    if (r) { ricorrenze = JSON.parse(r); } 
+    else { ricorrenze = [...SAMPLE_RIC]; await saveRic2(); }
+  } catch { ricorrenze = [...SAMPLE_RIC]; }
 }
-async function saveRic2(){try{await window.storage.set('casa-decino-ric-v1',JSON.stringify(ricorrenze));}catch{}}
+
+async function saveRic2(){
+  try { localStorage.setItem('casa-decino-ric-v1', JSON.stringify(ricorrenze)); } catch {}
+}
 
 function render(){renderFilters();renderView();}
 function renderFilters(){
