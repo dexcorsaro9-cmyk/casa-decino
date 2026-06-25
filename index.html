@@ -26,8 +26,10 @@
     .brand{display:flex;align-items:center;gap:10px}
     .brand-icon{width:36px;height:36px;border-radius:10px;background:var(--a-bg);color:var(--a-txt);display:flex;align-items:center;justify-content:center;font-size:18px}
     .brand-name{font-size:17px;font-weight:600;letter-spacing:-.01em}
-    .brand-sub{font-size:11px;color:var(--color-text-secondary,#888);margin-top:1px;display:flex;align-items:center;gap:6px}
-    .weather-box{font-weight:600;color:var(--color-text-primary,#1a1a18);background:var(--color-background-secondary,#f0efeb);padding:2px 6px;border-radius:4px;display:inline-block}
+    .brand-sub{font-size:11px;color:var(--color-text-secondary,#888);margin-top:1px;margin-bottom:4px}
+    .weather-box{font-weight:500;color:var(--color-text-secondary,#888);background:var(--color-background-secondary,#f0efeb);padding:4px 8px;border-radius:6px;display:none;font-size:10.5px;border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.08))}
+    .w-day{display:inline-block;margin-right:8px}
+    .w-day:last-child{margin-right:0}
     .add-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.25));background:var(--color-background-primary,#fff);cursor:pointer;font-size:13px;font-weight:500;color:var(--color-text-primary,#1a1a18);transition:background .1s;white-space:nowrap}
     .add-btn:hover{background:var(--color-background-secondary,#f0efeb)}
     .tabs{display:flex;gap:2px;overflow-x:auto}
@@ -130,10 +132,8 @@
           <div class="brand-icon">🏠</div>
           <div>
             <div class="brand-name">Casa Decino</div>
-            <div class="brand-sub">
-              Agenda di famiglia 
-              <span id="weather-widget" class="weather-box" style="display:none;"></span>
-            </div>
+            <div class="brand-sub">Agenda di famiglia</div>
+            <div id="weather-widget" class="weather-box"></div>
           </div>
         </div>
         <button class="add-btn" id="hdr-add" onclick="hdrAdd()">＋ <span id="hdr-add-lbl">Aggiungi evento</span></button>
@@ -180,7 +180,7 @@ const RIC_TYPES=[
 ];
 const MONTHS_IT=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
 
-const SAMPLE_EVENTS=[]; // Svuotiamo i sample per leggere solo dal foglio Google
+const SAMPLE_EVENTS=[];
 const SAMPLE_RIC=[
   {id:'r1',title:'Compleanno Antonio',date:'06-28',type:'birthday',member:'antonio'},
   {id:'r2',title:'Compleanno Pamela',date:'03-15',type:'birthday',member:'pamela'},
@@ -195,13 +195,11 @@ let view='today',filters=MEMBERS.map(m=>m.id);
 let wkStart=weekStart(new Date(TODAY)),curMonth=new Date(TODAY);
 var editId=null,form={},ricEditId=null,ricForm={};
 
-// 👇 Il tuo link API SheetDB
 const API_EVENTS = 'https://sheetdb.io/api/v1/zvwyy4hugc3je';
 
 function weekStart(d){const dt=new Date(d);const dy=dt.getDay();dt.setDate(dt.getDate()+(dy===0?-6:1-dy));dt.setHours(0,0,0,0);return dt;}
 function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
 
-// 👇 Fuso Orario corretto
 function fmtD(d) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -308,12 +306,18 @@ async function saveRic2(){
   try { localStorage.setItem('casa-decino-ric-v1', JSON.stringify(ricorrenze)); } catch {}
 }
 
-/* --- INTEGRAZIONE METEO CAP 00012 --- */
+/* --- INTEGRAZIONE METEO 3 GIORNI SICURA (CAP 00012) --- */
 async function loadWeather() {
   try {
-    const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=41.99&longitude=12.72&current_weather=true');
+    // Fuso orario forzato su Europe/Rome per evitare blocchi iOS
+    const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=41.99&longitude=12.72&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=Europe%2FRome&forecast_days=3');
+    
+    if (!res.ok) throw new Error("API Meteo non raggiungibile");
+    
     const data = await res.json();
-    const w = data.current_weather;
+    if (!data.daily || !data.daily.weathercode) return;
+
+    const d = data.daily;
     const codes = {
       0: '☀️', 1: '🌤', 2: '⛅', 3: '☁️', 
       45: '🌫', 48: '🌫', 
@@ -322,12 +326,24 @@ async function loadWeather() {
       71: '❄️', 73: '❄️', 75: '❄️', 
       95: '⛈', 96: '⛈', 99: '⛈'
     };
-    const icon = codes[w.weathercode] || '🌡️';
+    
+    const lbls = ['Oggi', 'Dom', 'Dop'];
+    let html = '';
+    
+    for(let i=0; i<3; i++) {
+      const ic = codes[d.weathercode[i]] || '☁️';
+      const max = Math.round(d.temperature_2m_max[i]);
+      const min = Math.round(d.temperature_2m_min[i]);
+      html += `<span class="w-day"><b>${lbls[i]}</b> ${ic} ${max}°/${min}°</span>`;
+    }
+    
     const widget = document.getElementById('weather-widget');
-    widget.textContent = `${icon} ${Math.round(w.temperature)}°C`;
+    widget.innerHTML = html;
     widget.style.display = 'inline-block';
   } catch (error) {
-    console.error("Meteo non disponibile:", error);
+    console.error("Meteo non caricato:", error);
+    // Nasconde il quadratino in caso di errore
+    document.getElementById('weather-widget').style.display = 'none';
   }
 }
 
@@ -630,7 +646,7 @@ async function deleteRic(id){if(!confirm('Eliminare questa ricorrenza?'))return;
 async function init(){
   await Promise.all([loadEvents(),loadRic()]);
   render();
-  loadWeather(); // Lancia il widget meteo dopo aver caricato l'app
+  loadWeather();
 }
 init();
 </script>
