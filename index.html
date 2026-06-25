@@ -229,12 +229,28 @@ function daysUntil(md){
 }
 function fmtMD(md){const[mm,dd]=md.split('-').map(Number);return `${dd} ${MONTHS_IT[mm-1]}`;}
 
+const API_EVENTS = https://sheetdb.io/api/v1/zvwyy4hugc3je;
+
 async function loadEvents(){
   try {
-    const r = localStorage.getItem('casa-decino-v3');
-    if (r) { events = JSON.parse(r); } 
-    else { events = [...SAMPLE_EVENTS]; await saveEv2(); }
-  } catch { events = [...SAMPLE_EVENTS]; }
+    const res = await fetch(API_EVENTS);
+    const data = await res.json();
+    // Mappiamo le colonne del foglio di calcolo con le variabili dell'app
+    events = data.map(row => ({
+      id: row.ID,
+      title: row.Titolo,
+      date: row.Data,
+      startTime: row['Ora Inizio'],
+      endTime: row['Ora Fine'],
+      member: row.Membro,
+      category: row.Categoria,
+      transport: { type: row['Trasporto Tipo'], by: row['Trasporto Da'], note: row['Trasporto Note'] },
+      notes: row.Note
+    }));
+  } catch(e) { 
+    console.error(e); 
+    events = []; 
+  }
 }
 
 async function saveEv2(){
@@ -517,13 +533,56 @@ function renderEvModal(){
 function setMbr(v){form.member=v;if(form.transport.by===v)form.transport.by='';renderEvModal();}
 function setTr(t){form.transport={type:t,by:'',note:''};renderEvModal();}
 async function saveEvt(){
-  if(!form.title.trim()){alert('Inserisci un titolo per l\'evento');return;}
-  if(!form.date){alert('Seleziona una data');return;}
-  if(editId){const i=events.findIndex(e=>e.id===editId);if(i>-1)events[i]={...form,transport:{...form.transport},id:editId};}
-  else events.push({...form,transport:{...form.transport},id:uid()});
-  await saveEv2();closeModal();renderView();
+  if(!window.form.title.trim()){alert('Inserisci un titolo per l\'evento');return;}
+  if(!window.form.date){alert('Seleziona una data');return;}
+
+  const isEdit = !!editId;
+  const evId = isEdit ? editId : uid();
+
+  // Prepariamo la riga per Google Sheets
+  const newRow = {
+    ID: evId,
+    Titolo: window.form.title,
+    Data: window.form.date,
+    "Ora Inizio": window.form.startTime,
+    "Ora Fine": window.form.endTime,
+    Membro: window.form.member,
+    Categoria: window.form.category,
+    "Trasporto Tipo": window.form.transport.type,
+    "Trasporto Da": window.form.transport.by,
+    "Trasporto Note": window.form.transport.note,
+    Note: window.form.notes
+};
+
+  if(isEdit){
+    // Aggiorna l'evento nella schermata e sul foglio
+    const i = events.findIndex(e=>e.id===editId);
+    if(i>-1) events[i] = {...window.form, id: editId};
+    await fetch(`${API_EVENTS}/ID/${editId}`, {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({data: newRow})
+    });
+  } else {
+    // Crea un nuovo evento nella schermata e sul foglio
+    events.push({...window.form, id: evId});
+    await fetch(API_EVENTS, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({data: newRow})
+    });
+  }
+  closeModal();
+  renderView();
 }
-async function delEvt(id){if(!confirm('Eliminare questo evento?'))return;events=events.filter(e=>e.id!==id);await saveEv2();closeModal();renderView();}
+async function delEvt(id){
+  if(!confirm('Eliminare questo evento?'))return;
+  // Lo elimina dalla schermata e dal foglio
+  events = events.filter(e=>e.id!==id);
+  await fetch(`${API_EVENTS}/ID/${id}`, { method: 'DELETE' });
+  closeModal();
+  renderView();
+}
 
 /* ── RICORRENZA MODAL ── */
 function openRicModal(id){
