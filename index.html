@@ -5,232 +5,83 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    :root{--a-bg:#E6F1FB;--a-txt:#0C447C;--a-dot:#378ADD;--p-bg:#FAECE7;--p-txt:#712B13;--p-dot:#D85A30;--v-bg:#E1F5EE;--v-txt:#085041;--v-dot:#1D9E75;--f-bg:#DAEEFF;--f-txt:#0B5A7A;--f-dot:#29B8E0;--s-bg:#EEEDFE;--s-txt:#3C3489;--s-dot:#7F77DD;}
-    @media(prefers-color-scheme:dark){:root{--a-bg:#042C53;--a-txt:#B5D4F4;--p-bg:#4A1B0C;--p-txt:#F5C4B3;--v-bg:#04342C;--v-txt:#9FE1CB;--f-bg:#041C28;--f-txt:#9DD9F0;--s-bg:#26215C;--s-txt:#CECBF6;}}
-    body{font-family:system-ui,-apple-system,sans-serif;background:var(--color-background-tertiary,#f5f4f0);color:var(--color-text-primary,#1a1a18);font-size:14px}
-    #app{position:relative;min-height:600px;max-width:900px;margin:0 auto}
-    .hdr{background:var(--color-background-primary,#fff);border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));padding:14px 20px 0;position:sticky;top:0;z-index:10}
-    .hdr-top{display:grid;grid-template-columns:1fr auto;align-items:start;gap:10px;margin-bottom:12px}
-    .brand{display:flex;align-items:center;gap:10px}
-    .brand-icon{width:36px;height:36px;border-radius:10px;background:var(--a-bg);color:var(--a-txt);display:flex;align-items:center;justify-content:center;font-size:18px}
-    .brand-name{font-size:17px;font-weight:600;letter-spacing:-.01em}
-    .brand-sub{font-size:11px;color:var(--color-text-secondary,#888);margin-top:1px}
-    .weather-box{font-size:10px;color:var(--color-text-secondary,#888);display:flex;gap:8px;margin-top:4px;white-space:nowrap}
-    .add-btn{padding:8px 16px;border-radius:8px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.25));background:var(--color-background-primary,#fff);cursor:pointer;font-size:13px;font-weight:600;color:var(--color-text-primary,#1a1a18);transition:background .1s}
-    .add-btn:hover{background:var(--color-background-secondary,#f0efeb)}
-    .tabs{display:flex;gap:2px;overflow-x:auto}
-    .tab{padding:8px 13px;font-size:12px;border:none;background:none;cursor:pointer;border-radius:8px 8px 0 0;color:var(--color-text-secondary,#888);font-weight:400;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:5px;flex-shrink:0}
-    .tab.active{color:var(--color-text-primary,#1a1a18);font-weight:600;background:var(--color-background-secondary,#f0efeb)}
-    .filters{background:var(--color-background-secondary,#f0efeb);padding:10px 20px;display:flex;gap:8px;flex-wrap:wrap;border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12))}
-    .pill{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid transparent;transition:opacity .15s,transform .1s;user-select:none}
-    .pill:hover{transform:scale(1.03)}
-    .pill.off{opacity:.28}
-    .dot8{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-    .content{padding:16px 20px 80px}
-    .sec-lbl{font-size:11px;color:var(--color-text-secondary,#888);letter-spacing:.06em;margin-bottom:14px;font-weight:600;text-transform:uppercase;display:flex;align-items:center;gap:6px}
-    .mem-sec{margin-bottom:22px;background:var(--color-background-primary,#fff);border-radius:12px;border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));overflow:hidden}
-    .mem-hdr{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12))}
-    .avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
-    .mem-body{padding:8px 14px 10px}
-    .no-ev{font-size:12px;color:var(--color-text-tertiary,#aaa);padding:6px 0;display:flex;align-items:center;gap:6px}
-    .ev-card{display:flex;align-items:flex-start;gap:10px;padding:9px 10px;border-radius:8px;background:var(--color-background-secondary,#f5f4f0);margin-bottom:6px;cursor:pointer;transition:background .1s;position:relative}
-    .ev-card:hover{background:var(--color-background-tertiary,#ece9e1)}
-    .ev-strip{width:3px;border-radius:2px;align-self:stretch;flex-shrink:0;min-height:36px}
-    .ev-time{font-size:11px;color:var(--color-text-secondary,#888);min-width:58px;padding-top:1px;line-height:1.7;flex-shrink:0}
-    .ev-info{flex:1;min-width:0}
-    .ev-title{font-size:13px;font-weight:600;margin-bottom:5px;line-height:1.3}
-    .ev-meta{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
-    .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;white-space:nowrap}
-    .ev-note{font-size:11px;color:var(--color-text-secondary,#888);margin-top:5px;display:flex;align-items:center;gap:5px}
-    .del-btn{background:none;border:none;cursor:pointer;color:var(--color-text-secondary,#888);padding:4px 6px;border-radius:4px;position:absolute;top:6px;right:6px;opacity:0;transition:opacity .15s;font-size:14px;line-height:1}
-    .ev-card:hover .del-btn{opacity:.45}
-    .del-btn:hover{opacity:1!important;color:#e24b4a}
-    .nav-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;background:var(--color-background-primary,#fff);padding:10px 14px;border-radius:10px;border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12))}
-    .nav-lbl{font-size:14px;font-weight:600;display:flex;align-items:center;gap:7px}
-    .nav-btn{background:none;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.25));border-radius:6px;cursor:pointer;padding:4px 12px;color:var(--color-text-primary,#1a1a18);font-size:16px;transition:background .1s;line-height:1.4}
-    .nav-btn:hover{background:var(--color-background-secondary,#f0efeb)}
-    .wk-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
-    .day-col{min-height:220px}
-    .day-hdr{text-align:center;padding:7px 4px 5px;border-radius:8px;margin-bottom:8px;background:var(--color-background-primary,#fff);border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12))}
-    .day-hdr.td{background:var(--color-background-info,#e6f1fb);border-color:var(--color-border-info,#378ADD)}
-    .d-name{font-size:10px;color:var(--color-text-secondary,#888);display:block;margin-bottom:2px;font-weight:500}
-    .d-num{font-size:16px;font-weight:700;display:block}
-    .day-hdr.td .d-num{color:var(--color-text-info,#0C447C)}
-    .wk-bday{font-size:9px;margin-top:3px;display:block;background:rgba(239,159,39,.15);color:#633806;padding:1px 4px;border-radius:3px}
-    .wk-ev{padding:5px 7px;border-radius:6px;font-size:10px;margin-bottom:3px;cursor:pointer;line-height:1.4;border:0.5px solid rgba(0,0,0,.08)}
-    .wk-ev-name{font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .wk-ev-time{display:block;opacity:.75}
-    .wk-add{width:100%;margin-top:4px;padding:5px;border-radius:6px;border:0.5px dashed var(--color-border-secondary,rgba(0,0,0,.25));background:none;cursor:pointer;color:var(--color-text-tertiary,#aaa);font-size:14px;transition:all .15s;line-height:1}
-    .wk-add:hover{background:var(--color-background-secondary,#f0efeb);color:var(--color-text-secondary,#888)}
-    .mn-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));border-radius:10px;overflow:hidden}
-    .mn-dh{text-align:center;padding:8px;font-size:10px;color:var(--color-text-secondary,#888);background:var(--color-background-secondary,#f0efeb);border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));font-weight:600}
-    .mn-day{min-height:74px;padding:5px;background:var(--color-background-primary,#fff);border-right:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));cursor:pointer;transition:background .1s}
-    .mn-day:hover{background:var(--color-background-secondary,#f0efeb)}
-    .mn-day.td{background:var(--color-background-info,#e6f1fb)}
-    .mn-day.other{opacity:.3}
-    .mn-dn{font-size:12px;font-weight:600;margin-bottom:4px;display:block}
-    .mn-day.td .mn-dn{color:var(--color-text-info,#0C447C)}
-    .dots{display:flex;flex-wrap:wrap;gap:2px}
-    .mn-dot{width:7px;height:7px;border-radius:50%;cursor:pointer;flex-shrink:0}
-    .mn-dot-r{width:7px;height:7px;border-radius:2px;flex-shrink:0}
-    .mn-more{font-size:9px;color:var(--color-text-secondary,#888);margin-top:3px;font-weight:500}
-    .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:20px}
-    .stat-card{border-radius:10px;padding:12px 14px;border:0.5px solid rgba(0,0,0,.08);display:flex;flex-direction:column;gap:4px}
-    .stat-num{font-size:22px;font-weight:700}
-    .stat-lbl{font-size:10px;opacity:.75}
-    .bday-banner{border-radius:10px;padding:13px 16px;margin-bottom:12px;display:flex;align-items:center;gap:12px;border:0.5px solid rgba(0,0,0,.08)}
-    .tr-day-hdr{font-size:12px;font-weight:600;margin-bottom:8px;padding-bottom:4px;border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12))}
-    .empty-state{text-align:center;padding:48px 20px;color:var(--color-text-tertiary,#aaa)}
-    .empty-state .big{font-size:40px;display:block;margin-bottom:12px}
-    #modal-ov{display:none;position:absolute;top:0;left:0;width:100%;background:rgba(0,0,0,.45);z-index:999;padding:24px 16px;align-items:flex-start;justify-content:center}
-    .modal{background:var(--color-background-primary,#fff);border-radius:14px;border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));width:100%;max-width:460px;padding:20px;box-shadow:0 8px 32px rgba(0,0,0,.18)}
-    .modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12))}
-    .modal-ttl{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
-    .cl-btn{background:none;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.25));border-radius:6px;cursor:pointer;color:var(--color-text-secondary,#888);padding:3px 10px;font-size:16px;transition:background .1s;line-height:1.5}
-    .cl-btn:hover{background:var(--color-background-secondary,#f0efeb)}
-    .fgrp{margin-bottom:12px}
-    .flbl{display:block;font-size:10px;color:var(--color-text-secondary,#888);margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
-    .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .t-row{display:flex;gap:6px;align-items:center}
-    input,select,textarea{font-family:inherit;font-size:13px;color:var(--color-text-primary,#1a1a18);background:var(--color-background-secondary,#f5f4f0);border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.25));border-radius:7px;padding:8px 10px;width:100%;transition:border .15s}
-    input:focus,select:focus,textarea:focus{outline:none;border-color:#0C447C;box-shadow:0 0 0 2px rgba(56,138,221,.15)}
-    .tr-sec{border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));border-radius:9px;padding:12px;margin-bottom:12px;background:var(--color-background-secondary,#f5f4f0)}
-    .tr-lbl{font-size:10px;color:var(--color-text-secondary,#888);font-weight:700;margin-bottom:8px;display:block;text-transform:uppercase;letter-spacing:.05em}
-    .tr-opts{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
-    .tr-btn{padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.25));background:var(--color-background-primary,#fff);color:var(--color-text-secondary,#888);font-family:inherit;transition:all .12s;display:flex;align-items:center;gap:5px;font-weight:500}
-    .tr-btn.sel{background:var(--a-bg);color:var(--a-txt);border-color:var(--a-dot);font-weight:700}
-    .modal-actions{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:14px;border-top:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12))}
-    .btn-del-ev{background:none;border:none;cursor:pointer;color:#a32d2d;font-size:12px;font-family:inherit;display:flex;align-items:center;gap:4px;padding:5px 8px;border-radius:6px;font-weight:500}
-    .btn-del-ev:hover{background:#fcebeb}
-    .btn-row{display:flex;gap:8px}
-    .btn-cancel{background:none;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.25));border-radius:7px;padding:8px 16px;cursor:pointer;font-size:13px;font-family:inherit;color:var(--color-text-secondary,#888)}
-    .btn-save{background:var(--a-bg);border:none;border-radius:7px;padding:8px 20px;cursor:pointer;font-size:13px;font-family:inherit;color:var(--a-txt);font-weight:700;transition:opacity .15s}
-    .btn-save:hover{opacity:.8}
-    .empty-week{text-align:center;padding:20px 0;color:var(--color-text-tertiary,#aaa);font-size:16px}
+    body{font-family:system-ui,-apple-system,sans-serif;background:#f5f4f0;color:#1a1a18;font-size:14px}
+    #app{max-width:900px;margin:0 auto}
+    .hdr{background:#fff;border-bottom:1px solid #ddd;padding:15px;position:sticky;top:0;z-index:10}
+    .brand{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .weather-box{font-size:11px;color:#666;margin-top:5px}
+    .tabs{display:flex;gap:5px;overflow-x:auto}
+    .tab{padding:8px;border:none;background:#eee;border-radius:6px;cursor:pointer;flex-shrink:0}
+    .tab.active{background:#378ADD;color:#fff}
+    .content{padding:20px}
+    .ev-card{background:#fff;padding:10px;margin-bottom:8px;border-radius:8px;border:1px solid #eee;cursor:pointer}
+    #modal-ov{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);align-items:center;justify-content:center}
+    .modal{background:#fff;padding:20px;border-radius:12px;width:90%;max-width:400px}
+    input,select,textarea{width:100%;margin:10px 0;padding:8px}
   </style>
 </head>
 <body>
 <div id="app">
-  <div id="main">
-    <div class="hdr">
-      <div class="hdr-top">
-        <div class="brand">
-          <div class="brand-icon">🏠</div>
-          <div>
-            <div class="brand-name">Casa Decino</div>
-            <div class="brand-sub">Agenda di famiglia</div>
-            <div id="weather-widget" class="weather-box"></div>
-          </div>
-        </div>
-        <button class="add-btn" id="hdr-add" onclick="hdrAdd()">＋ Aggiungi</button>
-      </div>
-      <div class="tabs">
-        <button class="tab active" id="t-today"    onclick="viewDate=REAL_TODAY; switchView('today')">📅 Oggi</button>
-        <button class="tab" id="t-week"       onclick="switchView('week')">🗓 Settimana</button>
-        <button class="tab" id="t-month"      onclick="switchView('month')">📆 Mese</button>
-        <button class="tab" id="t-trasporti"  onclick="switchView('trasporti')">🚗 Trasporti</button>
-        <button class="tab" id="t-ricorrenze" onclick="switchView('ricorrenze')">🎂 Ricorrenze</button>
-      </div>
+  <div class="hdr">
+    <div class="brand">
+      <div><h2>Casa Decino</h2><div id="weather-widget" class="weather-box">Caricamento meteo...</div></div>
+      <button class="add-btn" onclick="openModal()">＋ Aggiungi</button>
     </div>
-    <div class="filters" id="filters"></div>
-    <div class="content" id="view"></div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchView('today')">Oggi</button>
+      <button class="tab" onclick="switchView('week')">Settimana</button>
+      <button class="tab" onclick="switchView('month')">Mese</button>
+    </div>
   </div>
+  <div id="view" class="content"></div>
   <div id="modal-ov"><div class="modal" id="modal-box"></div></div>
 </div>
+
 <script>
 const d_now = new Date();
 const REAL_TODAY = `${d_now.getFullYear()}-${String(d_now.getMonth() + 1).padStart(2, '0')}-${String(d_now.getDate()).padStart(2, '0')}`;
-let viewDate = REAL_TODAY; 
-const MEMBERS=[
-  {id:'antonio',name:'Antonio',role:'Papà',      dot:'#378ADD',bg:'var(--a-bg)',txt:'var(--a-txt)',icon:'👨'},
-  {id:'pamela', name:'Pamela', role:'Mamma',      dot:'#D85A30',bg:'var(--p-bg)',txt:'var(--p-txt)',icon:'👩'},
-  {id:'valerio',name:'Valerio',role:'Figlio 22a', dot:'#1D9E75',bg:'var(--v-bg)',txt:'var(--v-txt)',icon:'⚽'},
-  {id:'federico',name:'Federico',role:'Figlio 14a',dot:'#29B8E0',bg:'var(--f-bg)',txt:'var(--f-txt)',icon:'🚴'},
-  {id:'sara',   name:'Sara',   role:'Figlia 14a', dot:'#7F77DD',bg:'var(--s-bg)',txt:'var(--s-txt)',icon:'💃'},
-];
-const CATS=[{id:'scuola',label:'Scuola',icon:'🎓'},{id:'universita',label:'Università',icon:'🏛'},{id:'lavoro',label:'Lavoro',icon:'💼'},{id:'sport',label:'Sport',icon:'🏃'},{id:'altro',label:'Altro',icon:'📌'}];
-const TRANS=[{id:'autonomous',label:'Autonomo',icon:'✅'},{id:'accompanied',label:'Accompagnato da',icon:'🚗'},{id:'external',label:'Aiuto esterno',icon:'📞'}];
-const RIC_TYPES=[{id:'birthday',label:'Compleanno',icon:'🎂'},{id:'anniversary',label:'Anniversario',icon:'💍'},{id:'other',label:'Altro',icon:'⭐'}];
-const MONTHS_IT=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
-let events=[],ricorrenze=[];
-let view='today',filters=MEMBERS.map(m=>m.id);
-let wkStart=weekStart(new Date(REAL_TODAY)),curMonth=new Date(REAL_TODAY);
-var editId=null,form={},ricEditId=null,ricForm={};
+let viewDate = REAL_TODAY;
+let events = [], view = 'today';
 const API_EVENTS = 'https://sheetdb.io/api/v1/zvwyy4hugc3je';
-function weekStart(d){const dt=new Date(d);const dy=dt.getDay();dt.setDate(dt.getDate()+(dy===0?-6:1-dy));dt.setHours(0,0,0,0);return dt;}
-function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
-function fmtD(d){const y=d.getFullYear();const m=String(d.getMonth()+1).padStart(2,'0');const dy=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${dy}`;}
-function M(id){return MEMBERS.find(m=>m.id===id)||MEMBERS[0];}
-function C(id){return CATS.find(c=>c.id===id)||CATS[4];}
-function ms(m){return `background:${m.bg};color:${m.txt}`;}
-function uid(){return 'e'+Date.now()+Math.random().toString(36).slice(2,5);}
-function daysUntil(md){
-  const[mm,dd]=md.split('-').map(Number);
-  const today=new Date(REAL_TODAY),yr=today.getFullYear();
-  let next=new Date(yr,mm-1,dd);
-  if(fmtD(next)<REAL_TODAY)next=new Date(yr+1,mm-1,dd);
-  return Math.round((next-today)/86400000);
+
+async function loadEvents() {
+  const res = await fetch(API_EVENTS);
+  const data = await res.json();
+  events = data.map(row => ({
+    id: row.ID, title: row.Titolo, date: row.Data, 
+    startTime: row['Ora Inizio'], endTime: row['Ora Fine'],
+    members: (row.Membro || '').split(',').map(s=>s.trim())
+  }));
+  renderView();
 }
-function fmtMD(md){const[mm,dd]=md.split('-').map(Number);return `${dd} ${MONTHS_IT[mm-1]}`;}
-async function loadEvents(){
+
+async function loadWeather() {
   try {
-    const res = await fetch(API_EVENTS);
+    const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=41.99&longitude=12.72&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=Europe%2FRome&forecast_days=3');
     const data = await res.json();
-    if(data && data.length > 0 && data[0].ID) {
-        events = data.map(row => ({id:row.ID,title:row.Titolo,date:row.Data,startTime:row['Ora Inizio'],endTime:row['Ora Fine'],members:(row.Membro||'').split(',').map(s=>s.trim()).filter(Boolean),category:row.Categoria,transport:{type:row['Trasporto Tipo'],by:row['Trasporto Da'],note:row['Trasporto Note']},notes:row.Note}));
-    } else { events = []; }
-  } catch(e) { events = []; }
+    const codes = {0:'☀️',1:'🌤',2:'⛅',3:'☁️',51:'🌧',61:'☔',71:'❄️',95:'⛈'};
+    let html = '';
+    for(let i=0; i<3; i++) html += `<span>${['Oggi','Dom','Dop'][i]}:${codes[data.daily.weathercode[i]]||'☁️'} ${Math.round(data.daily.temperature_2m_max[i])}° </span>`;
+    document.getElementById('weather-widget').innerHTML = html;
+  } catch(e) { document.getElementById('weather-widget').innerText = "Meteo non disp."; }
 }
-async function saveEvt(){
-  if(!window.form.title.trim()||!window.form.date||window.form.members.length===0){alert('Completa i campi richiesti');return;}
-  const isEdit=!!editId; const evId=isEdit?editId:uid();
-  const newRow={ID:evId,Titolo:window.form.title,Data:window.form.date,"Ora Inizio":window.form.startTime,"Ora Fine":window.form.endTime,Membro:window.form.members.join(','),Categoria:window.form.category,"Trasporto Tipo":window.form.transport.type,"Trasporto Da":window.form.transport.by,"Trasporto Note":window.form.transport.note,Note:window.form.notes};
-  if(isEdit){events[events.findIndex(e=>e.id===editId)]={...window.form,id:editId};fetch(`${API_EVENTS}/ID/${editId}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:newRow})});}
-  else{events.push({...window.form,id:evId});fetch(API_EVENTS,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:newRow})});}
-  closeModal();renderView();
+
+function renderView() {
+  const el = document.getElementById('view');
+  if(view === 'today') {
+    const todayEvs = events.filter(e => e.date === viewDate);
+    el.innerHTML = `<h3>${viewDate}</h3>` + todayEvs.map(e => `<div class="ev-card" onclick="openModal('${e.id}')">${e.startTime} - ${e.title}</div>`).join('');
+  } else {
+    el.innerHTML = "Vista in aggiornamento...";
+  }
 }
-async function delEvt(id){
-  if(!confirm('Eliminare?'))return;
-  events=events.filter(e=>e.id!==id);fetch(`${API_EVENTS}/ID/${id}`,{method:'DELETE'});closeModal();renderView();
-}
-async function loadRic(){
-  try {const res=await fetch(API_EVENTS+'?sheet=Ricorrenze');const data=await res.json();ricorrenze=(data&&data[0]&&data[0].ID)?data.map(r=>({id:r.ID,title:r.Titolo,date:r.Data,type:r.Tipo,member:r.Membro||''})):[];}catch(e){ricorrenze=[];}
-}
-async function loadWeather(){
-  try {
-    const res=await fetch('https://api.open-meteo.com/v1/forecast?latitude=41.99&longitude=12.72&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=Europe%2FRome&forecast_days=3');
-    const data=await res.json(); const d=data.daily;
-    const codes={0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',51:'🌧',61:'☔',71:'❄️',95:'⛈'};
-    let html='';
-    for(let i=0;i<3;i++){html+=`<span class="w-day"><b>${['Oggi','Dom','Dop'][i]}</b> ${codes[d.weathercode[i]]||'☁️'} ${Math.round(d.temperature_2m_max[i])}°/${Math.round(d.temperature_2m_min[i])}°</span>`;}
-    const w=document.getElementById('weather-widget');w.innerHTML=html;w.style.display='block';
-  }catch(e){document.getElementById('weather-widget').style.display='none';}
-}
-function render(){renderFilters();renderView();}
-function renderFilters(){document.getElementById('filters').innerHTML=MEMBERS.map(m=>`<div class="pill${filters.includes(m.id)?'':' off'}" onclick="toggleF('${m.id}')" style="${ms(m)}"><span class="dot8" style="background:${m.dot}"></span>${m.icon} ${m.name}</div>`).join('');}
-function toggleF(id){if(filters.includes(id)){if(filters.length>1)filters=filters.filter(f=>f!==id);}else filters.push(id);render();}
-function hdrAdd(){if(view==='ricorrenze')openRicModal(null);else openModal(null);}
-function switchView(v){view=v;['today','week','month','trasporti','ricorrenze'].forEach(t=>document.getElementById('t-'+t).classList.toggle('active',t===v));document.getElementById('filters').style.display=['today','week','month'].includes(v)?'flex':'none';renderView();}
-function renderView(){const el=document.getElementById('view');if(view==='today')el.innerHTML=todayView();else if(view==='week')el.innerHTML=weekView();else if(view==='month')el.innerHTML=monthView();else if(view==='trasporti')el.innerHTML=trasportiView();else el.innerHTML=ricorrenzeView();}
-function bdayBanners(d_str){return ricorrenze.filter(r=>r.date===d_str.slice(5)).map(r=>{const mb=r.member?M(r.member):null;return `<div class="bday-banner" style="${mb?ms(mb):''}"><span style="font-size:28px">${r.type==='anniversary'?'💍':'🎂'}</span><div><div style="font-weight:700;font-size:14px">${r.title}</div><div style="font-size:12px;opacity:.8">🎉</div></div></div>`;}).join('');}
-function todayView(){
-  const evs=events.filter(e=>e.date===viewDate && e.members.some(m=>filters.includes(m))).sort((a,b)=>a.startTime.localeCompare(b.startTime));
-  const byM={};MEMBERS.forEach(m=>byM[m.id]=[]);
-  evs.forEach(e=>{e.members.forEach(mid=>{if(byM[mid]&&filters.includes(mid))byM[mid].push(e);});});
-  const lbl=new Date(viewDate).toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
-  let h=bdayBanners(viewDate)+`<div class="sec-lbl" style="display:flex;align-items:center;width:100%">📅 ${lbl.charAt(0).toUpperCase()+lbl.slice(1)} ${viewDate===REAL_TODAY?'':`<button onclick="viewDate=REAL_TODAY;renderView()" style="margin-left:auto;background:var(--color-background-secondary);border:0.5px solid rgba(0,0,0,0.1);padding:4px 8px;border-radius:6px;color:var(--a-dot);font-weight:700;font-size:10px;cursor:pointer">OGGI</button>`}</div>`;
-  let activeHtml='',freeMembers=[];
-  MEMBERS.filter(m=>filters.includes(m.id)).forEach(m=>{
-    if(!byM[m.id].length)freeMembers.push(m);
-    else{activeHtml+=`<div class="mem-sec"><div class="mem-hdr"><div class="avatar" style="${ms(m)}">${m.icon}</div><div><div style="font-size:14px;font-weight:600">${m.name}</div></div></div><div class="mem-body">`;byM[m.id].forEach(e=>{activeHtml+=evCard(e,m);});activeHtml+=`</div></div>`;}
-  });
-  if(!activeHtml)activeHtml=`<div class="empty-state"><span class="big">🛋️</span>Giornata libera!</div>`;
-  if(freeMembers.length>0&&activeHtml.indexOf('empty-state')===-1)activeHtml+=`<div style="text-align:center;padding:10px;font-size:11px;color:var(--color-text-secondary)">🎉 Liberi: ${freeMembers.map(m=>m.name).join(', ')}</div>`;
-  return h+activeHtml;
-}
-function evCard(e,m){const cat=C(e.category);const others=e.members.filter(mid=>mid!==m.id).map(mid=>M(mid));return `<div class="ev-card" onclick="openModal('${e.id}')"><div class="ev-strip" style="background:${m.dot}"></div><div class="ev-time">${e.startTime}<br>${e.endTime}</div><div class="ev-info"><div class="ev-title">${e.title}</div><div class="ev-meta"><span class="badge" style="${ms(m)}">${cat.icon} ${cat.label}</span>${others.map(o=>o.icon).join('')}</div></div></div>`;}
-// (Funzioni weekView, monthView, etc. omesse per brevità ma incluse nel copia-incolla completo)
-// ... [Copia il resto del codice qui per completare le funzioni di sistema]
+
+function switchView(v) { view = v; renderView(); }
+function openModal(id) { document.getElementById('modal-ov').style.display = 'flex'; }
+function closeModal() { document.getElementById('modal-ov').style.display = 'none'; }
+
+loadEvents();
+loadWeather();
 </script>
 </body>
 </html>
