@@ -1,0 +1,549 @@
+
+<!DOCTYPE html>
+<html lang="it">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --a-bg:#E6F1FB;--a-txt:#0C447C;--a-dot:#378ADD;
+  --p-bg:#FAECE7;--p-txt:#712B13;--p-dot:#D85A30;
+  --v-bg:#E1F5EE;--v-txt:#085041;--v-dot:#1D9E75;
+  --f-bg:#DAEEFF;--f-txt:#0B5A7A;--f-dot:#29B8E0;
+  --s-bg:#EEEDFE;--s-txt:#3C3489;--s-dot:#7F77DD;
+}
+@media(prefers-color-scheme:dark){:root{
+  --a-bg:#042C53;--a-txt:#B5D4F4;
+  --p-bg:#4A1B0C;--p-txt:#F5C4B3;
+  --v-bg:#04342C;--v-txt:#9FE1CB;
+  --f-bg:#041C28;--f-txt:#9DD9F0;
+  --s-bg:#26215C;--s-txt:#CECBF6;
+}}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--color-background-tertiary,#f5f4f0);color:var(--color-text-primary,#1a1a18);font-size:14px}
+#app{position:relative;min-height:600px;max-width:900px;margin:0 auto}
+.hdr{background:var(--color-background-primary,#fff);border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));padding:14px 20px 0;position:sticky;top:0;z-index:10}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{width:36px;height:36px;border-radius:10px;background:var(--a-bg);color:var(--a-txt);display:flex;align-items:center;justify-content:center;font-size:18px}
+.brand-name{font-size:17px;font-weight:600;letter-spacing:-.01em}
+.brand-sub{font-size:11px;color:var(--color-text-secondary,#888);margin-top:1px}
+.add-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.25));background:var(--color-background-primary,#fff);cursor:pointer;font-size:13px;font-weight:500;color:var(--color-text-primary,#1a1a18);transition:background .1s;white-space:nowrap}
+.add-btn:hover{background:var(--color-background-secondary,#f0efeb)}
+.tabs{display:flex;gap:2px;overflow-x:auto}
+.tab{padding:8px 13px;font-size:12px;border:none;background:none;cursor:pointer;border-radius:8px 8px 0 0;color:var(--color-text-secondary,#888);font-weight:400;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:5px;flex-shrink:0}
+.tab.active{color:var(--color-text-primary,#1a1a18);font-weight:600;background:var(--color-background-secondary,#f0efeb)}
+.filters{background:var(--color-background-secondary,#f0efeb);padding:10px 20px;display:flex;gap:8px;flex-wrap:wrap;border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12))}
+.pill{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid transparent;transition:opacity .15s,transform .1s;user-select:none}
+.pill:hover{transform:scale(1.03)}
+.pill.off{opacity:.28}
+.dot8{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.content{padding:16px 20px 80px}
+.sec-lbl{font-size:11px;color:var(--color-text-secondary,#888);letter-spacing:.06em;margin-bottom:14px;font-weight:600;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.mem-sec{margin-bottom:22px;background:var(--color-background-primary,#fff);border-radius:12px;border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));overflow:hidden}
+.mem-hdr{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12))}
+.avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
+.mem-body{padding:8px 14px 10px}
+.no-ev{font-size:12px;color:var(--color-text-tertiary,#aaa);padding:6px 0;display:flex;align-items:center;gap:6px}
+.ev-card{display:flex;align-items:flex-start;gap:10px;padding:9px 10px;border-radius:8px;background:var(--color-background-secondary,#f5f4f0);margin-bottom:6px;cursor:pointer;transition:background .1s;position:relative}
+.ev-card:hover{background:var(--color-background-tertiary,#ece9e1)}
+.ev-strip{width:3px;border-radius:2px;align-self:stretch;flex-shrink:0;min-height:36px}
+.ev-time{font-size:11px;color:var(--color-text-secondary,#888);min-width:58px;padding-top:1px;line-height:1.7;flex-shrink:0}
+.ev-info{flex:1;min-width:0}
+.ev-title{font-size:13px;font-weight:600;margin-bottom:5px;line-height:1.3}
+.ev-meta{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;white-space:nowrap}
+.ev-note{font-size:11px;color:var(--color-text-secondary,#888);margin-top:5px;display:flex;align-items:center;gap:5px}
+.del-btn{background:none;border:none;cursor:pointer;color:var(--color-text-secondary,#888);padding:4px 6px;border-radius:4px;position:absolute;top:6px;right:6px;opacity:0;transition:opacity .15s;font-size:14px;line-height:1}
+.ev-card:hover .del-btn{opacity:.45}
+.del-btn:hover{opacity:1!important;color:#e24b4a}
+.nav-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;background:var(--color-background-primary,#fff);padding:10px 14px;border-radius:10px;border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12))}
+.nav-lbl{font-size:14px;font-weight:600;display:flex;align-items:center;gap:7px}
+.nav-btn{background:none;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.25));border-radius:6px;cursor:pointer;padding:4px 12px;color:var(--color-text-primary,#1a1a18);font-size:16px;transition:background .1s;line-height:1.4}
+.nav-btn:hover{background:var(--color-background-secondary,#f0efeb)}
+.wk-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.day-col{min-height:220px}
+.day-hdr{text-align:center;padding:7px 4px 5px;border-radius:8px;margin-bottom:8px;background:var(--color-background-primary,#fff);border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12))}
+.day-hdr.td{background:var(--color-background-info,#e6f1fb);border-color:var(--color-border-info,#378ADD)}
+.d-name{font-size:10px;color:var(--color-text-secondary,#888);display:block;margin-bottom:2px;font-weight:500}
+.d-num{font-size:16px;font-weight:700;display:block}
+.day-hdr.td .d-num{color:var(--color-text-info,#0C447C)}
+.wk-bday{font-size:9px;margin-top:3px;display:block;background:rgba(239,159,39,.15);color:#633806;padding:1px 4px;border-radius:3px}
+.wk-ev{padding:5px 7px;border-radius:6px;font-size:10px;margin-bottom:3px;cursor:pointer;line-height:1.4;border:0.5px solid rgba(0,0,0,.08)}
+.wk-ev-name{font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wk-ev-time{display:block;opacity:.75}
+.wk-add{width:100%;margin-top:4px;padding:5px;border-radius:6px;border:0.5px dashed var(--color-border-secondary,rgba(0,0,0,.25));background:none;cursor:pointer;color:var(--color-text-tertiary,#aaa);font-size:14px;transition:all .15s;line-height:1}
+.wk-add:hover{background:var(--color-background-secondary,#f0efeb);color:var(--color-text-secondary,#888)}
+.mn-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));border-radius:10px;overflow:hidden}
+.mn-dh{text-align:center;padding:8px;font-size:10px;color:var(--color-text-secondary,#888);background:var(--color-background-secondary,#f0efeb);border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));font-weight:600}
+.mn-day{min-height:74px;padding:5px;background:var(--color-background-primary,#fff);border-right:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));cursor:pointer;transition:background .1s}
+.mn-day:hover{background:var(--color-background-secondary,#f0efeb)}
+.mn-day.td{background:var(--color-background-info,#e6f1fb)}
+.mn-day.other{opacity:.3}
+.mn-dn{font-size:12px;font-weight:600;margin-bottom:4px;display:block}
+.mn-day.td .mn-dn{color:var(--color-text-info,#0C447C)}
+.dots{display:flex;flex-wrap:wrap;gap:2px}
+.mn-dot{width:7px;height:7px;border-radius:50%;cursor:pointer;flex-shrink:0}
+.mn-dot-r{width:7px;height:7px;border-radius:2px;flex-shrink:0}
+.mn-more{font-size:9px;color:var(--color-text-secondary,#888);margin-top:3px;font-weight:500}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:20px}
+.stat-card{border-radius:10px;padding:12px 14px;border:0.5px solid rgba(0,0,0,.08);display:flex;flex-direction:column;gap:4px}
+.stat-num{font-size:22px;font-weight:700}
+.stat-lbl{font-size:10px;opacity:.75}
+.bday-banner{border-radius:10px;padding:13px 16px;margin-bottom:12px;display:flex;align-items:center;gap:12px;border:0.5px solid rgba(0,0,0,.08)}
+.tr-day-hdr{font-size:12px;font-weight:600;margin-bottom:8px;padding-bottom:4px;border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12))}
+.empty-state{text-align:center;padding:48px 20px;color:var(--color-text-tertiary,#aaa)}
+.empty-state .big{font-size:40px;display:block;margin-bottom:12px}
+#modal-ov{display:none;position:absolute;top:0;left:0;width:100%;background:rgba(0,0,0,.45);z-index:999;padding:24px 16px;align-items:flex-start;justify-content:center}
+.modal{background:var(--color-background-primary,#fff);border-radius:14px;border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));width:100%;max-width:460px;padding:20px;box-shadow:0 8px 32px rgba(0,0,0,.18)}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12))}
+.modal-ttl{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
+.cl-btn{background:none;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.25));border-radius:6px;cursor:pointer;color:var(--color-text-secondary,#888);padding:3px 10px;font-size:16px;transition:background .1s;line-height:1.5}
+.cl-btn:hover{background:var(--color-background-secondary,#f0efeb)}
+.fgrp{margin-bottom:12px}
+.flbl{display:block;font-size:10px;color:var(--color-text-secondary,#888);margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.t-row{display:flex;gap:6px;align-items:center}
+input,select,textarea{font-family:inherit;font-size:13px;color:var(--color-text-primary,#1a1a18);background:var(--color-background-secondary,#f5f4f0);border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.25));border-radius:7px;padding:8px 10px;width:100%;transition:border .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#0C447C;box-shadow:0 0 0 2px rgba(56,138,221,.15)}
+.tr-sec{border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));border-radius:9px;padding:12px;margin-bottom:12px;background:var(--color-background-secondary,#f5f4f0)}
+.tr-lbl{font-size:10px;color:var(--color-text-secondary,#888);font-weight:700;margin-bottom:8px;display:block;text-transform:uppercase;letter-spacing:.05em}
+.tr-opts{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.tr-btn{padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.25));background:var(--color-background-primary,#fff);color:var(--color-text-secondary,#888);font-family:inherit;transition:all .12s;display:flex;align-items:center;gap:5px;font-weight:500}
+.tr-btn.sel{background:var(--a-bg);color:var(--a-txt);border-color:var(--a-dot);font-weight:700}
+.modal-actions{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:14px;border-top:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12))}
+.btn-del-ev{background:none;border:none;cursor:pointer;color:#a32d2d;font-size:12px;font-family:inherit;display:flex;align-items:center;gap:4px;padding:5px 8px;border-radius:6px;font-weight:500}
+.btn-del-ev:hover{background:#fcebeb}
+.btn-row{display:flex;gap:8px}
+.btn-cancel{background:none;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.25));border-radius:7px;padding:8px 16px;cursor:pointer;font-size:13px;font-family:inherit;color:var(--color-text-secondary,#888)}
+.btn-save{background:var(--a-bg);border:none;border-radius:7px;padding:8px 20px;cursor:pointer;font-size:13px;font-family:inherit;color:var(--a-txt);font-weight:700;transition:opacity .15s}
+.btn-save:hover{opacity:.8}
+.empty-week{text-align:center;padding:20px 0;color:var(--color-text-tertiary,#aaa);font-size:16px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="main">
+    <div class="hdr">
+      <div class="hdr-top">
+        <div class="brand">
+          <div class="brand-icon">🏠</div>
+          <div><div class="brand-name">Casa Decino</div><div class="brand-sub">Agenda di famiglia</div></div>
+        </div>
+        <button class="add-btn" id="hdr-add" onclick="hdrAdd()">＋ <span id="hdr-add-lbl">Aggiungi evento</span></button>
+      </div>
+      <div class="tabs">
+        <button class="tab active" id="t-today"    onclick="switchView('today')">📅 Oggi</button>
+        <button class="tab" id="t-week"       onclick="switchView('week')">🗓 Settimana</button>
+        <button class="tab" id="t-month"      onclick="switchView('month')">📆 Mese</button>
+        <button class="tab" id="t-trasporti"  onclick="switchView('trasporti')">🚗 Trasporti</button>
+        <button class="tab" id="t-ricorrenze" onclick="switchView('ricorrenze')">🎂 Ricorrenze</button>
+      </div>
+    </div>
+    <div class="filters" id="filters"></div>
+    <div class="content" id="view"></div>
+  </div>
+  <div id="modal-ov"><div class="modal" id="modal-box"></div></div>
+</div>
+
+<script>
+const TODAY='2026-06-25';
+const MEMBERS=[
+  {id:'antonio',name:'Antonio',role:'Papà',      dot:'#378ADD',bg:'var(--a-bg)',txt:'var(--a-txt)',icon:'👨'},
+  {id:'pamela', name:'Pamela', role:'Mamma',      dot:'#D85A30',bg:'var(--p-bg)',txt:'var(--p-txt)',icon:'👩'},
+  {id:'valerio',name:'Valerio',role:'Figlio 22a', dot:'#1D9E75',bg:'var(--v-bg)',txt:'var(--v-txt)',icon:'⚽'},
+  {id:'federico',name:'Federico',role:'Figlio 14a',dot:'#29B8E0',bg:'var(--f-bg)',txt:'var(--f-txt)',icon:'🚴'},
+  {id:'sara',   name:'Sara',   role:'Figlia 14a', dot:'#7F77DD',bg:'var(--s-bg)',txt:'var(--s-txt)',icon:'💃'},
+];
+const CATS=[
+  {id:'scuola',    label:'Scuola',     icon:'🎓'},
+  {id:'universita',label:'Università', icon:'🏛'},
+  {id:'lavoro',    label:'Lavoro',     icon:'💼'},
+  {id:'sport',     label:'Sport',      icon:'🏃'},
+  {id:'altro',     label:'Altro',      icon:'📌'},
+];
+const TRANS=[
+  {id:'autonomous', label:'Autonomo',       icon:'✅'},
+  {id:'accompanied',label:'Accompagnato da',icon:'🚗'},
+  {id:'external',   label:'Aiuto esterno',  icon:'📞'},
+];
+const RIC_TYPES=[
+  {id:'birthday',   label:'Compleanno', icon:'🎂'},
+  {id:'anniversary',label:'Anniversario',icon:'💍'},
+  {id:'other',      label:'Altro',      icon:'⭐'},
+];
+const MONTHS_IT=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+
+const SAMPLE_EVENTS=[
+  {id:'e01',title:'Scuola',date:'2026-06-22',startTime:'08:00',endTime:'13:00',member:'federico',category:'scuola',transport:{type:'autonomous',by:'',note:''},notes:''},
+  {id:'e02',title:'Scuola',date:'2026-06-22',startTime:'08:00',endTime:'13:00',member:'sara',category:'scuola',transport:{type:'autonomous',by:'',note:''},notes:''},
+  {id:'e03',title:'Lavoro',date:'2026-06-22',startTime:'09:00',endTime:'18:00',member:'antonio',category:'lavoro',transport:{type:'autonomous',by:'',note:''},notes:''},
+  {id:'e04',title:'Lavoro',date:'2026-06-22',startTime:'09:00',endTime:'13:00',member:'pamela',category:'lavoro',transport:{type:'autonomous',by:'',note:''},notes:''},
+  {id:'e05',title:'Esame Analisi Matematica',date:'2026-06-22',startTime:'10:00',endTime:'13:00',member:'valerio',category:'universita',transport:{type:'autonomous',by:'',note:''},notes:'Portare documento'},
+  {id:'e06',title:'Allenamento calcio',date:'2026-06-22',startTime:'17:00',endTime:'19:00',member:'federico',category:'sport',transport:{type:'accompanied',by:'antonio',note:''},notes:''},
+  {id:'e07',title:'Scuola',date:'2026-06-23',startTime:'08:00',endTime:'13:00',member:'federico',category:'scuola',transport:{type:'autonomous',by:'',note:''},notes:''},
+  {id:'e08',title:'Scuola',date:'2026-06-23',startTime:'08:00',endTime:'13:00',member:'sara',category:'scuola',transport:{type:'autonomous',by:'',note:''},notes:''},
+  {id:'e09',title:'Lavoro',date:'2026-06-23',startTime:'09:00',endTime:'18:00',member:'antonio',category:'lavoro',transport:{type:'autonomous',by:'',note:''},notes:''},
+  {id:'e10',title:'Palestra',date:'2026-06-23',startTime:'16:00',endTime:'17:30',member:'sara',category:'sport',transport:{type:'accompanied',by:'pamela',note:''},notes:''},
+  {id:'e11',title:'Scuola',date:'2026-06-24',startTime:'08:00',endTime:'13:00',member:'federico',category:'scuola',transport:{type:'autonomous',by:'',note:''},notes:''},
+  {id:'e12',title:'Scuola',date:'2026-06-24',startTime:'08:00',endTime:'13:00',member:'sara',category:'scuola',transport:{type:'autonomous',by:'',note:''},notes:''},
+  {id:'e13',title:'Lavoro',date:'2026-06-24',startTime:'09:00',endTime:'18:00',member:'antonio',category:'lavoro',transport:{type:'autonomous',by:'',note:''},notes:''},
+  {id:'e14',title:'Lezione — Fisica',date:'2026-06-24',startTime:'14:00',endTime:'17:00',member:'valerio',category:'universita',transport:{type:'autonomous',by:'',note:''},notes:''},
+  {id:'e15',title:'Visita medica',date:'2026-06-24',startTime:'11:00',endTime:'12:00',member:'pamela',category:'altro',transport:{type:'autonomous',by:'',note:''},notes:''},
+  {id:'e16',title:'Lavoro',date:'2026-06-25',startTime:'09:00',endTime:'18:00',member:'antonio',category:'lavoro',transport:{type:'autonomous',by:'',note:''},notes:''},
+  {id:'e17',title:'Scuola',date:'2026-06-25',startTime:'08:00',endTime:'13:00',member:'federico',category:'scuola',transport:{type:'autonomous',by:'',note:''},notes:''},
+  {id:'e18',title:'Scuola',date:'2026-06-25',startTime:'08:00',endTime:'13:00',member:'sara',category:'scuola',transport:{type:'autonomous',by:'',note:''},notes:''},
+  {id:'e19',title:'Lezione — Storia',date:'2026-06-25',startTime:'14:00',endTime:'17:00',member:'valerio',category:'universita',transport:{type:'autonomous',by:'',note:''},notes:''},
+  {id:'e20',title:'Ginecologa',date:'2026-06-25',startTime:'10:30',endTime:'11:30',member:'pamela',category:'altro',transport:{type:'autonomous',by:'',note:''},notes:''},
+  {id:'e21',title:'Allenamento calcio',date:'2026-06-26',startTime:'17:00',endTime:'19:00',member:'federico',category:'sport',transport:{type:'accompanied',by:'pamela',note:''},notes:''},
+  {id:'e22',title:'Uscita con amiche',date:'2026-06-26',startTime:'15:00',endTime:'18:00',member:'sara',category:'altro',transport:{type:'accompanied',by:'antonio',note:''},notes:''},
+  {id:'e23',title:'Lavoro — mattina',date:'2026-06-27',startTime:'09:00',endTime:'13:00',member:'antonio',category:'lavoro',transport:{type:'autonomous',by:'',note:''},notes:''},
+  {id:'e24',title:'Commissioni',date:'2026-06-27',startTime:'10:00',endTime:'12:00',member:'pamela',category:'altro',transport:{type:'autonomous',by:'',note:''},notes:''},
+  {id:'e25',title:'Palestra',date:'2026-06-27',startTime:'10:00',endTime:'11:30',member:'valerio',category:'sport',transport:{type:'autonomous',by:'',note:''},notes:''},
+];
+const SAMPLE_RIC=[
+  {id:'r1',title:'Compleanno Antonio',date:'06-28',type:'birthday',member:'antonio'},
+  {id:'r2',title:'Compleanno Pamela',date:'03-15',type:'birthday',member:'pamela'},
+  {id:'r3',title:'Compleanno Valerio',date:'09-10',type:'birthday',member:'valerio'},
+  {id:'r4',title:'Compleanno Federico',date:'11-22',type:'birthday',member:'federico'},
+  {id:'r5',title:'Compleanno Sara',date:'04-05',type:'birthday',member:'sara'},
+  {id:'r6',title:'Anniversario Antonio & Pamela',date:'07-14',type:'anniversary',member:''},
+];
+
+let events=[],ricorrenze=[];
+let view='today',filters=MEMBERS.map(m=>m.id);
+let wkStart=weekStart(new Date(TODAY)),curMonth=new Date(TODAY);
+let editId=null,form={},ricEditId=null,ricForm={};
+
+function weekStart(d){const dt=new Date(d);const dy=dt.getDay();dt.setDate(dt.getDate()+(dy===0?-6:1-dy));dt.setHours(0,0,0,0);return dt;}
+function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
+function fmtD(d){return d.toISOString().slice(0,10);}
+function M(id){return MEMBERS.find(m=>m.id===id)||MEMBERS[0];}
+function C(id){return CATS.find(c=>c.id===id)||CATS[4];}
+function ms(m){return `background:${m.bg};color:${m.txt}`;}
+function uid(){return 'e'+Date.now()+Math.random().toString(36).slice(2,5);}
+function daysUntil(md){
+  const[mm,dd]=md.split('-').map(Number);
+  const today=new Date(TODAY),yr=today.getFullYear();
+  let next=new Date(yr,mm-1,dd);
+  if(fmtD(next)<TODAY)next=new Date(yr+1,mm-1,dd);
+  return Math.round((next-today)/86400000);
+}
+function fmtMD(md){const[mm,dd]=md.split('-').map(Number);return `${dd} ${MONTHS_IT[mm-1]}`;}
+
+async function loadEvents(){
+  try{const r=await window.storage.get('casa-decino-v3');if(r&&r.value){events=JSON.parse(r.value);}else{events=[...SAMPLE_EVENTS];await saveEv2();}}catch{events=[...SAMPLE_EVENTS];}
+}
+async function saveEv2(){try{await window.storage.set('casa-decino-v3',JSON.stringify(events));}catch{}}
+async function loadRic(){
+  try{const r=await window.storage.get('casa-decino-ric-v1');if(r&&r.value){ricorrenze=JSON.parse(r.value);}else{ricorrenze=[...SAMPLE_RIC];await saveRic2();}}catch{ricorrenze=[...SAMPLE_RIC];}
+}
+async function saveRic2(){try{await window.storage.set('casa-decino-ric-v1',JSON.stringify(ricorrenze));}catch{}}
+
+function render(){renderFilters();renderView();}
+function renderFilters(){
+  document.getElementById('filters').innerHTML=MEMBERS.map(m=>
+    `<div class="pill${filters.includes(m.id)?'':' off'}" onclick="toggleF('${m.id}')" style="${ms(m)}">
+      <span class="dot8" style="background:${m.dot}"></span>${m.icon} ${m.name}
+    </div>`).join('');
+}
+function toggleF(id){
+  if(filters.includes(id)){if(filters.length>1)filters=filters.filter(f=>f!==id);}else filters.push(id);
+  render();
+}
+function hdrAdd(){if(view==='ricorrenze')openRicModal(null);else openModal(null);}
+function switchView(v){
+  view=v;
+  ['today','week','month','trasporti','ricorrenze'].forEach(t=>document.getElementById('t-'+t).classList.toggle('active',t===v));
+  document.getElementById('filters').style.display=['today','week','month'].includes(v)?'flex':'none';
+  document.getElementById('hdr-add-lbl').textContent=v==='ricorrenze'?'Aggiungi ricorrenza':'Aggiungi evento';
+  renderView();
+}
+function renderView(){
+  const el=document.getElementById('view');
+  if(view==='today')el.innerHTML=todayView();
+  else if(view==='week')el.innerHTML=weekView();
+  else if(view==='month')el.innerHTML=monthView();
+  else if(view==='trasporti')el.innerHTML=trasportiView();
+  else el.innerHTML=ricorrenzeView();
+}
+
+/* ── TODAY ── */
+function bdayBanners(){
+  const md=TODAY.slice(5);
+  return ricorrenze.filter(r=>r.date===md).map(r=>{
+    const mb=r.member?M(r.member):null;
+    const style=mb?ms(mb):'background:var(--color-background-secondary,#f0efeb);color:var(--color-text-primary)';
+    const ico=r.type==='anniversary'?'💍':'🎂';
+    return `<div class="bday-banner" style="${style}"><span style="font-size:28px">${ico}</span><div><div style="font-weight:700;font-size:14px">${r.title}</div><div style="font-size:12px;opacity:.8">Oggi! 🎉</div></div></div>`;
+  }).join('');
+}
+function todayView(){
+  const evs=events.filter(e=>e.date===TODAY&&filters.includes(e.member)).sort((a,b)=>a.startTime.localeCompare(b.startTime));
+  const byM={};MEMBERS.forEach(m=>byM[m.id]=[]);
+  evs.forEach(e=>{if(byM[e.member])byM[e.member].push(e);});
+  const lbl=new Date(TODAY).toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  let h=bdayBanners();
+  h+=`<div class="sec-lbl">📅 ${lbl.charAt(0).toUpperCase()+lbl.slice(1)}</div>`;
+  MEMBERS.filter(m=>filters.includes(m.id)).forEach(m=>{
+    const me=byM[m.id];
+    h+=`<div class="mem-sec"><div class="mem-hdr">
+      <div class="avatar" style="${ms(m)}">${m.icon}</div>
+      <div><div style="font-size:14px;font-weight:600">${m.name}</div><div style="font-size:11px;color:var(--color-text-secondary,#888)">${m.role}</div></div>
+      <span style="margin-left:auto;font-size:12px;color:var(--color-text-secondary,#888);font-weight:600">${me.length?me.length+' event'+(me.length>1?'i':'o'):''}</span>
+    </div><div class="mem-body">`;
+    if(!me.length)h+=`<div class="no-ev">😊 Nessun impegno oggi</div>`;
+    else me.forEach(e=>{h+=evCard(e,m);});
+    h+=`</div></div>`;
+  });
+  return h;
+}
+function evCard(e,m){
+  if(!m)m=M(e.member);
+  const cat=C(e.category);const tr=e.transport;
+  let tb='';
+  if(tr.type==='autonomous')tb=`<span class="badge" style="background:#EAF3DE;color:#27500A">✅ Autonomo</span>`;
+  else if(tr.type==='accompanied'){const w=M(tr.by);tb=`<span class="badge" style="background:#FAEEDA;color:#633806">🚗 Con ${w.name}</span>`;}
+  else tb=`<span class="badge" style="background:#FAECE7;color:#712B13">📞 Aiuto${tr.note?': '+tr.note:''}</span>`;
+  return `<div class="ev-card" onclick="openModal('${e.id}')">
+    <div class="ev-strip" style="background:${m.dot}"></div>
+    <div class="ev-time">${e.startTime}<br>${e.endTime}</div>
+    <div class="ev-info">
+      <div class="ev-title">${e.title}</div>
+      <div class="ev-meta"><span class="badge" style="${ms(m)}">${cat.icon} ${cat.label}</span>${tb}</div>
+      ${e.notes?`<div class="ev-note">📝 ${e.notes}</div>`:''}
+    </div>
+    <button class="del-btn" onclick="event.stopPropagation();delEvt('${e.id}')" aria-label="Elimina">✕</button>
+  </div>`;
+}
+
+/* ── WEEK ── */
+function weekView(){
+  const DAYS=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
+  const end=addDays(wkStart,6);
+  const lbl=wkStart.toLocaleDateString('it-IT',{day:'numeric',month:'short'})+' — '+end.toLocaleDateString('it-IT',{day:'numeric',month:'short',year:'numeric'});
+  let h=`<div class="nav-row">
+    <button class="nav-btn" onclick="wkStart=addDays(wkStart,-7);renderView()">‹</button>
+    <span class="nav-lbl">🗓 ${lbl}</span>
+    <button class="nav-btn" onclick="wkStart=addDays(wkStart,7);renderView()">›</button>
+  </div><div class="wk-grid">`;
+  for(let i=0;i<7;i++){
+    const d=addDays(wkStart,i);const ds=fmtD(d);const it=ds===TODAY;
+    const de=events.filter(e=>e.date===ds&&filters.includes(e.member)).sort((a,b)=>a.startTime.localeCompare(b.startTime));
+    const ric=ricorrenze.filter(r=>r.date===ds.slice(5));
+    const ricBadge=ric.length?`<span class="wk-bday">🎂 ${ric.map(r=>r.title.split(' ')[1]||r.title).join(', ')}</span>`:'';
+    h+=`<div class="day-col"><div class="day-hdr${it?' td':''}"><span class="d-name">${DAYS[i]}</span><span class="d-num">${d.getDate()}</span>${ricBadge}</div>`;
+    if(!de.length)h+=`<div class="empty-week">·</div>`;
+    de.forEach(e=>{const m=M(e.member);h+=`<div class="wk-ev" style="${ms(m)}" onclick="openModal('${e.id}')"><span class="wk-ev-name">${e.title}</span><span class="wk-ev-time">${e.startTime} — ${m.name}</span></div>`;});
+    h+=`<button class="wk-add" onclick="openModalForDate('${ds}')">＋</button></div>`;
+  }
+  return h+'</div>';
+}
+
+/* ── MONTH ── */
+function monthView(){
+  const yr=curMonth.getFullYear(),mo=curMonth.getMonth();
+  const mn=curMonth.toLocaleDateString('it-IT',{month:'long',year:'numeric'});
+  const fd=new Date(yr,mo,1),ld=new Date(yr,mo+1,0);
+  let dow=fd.getDay()-1;if(dow<0)dow=6;
+  const DAYS=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
+  let h=`<div class="nav-row">
+    <button class="nav-btn" onclick="curMonth=new Date(curMonth.getFullYear(),curMonth.getMonth()-1,1);renderView()">‹</button>
+    <span class="nav-lbl">📆 ${mn.charAt(0).toUpperCase()+mn.slice(1)}</span>
+    <button class="nav-btn" onclick="curMonth=new Date(curMonth.getFullYear(),curMonth.getMonth()+1,1);renderView()">›</button>
+  </div><div class="mn-grid">`;
+  DAYS.forEach(d=>{h+=`<div class="mn-dh">${d}</div>`;});
+  for(let i=0;i<dow;i++){const d2=new Date(fd);d2.setDate(fd.getDate()-(dow-i));h+=mnDay(d2,true);}
+  for(let d=1;d<=ld.getDate();d++){h+=mnDay(new Date(yr,mo,d),false);}
+  const tot=dow+ld.getDate(),rem=(7-tot%7)%7;
+  for(let i=1;i<=rem;i++){const d2=new Date(ld);d2.setDate(ld.getDate()+i);h+=mnDay(d2,true);}
+  return h+'</div>';
+}
+function mnDay(date,other){
+  const ds=fmtD(date),it=ds===TODAY;
+  const de=events.filter(e=>e.date===ds&&filters.includes(e.member));
+  const ric=ricorrenze.filter(r=>r.date===ds.slice(5));
+  const vis=de.slice(0,5),more=de.length-vis.length;
+  let h=`<div class="mn-day${it?' td':''}${other?' other':''}" onclick="openModalForDate('${ds}')">
+    <span class="mn-dn">${date.getDate()}</span><div class="dots">`;
+  vis.forEach(e=>{const m=M(e.member);h+=`<span class="mn-dot" style="background:${m.dot}" onclick="event.stopPropagation();openModal('${e.id}')" title="${m.name} — ${e.title}"></span>`;});
+  ric.forEach(r=>{const mb=r.member?M(r.member):null;h+=`<span class="mn-dot-r" style="background:${mb?mb.dot:'#EF9F27'}" title="${r.title}"></span>`;});
+  h+=`</div>${more>0?`<div class="mn-more">+${more}</div>`:''}</div>`;
+  return h;
+}
+
+/* ── TRASPORTI ── */
+function trasportiView(){
+  const end=addDays(wkStart,6);
+  const lbl=wkStart.toLocaleDateString('it-IT',{day:'numeric',month:'short'})+' — '+end.toLocaleDateString('it-IT',{day:'numeric',month:'short',year:'numeric'});
+  let h=`<div class="nav-row">
+    <button class="nav-btn" onclick="wkStart=addDays(wkStart,-7);renderView()">‹</button>
+    <span class="nav-lbl">🚗 ${lbl}</span>
+    <button class="nav-btn" onclick="wkStart=addDays(wkStart,7);renderView()">›</button>
+  </div>`;
+  const nonAuto=[];
+  for(let i=0;i<7;i++){const d=addDays(wkStart,i);const ds=fmtD(d);events.filter(e=>e.date===ds&&e.transport.type!=='autonomous').sort((a,b)=>a.startTime.localeCompare(b.startTime)).forEach(e=>nonAuto.push({...e,_d:d}));}
+  if(!nonAuto.length){
+    h+=`<div class="empty-state"><span class="big">🚗</span><div>Nessun accompagnamento questa settimana</div><div style="font-size:12px;margin-top:6px;opacity:.7">Tutti gli impegni sono autonomi</div></div>`;
+    return h;
+  }
+  const byDriver={};MEMBERS.forEach(m=>byDriver[m.id]=[]);
+  const exts=[];
+  nonAuto.forEach(e=>{if(e.transport.type==='accompanied'&&byDriver[e.transport.by])byDriver[e.transport.by].push(e);else if(e.transport.type==='external')exts.push(e);});
+  const activeD=MEMBERS.filter(m=>byDriver[m.id].length>0);
+  if(activeD.length){
+    h+=`<div class="sec-lbl">🚗 Chi guida questa settimana</div><div class="stat-grid">`;
+    activeD.forEach(m=>{
+      const cnt=byDriver[m.id].length;
+      h+=`<div class="stat-card" style="${ms(m)}">
+        <div style="display:flex;align-items:center;gap:7px"><div class="avatar" style="${ms(m)};width:26px;height:26px;font-size:14px">${m.icon}</div><span style="font-size:13px;font-weight:600">${m.name}</span></div>
+        <div class="stat-num">${cnt}</div><div class="stat-lbl">cors${cnt===1?'a':'e'} questa settimana</div>
+      </div>`;
+    });
+    h+=`</div>`;
+  }
+  if(exts.length)h+=`<div class="sec-lbl" style="color:var(--color-text-danger,#a32d2d)">📞 Aiuto esterno — ${exts.length} event${exts.length>1?'i':'o'}</div>`;
+  h+=`<div class="sec-lbl">≡ Dettaglio per giorno</div>`;
+  const byDay={};
+  nonAuto.forEach(e=>{const ds=fmtD(e._d);if(!byDay[ds])byDay[ds]={d:e._d,evs:[]};byDay[ds].evs.push(e);});
+  Object.entries(byDay).sort(([a],[b])=>a.localeCompare(b)).forEach(([ds,{d,evs:dayEvs}])=>{
+    const isT=ds===TODAY;
+    const lbl2=d.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
+    h+=`<div style="margin-bottom:16px"><div class="tr-day-hdr" style="${isT?'color:var(--color-text-info,#0C447C)':''}">${lbl2.charAt(0).toUpperCase()+lbl2.slice(1)}${isT?' — oggi':''}</div>`;
+    dayEvs.forEach(e=>{
+      const pass=M(e.member);const cat=C(e.category);
+      let trHtml='';
+      if(e.transport.type==='accompanied'){const drv=M(e.transport.by);trHtml=`<div style="display:flex;align-items:center;gap:6px;margin-top:6px"><div class="avatar" style="${ms(drv)};width:22px;height:22px;font-size:13px">${drv.icon}</div><span class="badge" style="${ms(drv)}">${drv.name} accompagna</span></div>`;}
+      else{trHtml=`<div style="font-size:11px;color:var(--color-text-secondary,#888);margin-top:5px">📞 Aiuto esterno${e.transport.note?': '+e.transport.note:''}</div>`;}
+      h+=`<div class="ev-card" onclick="openModal('${e.id}')">
+        <div class="ev-strip" style="background:${pass.dot}"></div>
+        <div class="ev-time">${e.startTime}<br>${e.endTime}</div>
+        <div class="ev-info">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px"><div class="avatar" style="${ms(pass)};width:22px;height:22px;font-size:13px">${pass.icon}</div><span class="ev-title" style="margin:0">${e.title}</span></div>
+          <span class="badge" style="background:var(--color-background-secondary,#f0efeb);color:var(--color-text-secondary,#888)">${cat.icon} ${cat.label}</span>
+          ${trHtml}
+        </div>
+      </div>`;
+    });
+    h+=`</div>`;
+  });
+  return h;
+}
+
+/* ── RICORRENZE ── */
+function ricorrenzeView(){
+  const sorted=[...ricorrenze].sort((a,b)=>daysUntil(a.date)-daysUntil(b.date));
+  let h=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <div class="sec-lbl" style="margin:0">🎂 Compleanni & ricorrenze</div>
+    <button class="add-btn" onclick="openRicModal(null)">＋ Aggiungi</button>
+  </div>`;
+  if(!sorted.length){h+=`<div class="empty-state"><span class="big">🎂</span><div>Nessuna ricorrenza</div></div>`;return h;}
+  sorted.forEach(r=>{
+    const rt=RIC_TYPES.find(t=>t.id===r.type)||RIC_TYPES[2];
+    const mb=r.member?M(r.member):null;
+    const days=daysUntil(r.date);
+    const dayStr=days===0?'Oggi! 🎉':days===1?'Domani':`Tra ${days} giorni`;
+    const dayColor=days===0?'#a32d2d':days<=7?'#854F0B':'var(--color-text-secondary,#888)';
+    h+=`<div class="ev-card" onclick="openRicModal('${r.id}')">
+      <div class="ev-strip" style="background:${mb?mb.dot:'#EF9F27'}"></div>
+      <div style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--color-background-secondary,#f0efeb);flex-shrink:0;font-size:18px">${rt.icon}</div>
+      <div class="ev-info">
+        <div class="ev-title">${r.title}</div>
+        <div class="ev-meta">
+          <span class="badge" style="background:var(--color-background-secondary,#f0efeb);color:var(--color-text-secondary,#888)">📅 ${fmtMD(r.date)} (ogni anno)</span>
+          <span style="font-size:11px;font-weight:700;color:${dayColor}">${dayStr}</span>
+        </div>
+      </div>
+      <button class="del-btn" onclick="event.stopPropagation();deleteRic('${r.id}')" aria-label="Elimina">✕</button>
+    </div>`;
+  });
+  return h;
+}
+
+/* ── EVENT MODAL ── */
+function openModal(id){
+  editId=id;
+  if(id){const e=events.find(ev=>ev.id===id);if(!e)return;form={...e,transport:{...e.transport}};}
+  else form={id:'',title:'',date:TODAY,startTime:'08:00',endTime:'13:00',member:'antonio',category:'scuola',transport:{type:'autonomous',by:'',note:''},notes:''};
+  renderEvModal();showOv();
+}
+function openModalForDate(ds){editId=null;form={id:'',title:'',date:ds,startTime:'08:00',endTime:'13:00',member:'antonio',category:'scuola',transport:{type:'autonomous',by:'',note:''},notes:''};renderEvModal();showOv();}
+function showOv(){const ov=document.getElementById('modal-ov');ov.style.height=Math.max(document.getElementById('app').scrollHeight,700)+'px';ov.style.display='flex';}
+function closeModal(){document.getElementById('modal-ov').style.display='none';}
+
+function renderEvModal(){
+  if(form.transport.type==='accompanied'&&!form.transport.by){const o=MEMBERS.filter(m=>m.id!==form.member);if(o.length)form.transport.by=o[0].id;}
+  const mOpts=MEMBERS.map(m=>`<option value="${m.id}"${form.member===m.id?' selected':''}>${m.icon} ${m.name} (${m.role})</option>`).join('');
+  const cOpts=CATS.map(c=>`<option value="${c.id}"${form.category===c.id?' selected':''}>${c.icon} ${c.label}</option>`).join('');
+  const tBtns=TRANS.map(t=>`<button class="tr-btn${form.transport.type===t.id?' sel':''}" onclick="setTr('${t.id}')">${t.icon} ${t.label}</button>`).join('');
+  let trD='';
+  if(form.transport.type==='accompanied'){const bOpts=MEMBERS.filter(m=>m.id!==form.member).map(m=>`<option value="${m.id}"${form.transport.by===m.id?' selected':''}>${m.icon} ${m.name}</option>`).join('');trD=`<select onchange="form.transport.by=this.value">${bOpts}</select>`;}
+  else if(form.transport.type==='external'){trD=`<input type="text" placeholder="Es. Nonna, Zio Mario…" value="${form.transport.note||''}" oninput="form.transport.note=this.value">`;}
+  const cm=M(form.member);
+  document.getElementById('modal-box').innerHTML=`
+    <div class="modal-hdr">
+      <div class="modal-ttl"><div class="avatar" style="${ms(cm)};width:30px;height:30px;border-radius:8px;font-size:16px">${cm.icon}</div>${editId?'Modifica evento':'Nuovo evento'}</div>
+      <button class="cl-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="fgrp"><label class="flbl">Titolo</label><input type="text" value="${form.title.replace(/"/g,'&quot;')}" oninput="form.title=this.value" placeholder="Es. Allenamento calcio"></div>
+    <div class="frow fgrp">
+      <div><label class="flbl">Chi</label><select onchange="setMbr(this.value)">${mOpts}</select></div>
+      <div><label class="flbl">Categoria</label><select onchange="form.category=this.value">${cOpts}</select></div>
+    </div>
+    <div class="frow fgrp">
+      <div><label class="flbl">Data</label><input type="date" value="${form.date}" onchange="form.date=this.value"></div>
+      <div><label class="flbl">Orario</label><div class="t-row"><input type="time" value="${form.startTime}" onchange="form.startTime=this.value"><span style="color:var(--color-text-secondary,#888);font-size:12px;flex-shrink:0">→</span><input type="time" value="${form.endTime}" onchange="form.endTime=this.value"></div></div>
+    </div>
+    <div class="tr-sec"><span class="tr-lbl">🚗 Trasporto & supporto</span><div class="tr-opts">${tBtns}</div>${trD}</div>
+    <div class="fgrp"><label class="flbl">Note</label><textarea rows="2" oninput="form.notes=this.value" placeholder="Promemoria, materiale…" style="resize:none">${form.notes||''}</textarea></div>
+    <div class="modal-actions">
+      ${editId?`<button class="btn-del-ev" onclick="delEvt('${editId}')">🗑 Elimina</button>`:'<span></span>'}
+      <div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Annulla</button><button class="btn-save" onclick="saveEvt()">✓ Salva</button></div>
+    </div>`;
+}
+function setMbr(v){form.member=v;if(form.transport.by===v)form.transport.by='';renderEvModal();}
+function setTr(t){form.transport={type:t,by:'',note:''};renderEvModal();}
+async function saveEvt(){
+  if(!form.title.trim()){alert('Inserisci un titolo per l\'evento');return;}
+  if(!form.date){alert('Seleziona una data');return;}
+  if(editId){const i=events.findIndex(e=>e.id===editId);if(i>-1)events[i]={...form,transport:{...form.transport},id:editId};}
+  else events.push({...form,transport:{...form.transport},id:uid()});
+  await saveEv2();closeModal();renderView();
+}
+async function delEvt(id){if(!confirm('Eliminare questo evento?'))return;events=events.filter(e=>e.id!==id);await saveEv2();closeModal();renderView();}
+
+/* ── RICORRENZA MODAL ── */
+function openRicModal(id){
+  ricEditId=id;
+  if(id){const r=ricorrenze.find(ri=>ri.id===id);if(!r)return;ricForm={...r};}
+  else ricForm={id:'',title:'',date:'06-01',type:'birthday',member:''};
+  renderRicModal();showOv();
+}
+function renderRicModal(){
+  const tBtns=RIC_TYPES.map(t=>`<button class="tr-btn${ricForm.type===t.id?' sel':''}" onclick="ricForm.type='${t.id}';renderRicModal()">${t.icon} ${t.label}</button>`).join('');
+  const mOpts=`<option value="">— nessuno —</option>`+MEMBERS.map(m=>`<option value="${m.id}"${ricForm.member===m.id?' selected':''}>${m.icon} ${m.name}</option>`).join('');
+  document.getElementById('modal-box').innerHTML=`
+    <div class="modal-hdr">
+      <div class="modal-ttl"><span style="font-size:20px">🎂</span> ${ricEditId?'Modifica ricorrenza':'Nuova ricorrenza'}</div>
+      <button class="cl-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="fgrp"><label class="flbl">Titolo</label><input type="text" value="${ricForm.title.replace(/"/g,'&quot;')}" oninput="ricForm.title=this.value" placeholder="Es. Compleanno Nonna Rosa"></div>
+    <div class="fgrp"><label class="flbl">Tipo</label><div class="tr-opts">${tBtns}</div></div>
+    <div class="fgrp"><label class="flbl">Data (giorno e mese — si ripete ogni anno)</label><input type="date" value="2026-${ricForm.date}" onchange="ricForm.date=this.value.slice(5)"></div>
+    <div class="fgrp"><label class="flbl">Membro famiglia (opzionale)</label><select onchange="ricForm.member=this.value">${mOpts}</select></div>
+    <div class="modal-actions">
+      ${ricEditId?`<button class="btn-del-ev" onclick="deleteRic('${ricEditId}')">🗑 Elimina</button>`:'<span></span>'}
+      <div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Annulla</button><button class="btn-save" onclick="saveRicorrenza()">✓ Salva</button></div>
+    </div>`;
+}
+async function saveRicorrenza(){
+  if(!ricForm.title.trim()){alert('Inserisci un titolo');return;}
+  if(ricEditId){const i=ricorrenze.findIndex(r=>r.id===ricEditId);if(i>-1)ricorrenze[i]={...ricForm,id:ricEditId};}
+  else ricorrenze.push({...ricForm,id:uid()});
+  await saveRic2();closeModal();renderView();
+}
+async function deleteRic(id){if(!confirm('Eliminare questa ricorrenza?'))return;ricorrenze=ricorrenze.filter(r=>r.id!==id);await saveRic2();closeModal();renderView();}
+
+async function init(){await Promise.all([loadEvents(),loadRic()]);render();}
+init();
+</script>
+</body>
+</html>
