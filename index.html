@@ -153,7 +153,10 @@
 </div>
 
 <script>
-const TODAY='2026-06-25';
+// 👇 LEGGE L'OROLOGIO REALE DEL DISPOSITIVO IN TEMPO REALE
+const d_now = new Date();
+const TODAY = `${d_now.getFullYear()}-${String(d_now.getMonth() + 1).padStart(2, '0')}-${String(d_now.getDate()).padStart(2, '0')}`;
+
 const MEMBERS=[
   {id:'antonio',name:'Antonio',role:'Papà',      dot:'#378ADD',bg:'var(--a-bg)',txt:'var(--a-txt)',icon:'👨'},
   {id:'pamela', name:'Pamela', role:'Mamma',      dot:'#D85A30',bg:'var(--p-bg)',txt:'var(--p-txt)',icon:'👩'},
@@ -373,7 +376,7 @@ function renderView(){
   else el.innerHTML=ricorrenzeView();
 }
 
-/* ── TODAY (OTTIMIZZATA) ── */
+/* ── TODAY (COMPATTA E INTELLIGENTE) ── */
 function bdayBanners(){
   const md=TODAY.slice(5);
   return ricorrenze.filter(r=>r.date===md).map(r=>{
@@ -542,7 +545,7 @@ function trasportiView(){
       const pass=M(e.member);const cat=C(e.category);
       let trHtml='';
       if(e.transport.type==='accompanied'){const drv=M(e.transport.by);trHtml=`<div style="display:flex;align-items:center;gap:6px;margin-top:6px"><div class="avatar" style="${ms(drv)};width:22px;height:22px;font-size:13px">${drv.icon}</div><span class="badge" style="${ms(drv)}">${drv.name} accompagna</span></div>`;}
-      else{trHtml=`<div style="font-size:11px;color:var(--color-text-secondary,#888);margin-top:5px">📞 Aiuto esterno${e.transport.note?': '+e.transport.note:''}</div>`;}
+      else{trHtml=`<div style="font-size:11px;color:var(--color-text-secondary,#888);margin-top:5px">📞 Aiuto esterno${e.transport.note?': '+tr.note:''}</div>`;}
       h+=`<div class="ev-card" onclick="openModal('${e.id}')">
         <div class="ev-strip" style="background:${pass.dot}"></div>
         <div class="ev-time">${e.startTime}<br>${e.endTime}</div>
@@ -632,7 +635,7 @@ function renderEvModal(){
 function setMbr(v){form.member=v;if(form.transport.by===v)form.transport.by='';renderEvModal();}
 function setTr(t){form.transport={type:t,by:'',note:''};renderEvModal();}
 
-/* ── RICORRENZA MODAL ── */
+/* ── RICORRENZE MODAL ── */
 function openRicModal(id){
   ricEditId=id;
   if(id){const r=ricorrenze.find(ri=>ri.id===id);if(!r)return;ricForm={...r};}
