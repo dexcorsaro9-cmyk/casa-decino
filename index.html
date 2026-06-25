@@ -211,7 +211,7 @@ const SAMPLE_RIC=[
 let events=[],ricorrenze=[];
 let view='today',filters=MEMBERS.map(m=>m.id);
 let wkStart=weekStart(new Date(TODAY)),curMonth=new Date(TODAY);
-let editId=null,form={},ricEditId=null,ricForm={};
+var editId=null,form={},ricEditId=null,ricForm={};
 
 function weekStart(d){const dt=new Date(d);const dy=dt.getDay();dt.setDate(dt.getDate()+(dy===0?-6:1-dy));dt.setHours(0,0,0,0);return dt;}
 function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
