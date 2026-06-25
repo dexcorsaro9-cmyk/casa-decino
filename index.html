@@ -490,25 +490,25 @@ function renderEvModal(){
   const cOpts=CATS.map(c=>`<option value="${c.id}"${form.category===c.id?' selected':''}>${c.icon} ${c.label}</option>`).join('');
   const tBtns=TRANS.map(t=>`<button class="tr-btn${form.transport.type===t.id?' sel':''}" onclick="setTr('${t.id}')">${t.icon} ${t.label}</button>`).join('');
   let trD='';
-  if(form.transport.type==='accompanied'){const bOpts=MEMBERS.filter(m=>m.id!==form.member).map(m=>`<option value="${m.id}"${form.transport.by===m.id?' selected':''}>${m.icon} ${m.name}</option>`).join('');trD=`<select onchange="form.transport.by=this.value">${bOpts}</select>`;}
-  else if(form.transport.type==='external'){trD=`<input type="text" placeholder="Es. Nonna, Zio Mario…" value="${form.transport.note||''}" oninput="form.transport.note=this.value">`;}
+  if(form.transport.type==='accompanied'){const bOpts=MEMBERS.filter(m=>m.id!==form.member).map(m=>`<option value="${m.id}"${form.transport.by===m.id?' selected':''}>${m.icon} ${m.name}</option>`).join('');trD=`<select onchange="window.form.transport.by=this.value">${bOpts}</select>`;}
+  else if(form.transport.type==='external'){trD=`<input type="text" placeholder="Es. Nonna, Zio Mario…" value="${form.transport.note||''}" oninput="window.form.transport.note=this.value">`;}
   const cm=M(form.member);
   document.getElementById('modal-box').innerHTML=`
     <div class="modal-hdr">
       <div class="modal-ttl"><div class="avatar" style="${ms(cm)};width:30px;height:30px;border-radius:8px;font-size:16px">${cm.icon}</div>${editId?'Modifica evento':'Nuovo evento'}</div>
       <button class="cl-btn" onclick="closeModal()">✕</button>
     </div>
-    <div class="fgrp"><label class="flbl">Titolo</label><input type="text" value="${form.title.replace(/"/g,'&quot;')}" oninput="form.title=this.value" placeholder="Es. Allenamento calcio"></div>
+    <div class="fgrp"><label class="flbl">Titolo</label><input type="text" value="${form.title.replace(/"/g,'&quot;')}" oninput="window.form.title=this.value" placeholder="Es. Allenamento calcio"></div>
     <div class="frow fgrp">
       <div><label class="flbl">Chi</label><select onchange="setMbr(this.value)">${mOpts}</select></div>
-      <div><label class="flbl">Categoria</label><select onchange="form.category=this.value">${cOpts}</select></div>
+      <div><label class="flbl">Categoria</label><select onchange="window.form.category=this.value">${cOpts}</select></div>
     </div>
     <div class="frow fgrp">
-      <div><label class="flbl">Data</label><input type="date" value="${form.date}" onchange="form.date=this.value"></div>
-      <div><label class="flbl">Orario</label><div class="t-row"><input type="time" value="${form.startTime}" onchange="form.startTime=this.value"><span style="color:var(--color-text-secondary,#888);font-size:12px;flex-shrink:0">→</span><input type="time" value="${form.endTime}" onchange="form.endTime=this.value"></div></div>
+      <div><label class="flbl">Data</label><input type="date" value="${form.date}" onchange="window.form.date=this.value"></div>
+      <div><label class="flbl">Orario</label><div class="t-row"><input type="time" value="${form.startTime}" onchange="window.form.startTime=this.value"><span style="color:var(--color-text-secondary,#888);font-size:12px;flex-shrink:0">→</span><input type="time" value="${form.endTime}" onchange="window.form.endTime=this.value"></div></div>
     </div>
     <div class="tr-sec"><span class="tr-lbl">🚗 Trasporto & supporto</span><div class="tr-opts">${tBtns}</div>${trD}</div>
-    <div class="fgrp"><label class="flbl">Note</label><textarea rows="2" oninput="form.notes=this.value" placeholder="Promemoria, materiale…" style="resize:none">${form.notes||''}</textarea></div>
+    <div class="fgrp"><label class="flbl">Note</label><textarea rows="2" oninput="window.form.notes=this.value" placeholder="Promemoria, materiale…" style="resize:none">${form.notes||''}</textarea></div>
     <div class="modal-actions">
       ${editId?`<button class="btn-del-ev" onclick="delEvt('${editId}')">🗑 Elimina</button>`:'<span></span>'}
       <div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Annulla</button><button class="btn-save" onclick="saveEvt()">✓ Salva</button></div>
