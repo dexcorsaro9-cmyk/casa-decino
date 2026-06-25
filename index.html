@@ -309,7 +309,6 @@ async function saveRic2(){
 /* --- INTEGRAZIONE METEO 3 GIORNI SICURA (CAP 00012) --- */
 async function loadWeather() {
   try {
-    // Fuso orario forzato su Europe/Rome per evitare blocchi iOS
     const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=41.99&longitude=12.72&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=Europe%2FRome&forecast_days=3');
     
     if (!res.ok) throw new Error("API Meteo non raggiungibile");
@@ -342,7 +341,6 @@ async function loadWeather() {
     widget.style.display = 'inline-block';
   } catch (error) {
     console.error("Meteo non caricato:", error);
-    // Nasconde il quadratino in caso di errore
     document.getElementById('weather-widget').style.display = 'none';
   }
 }
@@ -375,7 +373,7 @@ function renderView(){
   else el.innerHTML=ricorrenzeView();
 }
 
-/* ── TODAY ── */
+/* ── TODAY (OTTIMIZZATA) ── */
 function bdayBanners(){
   const md=TODAY.slice(5);
   return ricorrenze.filter(r=>r.date===md).map(r=>{
@@ -390,21 +388,44 @@ function todayView(){
   const byM={};MEMBERS.forEach(m=>byM[m.id]=[]);
   evs.forEach(e=>{if(byM[e.member])byM[e.member].push(e);});
   const lbl=new Date(TODAY).toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  
   let h=bdayBanners();
   h+=`<div class="sec-lbl">📅 ${lbl.charAt(0).toUpperCase()+lbl.slice(1)}</div>`;
+
+  let activeHtml = '';
+  let freeMembers = [];
+
   MEMBERS.filter(m=>filters.includes(m.id)).forEach(m=>{
     const me=byM[m.id];
-    h+=`<div class="mem-sec"><div class="mem-hdr">
-      <div class="avatar" style="${ms(m)}">${m.icon}</div>
-      <div><div style="font-size:14px;font-weight:600">${m.name}</div><div style="font-size:11px;color:var(--color-text-secondary,#888)">${m.role}</div></div>
-      <span style="margin-left:auto;font-size:12px;color:var(--color-text-secondary,#888);font-weight:600">${me.length?me.length+' event'+(me.length>1?'i':'o'):''}</span>
-    </div><div class="mem-body">`;
-    if(!me.length)h+=`<div class="no-ev">😊 Nessun impegno oggi</div>`;
-    else me.forEach(e=>{h+=evCard(e,m);});
-    h+=`</div></div>`;
+    if(!me.length){
+      freeMembers.push(m);
+    } else {
+      activeHtml+=`<div class="mem-sec"><div class="mem-hdr">
+        <div class="avatar" style="${ms(m)}">${m.icon}</div>
+        <div><div style="font-size:14px;font-weight:600">${m.name}</div><div style="font-size:11px;color:var(--color-text-secondary,#888)">${m.role}</div></div>
+        <span style="margin-left:auto;font-size:12px;color:var(--color-text-secondary,#888);font-weight:600">${me.length} event${me.length>1?'i':'o'}</span>
+      </div><div class="mem-body">`;
+      me.forEach(e=>{activeHtml+=evCard(e,m);});
+      activeHtml+=`</div></div>`;
+    }
   });
-  return h;
+
+  if(!activeHtml) {
+    activeHtml = `<div class="empty-state"><span class="big">🛋️</span><div style="font-size:16px;font-weight:600;color:var(--color-text-primary)">Giornata totalmente libera!</div><div style="font-size:13px;margin-top:6px;opacity:.7">Nessun impegno in famiglia oggi</div></div>`;
+  }
+
+  let freeHtml = '';
+  if(freeMembers.length > 0 && activeHtml.indexOf('empty-state') === -1){
+     const freeNames = freeMembers.map(m => `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--color-background-primary,#fff);padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));color:var(--color-text-primary)"><span style="font-size:14px">${m.icon}</span>${m.name}</span>`).join(' ');
+     freeHtml = `<div style="margin-top:24px;padding-top:16px;border-top:0.5px dashed var(--color-border-tertiary,rgba(0,0,0,.15));text-align:center">
+       <div style="font-size:10px;color:var(--color-text-secondary,#888);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.06em;font-weight:700">🎉 Liberi da impegni oggi</div>
+       <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px">${freeNames}</div>
+     </div>`;
+  }
+
+  return h + activeHtml + freeHtml;
 }
+
 function evCard(e,m){
   if(!m)m=M(e.member);
   const cat=C(e.category);const tr=e.transport;
