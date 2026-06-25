@@ -153,7 +153,6 @@
 </div>
 
 <script>
-// 👇 LEGGE L'OROLOGIO REALE DEL DISPOSITIVO IN TEMPO REALE
 const d_now = new Date();
 const TODAY = `${d_now.getFullYear()}-${String(d_now.getMonth() + 1).padStart(2, '0')}-${String(d_now.getDate()).padStart(2, '0')}`;
 
@@ -235,7 +234,8 @@ async function loadEvents(){
             date: row.Data,
             startTime: row['Ora Inizio'],
             endTime: row['Ora Fine'],
-            member: row.Membro,
+            // Trasforma il testo separato da virgola in un vero Array
+            members: (row.Membro || '').split(',').map(s=>s.trim()).filter(Boolean),
             category: row.Categoria,
             transport: { type: row['Trasporto Tipo'], by: row['Trasporto Da'], note: row['Trasporto Note'] },
             notes: row.Note
@@ -250,6 +250,7 @@ async function loadEvents(){
 async function saveEvt(){
   if(!window.form.title.trim()){alert('Inserisci un titolo per l\'evento');return;}
   if(!window.form.date){alert('Seleziona una data');return;}
+  if(window.form.members.length === 0){alert('Seleziona almeno una persona coinvolta!');return;}
 
   const isEdit = !!editId;
   const evId = isEdit ? editId : uid();
@@ -260,7 +261,8 @@ async function saveEvt(){
     Data: window.form.date,
     "Ora Inizio": window.form.startTime,
     "Ora Fine": window.form.endTime,
-    Membro: window.form.member,
+    // Salva l'array di nomi come testo separato da virgola
+    Membro: window.form.members.join(','),
     Categoria: window.form.category,
     "Trasporto Tipo": window.form.transport.type,
     "Trasporto Da": window.form.transport.by,
@@ -289,7 +291,7 @@ async function saveEvt(){
 }
 
 async function delEvt(id){
-  if(!confirm('Eliminare questo evento?'))return;
+  if(!confirm('Eliminare questo evento per tutte le persone coinvolte?'))return;
   events = events.filter(e=>e.id!==id);
   fetch(`${API_EVENTS}/ID/${id}`, { method: 'DELETE' });
   closeModal();
@@ -313,9 +315,7 @@ async function saveRic2(){
 async function loadWeather() {
   try {
     const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=41.99&longitude=12.72&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=Europe%2FRome&forecast_days=3');
-    
     if (!res.ok) throw new Error("API Meteo non raggiungibile");
-    
     const data = await res.json();
     if (!data.daily || !data.daily.weathercode) return;
 
@@ -331,7 +331,6 @@ async function loadWeather() {
     
     const lbls = ['Oggi', 'Dom', 'Dop'];
     let html = '';
-    
     for(let i=0; i<3; i++) {
       const ic = codes[d.weathercode[i]] || '☁️';
       const max = Math.round(d.temperature_2m_max[i]);
@@ -343,7 +342,6 @@ async function loadWeather() {
     widget.innerHTML = html;
     widget.style.display = 'inline-block';
   } catch (error) {
-    console.error("Meteo non caricato:", error);
     document.getElementById('weather-widget').style.display = 'none';
   }
 }
@@ -376,7 +374,7 @@ function renderView(){
   else el.innerHTML=ricorrenzeView();
 }
 
-/* ── TODAY (COMPATTA E INTELLIGENTE) ── */
+/* ── TODAY (COMPATTA E MULTI-UTENTE) ── */
 function bdayBanners(){
   const md=TODAY.slice(5);
   return ricorrenze.filter(r=>r.date===md).map(r=>{
@@ -387,9 +385,13 @@ function bdayBanners(){
   }).join('');
 }
 function todayView(){
-  const evs=events.filter(e=>e.date===TODAY&&filters.includes(e.member)).sort((a,b)=>a.startTime.localeCompare(b.startTime));
+  const evs=events.filter(e=>e.date===TODAY && e.members.some(m=>filters.includes(m))).sort((a,b)=>a.startTime.localeCompare(b.startTime));
   const byM={};MEMBERS.forEach(m=>byM[m.id]=[]);
-  evs.forEach(e=>{if(byM[e.member])byM[e.member].push(e);});
+  evs.forEach(e=>{
+    e.members.forEach(mid => {
+      if(byM[mid] && filters.includes(mid)) byM[mid].push(e);
+    });
+  });
   const lbl=new Date(TODAY).toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   
   let h=bdayBanners();
@@ -429,19 +431,24 @@ function todayView(){
   return h + activeHtml + freeHtml;
 }
 
-function evCard(e,m){
-  if(!m)m=M(e.member);
+function evCard(e, mContext){
+  const m = mContext || M(e.members[0]);
   const cat=C(e.category);const tr=e.transport;
   let tb='';
   if(tr.type==='autonomous')tb=`<span class="badge" style="background:#EAF3DE;color:#27500A">✅ Autonomo</span>`;
   else if(tr.type==='accompanied'){const w=M(tr.by);tb=`<span class="badge" style="background:#FAEEDA;color:#633806">🚗 Con ${w.name}</span>`;}
   else tb=`<span class="badge" style="background:#FAECE7;color:#712B13">📞 Aiuto${tr.note?': '+tr.note:''}</span>`;
+  
+  // Mostra iconcine extra se ci sono altre persone nell'evento
+  const others = e.members.filter(mid => mid !== m.id).map(mid => M(mid));
+  const othersHtml = others.map(ox => `<span title="Insieme a ${ox.name}" style="font-size:13px;margin-left:2px">${ox.icon}</span>`).join('');
+
   return `<div class="ev-card" onclick="openModal('${e.id}')">
     <div class="ev-strip" style="background:${m.dot}"></div>
     <div class="ev-time">${e.startTime}<br>${e.endTime}</div>
     <div class="ev-info">
       <div class="ev-title">${e.title}</div>
-      <div class="ev-meta"><span class="badge" style="${ms(m)}">${cat.icon} ${cat.label}</span>${tb}</div>
+      <div class="ev-meta"><span class="badge" style="${ms(m)}">${cat.icon} ${cat.label}</span>${othersHtml}${tb}</div>
       ${e.notes?`<div class="ev-note">📝 ${e.notes}</div>`:''}
     </div>
     <button class="del-btn" onclick="event.stopPropagation();delEvt('${e.id}')" aria-label="Elimina">✕</button>
@@ -460,12 +467,19 @@ function weekView(){
   </div><div class="wk-grid">`;
   for(let i=0;i<7;i++){
     const d=addDays(wkStart,i);const ds=fmtD(d);const it=ds===TODAY;
-    const de=events.filter(e=>e.date===ds&&filters.includes(e.member)).sort((a,b)=>a.startTime.localeCompare(b.startTime));
+    const de=events.filter(e=>e.date===ds && e.members.some(m=>filters.includes(m))).sort((a,b)=>a.startTime.localeCompare(b.startTime));
     const ric=ricorrenze.filter(r=>r.date===ds.slice(5));
     const ricBadge=ric.length?`<span class="wk-bday">🎂 ${ric.map(r=>r.title.split(' ')[1]||r.title).join(', ')}</span>`:'';
     h+=`<div class="day-col"><div class="day-hdr${it?' td':''}"><span class="d-name">${DAYS[i]}</span><span class="d-num">${d.getDate()}</span>${ricBadge}</div>`;
     if(!de.length)h+=`<div class="empty-week">·</div>`;
-    de.forEach(e=>{const m=M(e.member);h+=`<div class="wk-ev" style="${ms(m)}" onclick="openModal('${e.id}')"><span class="wk-ev-name">${e.title}</span><span class="wk-ev-time">${e.startTime} — ${m.name}</span></div>`;});
+    de.forEach(e=>{
+      e.members.forEach(mid => {
+        if(filters.includes(mid)) {
+          const m = M(mid);
+          h+=`<div class="wk-ev" style="${ms(m)}" onclick="openModal('${e.id}')"><span class="wk-ev-name">${e.title}</span><span class="wk-ev-time">${e.startTime} — ${m.name}</span></div>`;
+        }
+      });
+    });
     h+=`<button class="wk-add" onclick="openModalForDate('${ds}')">＋</button></div>`;
   }
   return h+'</div>';
@@ -492,12 +506,27 @@ function monthView(){
 }
 function mnDay(date,other){
   const ds=fmtD(date),it=ds===TODAY;
-  const de=events.filter(e=>e.date===ds&&filters.includes(e.member));
+  const de=events.filter(e=>e.date===ds && e.members.some(m=>filters.includes(m)));
   const ric=ricorrenze.filter(r=>r.date===ds.slice(5));
-  const vis=de.slice(0,5),more=de.length-vis.length;
+  
+  let dots = [];
+  de.forEach(e => {
+    e.members.forEach(mid => {
+      if(filters.includes(mid)) dots.push({mid, eId: e.id, title: e.title});
+    });
+  });
+  
+  const visDots = dots.slice(0, 5);
+  const more = dots.length - visDots.length;
+
   let h=`<div class="mn-day${it?' td':''}${other?' other':''}" onclick="openModalForDate('${ds}')">
     <span class="mn-dn">${date.getDate()}</span><div class="dots">`;
-  vis.forEach(e=>{const m=M(e.member);h+=`<span class="mn-dot" style="background:${m.dot}" onclick="event.stopPropagation();openModal('${e.id}')" title="${m.name} — ${e.title}"></span>`;});
+  
+  visDots.forEach(d => {
+    const m = M(d.mid);
+    h+=`<span class="mn-dot" style="background:${m.dot}" onclick="event.stopPropagation();openModal('${d.eId}')" title="${m.name} — ${d.title}"></span>`;
+  });
+  
   ric.forEach(r=>{const mb=r.member?M(r.member):null;h+=`<span class="mn-dot-r" style="background:${mb?mb.dot:'#EF9F27'}" title="${r.title}"></span>`;});
   h+=`</div>${more>0?`<div class="mn-more">+${more}</div>`:''}</div>`;
   return h;
@@ -542,15 +571,24 @@ function trasportiView(){
     const lbl2=d.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
     h+=`<div style="margin-bottom:16px"><div class="tr-day-hdr" style="${isT?'color:var(--color-text-info,#0C447C)':''}">${lbl2.charAt(0).toUpperCase()+lbl2.slice(1)}${isT?' — oggi':''}</div>`;
     dayEvs.forEach(e=>{
-      const pass=M(e.member);const cat=C(e.category);
+      const passList = e.members.map(mid => M(mid));
+      const mainPass = passList[0];
+      const cat=C(e.category);
       let trHtml='';
-      if(e.transport.type==='accompanied'){const drv=M(e.transport.by);trHtml=`<div style="display:flex;align-items:center;gap:6px;margin-top:6px"><div class="avatar" style="${ms(drv)};width:22px;height:22px;font-size:13px">${drv.icon}</div><span class="badge" style="${ms(drv)}">${drv.name} accompagna</span></div>`;}
-      else{trHtml=`<div style="font-size:11px;color:var(--color-text-secondary,#888);margin-top:5px">📞 Aiuto esterno${e.transport.note?': '+tr.note:''}</div>`;}
+      if(e.transport.type==='accompanied'){
+        const drv=M(e.transport.by);
+        trHtml=`<div style="display:flex;align-items:center;gap:6px;margin-top:6px"><div class="avatar" style="${ms(drv)};width:22px;height:22px;font-size:13px">${drv.icon}</div><span class="badge" style="${ms(drv)}">${drv.name} accompagna</span></div>`;
+      } else {
+        trHtml=`<div style="font-size:11px;color:var(--color-text-secondary,#888);margin-top:5px">📞 Aiuto esterno${e.transport.note?': '+e.transport.note:''}</div>`;
+      }
+      
+      const passAvatars = passList.map(px => `<div class="avatar" style="${ms(px)};width:22px;height:22px;font-size:13px" title="${px.name}">${px.icon}</div>`).join('');
+
       h+=`<div class="ev-card" onclick="openModal('${e.id}')">
-        <div class="ev-strip" style="background:${pass.dot}"></div>
+        <div class="ev-strip" style="background:${mainPass.dot}"></div>
         <div class="ev-time">${e.startTime}<br>${e.endTime}</div>
         <div class="ev-info">
-          <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px"><div class="avatar" style="${ms(pass)};width:22px;height:22px;font-size:13px">${pass.icon}</div><span class="ev-title" style="margin:0">${e.title}</span></div>
+          <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">${passAvatars}<span class="ev-title" style="margin:0;margin-left:4px">${e.title}</span></div>
           <span class="badge" style="background:var(--color-background-secondary,#f0efeb);color:var(--color-text-secondary,#888)">${cat.icon} ${cat.label}</span>
           ${trHtml}
         </div>
@@ -594,37 +632,60 @@ function ricorrenzeView(){
 /* ── EVENT MODAL ── */
 function openModal(id){
   editId=id;
-  if(id){const e=events.find(ev=>ev.id===id);if(!e)return;form={...e,transport:{...e.transport}};}
-  else form={id:'',title:'',date:TODAY,startTime:'08:00',endTime:'13:00',member:'antonio',category:'scuola',transport:{type:'autonomous',by:'',note:''},notes:''};
+  if(id){
+    const e=events.find(ev=>ev.id===id);
+    if(!e)return;
+    form={...e, members: [...e.members], transport:{...e.transport}};
+  }
+  else {
+    form={id:'',title:'',date:TODAY,startTime:'08:00',endTime:'13:00',members:['antonio'],category:'scuola',transport:{type:'autonomous',by:'',note:''},notes:''};
+  }
   renderEvModal();showOv();
 }
-function openModalForDate(ds){editId=null;form={id:'',title:'',date:ds,startTime:'08:00',endTime:'13:00',member:'antonio',category:'scuola',transport:{type:'autonomous',by:'',note:''},notes:''};renderEvModal();showOv();}
+function openModalForDate(ds){
+  editId=null;
+  form={id:'',title:'',date:ds,startTime:'08:00',endTime:'13:00',members:['antonio'],category:'scuola',transport:{type:'autonomous',by:'',note:''},notes:''};
+  renderEvModal();showOv();
+}
 function showOv(){const ov=document.getElementById('modal-ov');ov.style.height=Math.max(document.getElementById('app').scrollHeight,700)+'px';ov.style.display='flex';}
 function closeModal(){document.getElementById('modal-ov').style.display='none';}
 
 function renderEvModal(){
-  if(form.transport.type==='accompanied'&&!form.transport.by){const o=MEMBERS.filter(m=>m.id!==form.member);if(o.length)form.transport.by=o[0].id;}
-  const mOpts=MEMBERS.map(m=>`<option value="${m.id}"${form.member===m.id?' selected':''}>${m.icon} ${m.name} (${m.role})</option>`).join('');
+  const mbrBtns = MEMBERS.map(m => `<button class="tr-btn${form.members.includes(m.id)?' sel':''}" onclick="toggleMbr('${m.id}')">${m.icon} ${m.name}</button>`).join('');
   const cOpts=CATS.map(c=>`<option value="${c.id}"${form.category===c.id?' selected':''}>${c.icon} ${c.label}</option>`).join('');
   const tBtns=TRANS.map(t=>`<button class="tr-btn${form.transport.type===t.id?' sel':''}" onclick="setTr('${t.id}')">${t.icon} ${t.label}</button>`).join('');
+  
   let trD='';
-  if(form.transport.type==='accompanied'){const bOpts=MEMBERS.filter(m=>m.id!==form.member).map(m=>`<option value="${m.id}"${form.transport.by===m.id?' selected':''}>${m.icon} ${m.name}</option>`).join('');trD=`<select onchange="window.form.transport.by=this.value">${bOpts}</select>`;}
-  else if(form.transport.type==='external'){trD=`<input type="text" placeholder="Es. Nonna, Zio Mario…" value="${form.transport.note||''}" oninput="window.form.transport.note=this.value">`;}
-  const cm=M(form.member);
+  if(form.transport.type==='accompanied'){
+    const bOpts=`<option value="">-- Seleziona Guidatore --</option>` + MEMBERS.map(m=>`<option value="${m.id}"${form.transport.by===m.id?' selected':''}>${m.icon} ${m.name}</option>`).join('');
+    trD=`<select onchange="window.form.transport.by=this.value">${bOpts}</select>`;
+  } else if(form.transport.type==='external'){
+    trD=`<input type="text" placeholder="Es. Nonna, Zio Mario…" value="${form.transport.note||''}" oninput="window.form.transport.note=this.value">`;
+  }
+  
+  const cm = M(form.members[0] || 'antonio'); // Avatar generico in alto basato sulla prima persona
   document.getElementById('modal-box').innerHTML=`
     <div class="modal-hdr">
       <div class="modal-ttl"><div class="avatar" style="${ms(cm)};width:30px;height:30px;border-radius:8px;font-size:16px">${cm.icon}</div>${editId?'Modifica evento':'Nuovo evento'}</div>
       <button class="cl-btn" onclick="closeModal()">✕</button>
     </div>
+    
     <div class="fgrp"><label class="flbl">Titolo</label><input type="text" value="${form.title.replace(/"/g,'&quot;')}" oninput="window.form.title=this.value" placeholder="Es. Allenamento calcio"></div>
-    <div class="frow fgrp">
-      <div><label class="flbl">Chi</label><select onchange="setMbr(this.value)">${mOpts}</select></div>
-      <div><label class="flbl">Categoria</label><select onchange="window.form.category=this.value">${cOpts}</select></div>
-    </div>
+    <div class="fgrp"><label class="flbl">Chi (tocca per selezionare più persone)</label><div class="tr-opts">${mbrBtns}</div></div>
+    
     <div class="frow fgrp">
       <div><label class="flbl">Data</label><input type="date" value="${form.date}" onchange="window.form.date=this.value"></div>
-      <div><label class="flbl">Orario</label><div class="t-row"><input type="time" value="${form.startTime}" onchange="window.form.startTime=this.value"><span style="color:var(--color-text-secondary,#888);font-size:12px;flex-shrink:0">→</span><input type="time" value="${form.endTime}" onchange="window.form.endTime=this.value"></div></div>
+      <div><label class="flbl">Categoria</label><select onchange="window.form.category=this.value">${cOpts}</select></div>
     </div>
+    <div class="fgrp">
+      <label class="flbl">Orario</label>
+      <div class="t-row">
+        <input type="time" value="${form.startTime}" onchange="window.form.startTime=this.value">
+        <span style="color:var(--color-text-secondary,#888);font-size:12px;flex-shrink:0">→</span>
+        <input type="time" value="${form.endTime}" onchange="window.form.endTime=this.value">
+      </div>
+    </div>
+    
     <div class="tr-sec"><span class="tr-lbl">🚗 Trasporto & supporto</span><div class="tr-opts">${tBtns}</div>${trD}</div>
     <div class="fgrp"><label class="flbl">Note</label><textarea rows="2" oninput="window.form.notes=this.value" placeholder="Promemoria, materiale…" style="resize:none">${form.notes||''}</textarea></div>
     <div class="modal-actions">
@@ -632,10 +693,18 @@ function renderEvModal(){
       <div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Annulla</button><button class="btn-save" onclick="saveEvt()">✓ Salva</button></div>
     </div>`;
 }
-function setMbr(v){form.member=v;if(form.transport.by===v)form.transport.by='';renderEvModal();}
+
+function toggleMbr(id){
+  if(form.members.includes(id)){
+    if(form.members.length > 1) form.members = form.members.filter(x => x !== id);
+  } else {
+    form.members.push(id);
+  }
+  renderEvModal();
+}
 function setTr(t){form.transport={type:t,by:'',note:''};renderEvModal();}
 
-/* ── RICORRENZE MODAL ── */
+/* ── RICORRENZA MODAL ── */
 function openRicModal(id){
   ricEditId=id;
   if(id){const r=ricorrenze.find(ri=>ri.id===id);if(!r)return;ricForm={...r};}
