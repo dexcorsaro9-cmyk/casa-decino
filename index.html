@@ -183,14 +183,7 @@ const RIC_TYPES=[
 const MONTHS_IT=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
 
 const SAMPLE_EVENTS=[];
-const SAMPLE_RIC=[
-  {id:'r1',title:'Compleanno Antonio',date:'06-28',type:'birthday',member:'antonio'},
-  {id:'r2',title:'Compleanno Pamela',date:'03-15',type:'birthday',member:'pamela'},
-  {id:'r3',title:'Compleanno Valerio',date:'09-10',type:'birthday',member:'valerio'},
-  {id:'r4',title:'Compleanno Federico',date:'11-22',type:'birthday',member:'federico'},
-  {id:'r5',title:'Compleanno Sara',date:'04-05',type:'birthday',member:'sara'},
-  {id:'r6',title:'Anniversario Antonio & Pamela',date:'07-14',type:'anniversary',member:''},
-];
+const SAMPLE_RIC=[];
 
 let events=[],ricorrenze=[];
 let view='today',filters=MEMBERS.map(m=>m.id);
@@ -234,7 +227,6 @@ async function loadEvents(){
             date: row.Data,
             startTime: row['Ora Inizio'],
             endTime: row['Ora Fine'],
-            // Trasforma il testo separato da virgola in un vero Array
             members: (row.Membro || '').split(',').map(s=>s.trim()).filter(Boolean),
             category: row.Categoria,
             transport: { type: row['Trasporto Tipo'], by: row['Trasporto Da'], note: row['Trasporto Note'] },
@@ -261,7 +253,6 @@ async function saveEvt(){
     Data: window.form.date,
     "Ora Inizio": window.form.startTime,
     "Ora Fine": window.form.endTime,
-    // Salva l'array di nomi come testo separato da virgola
     Membro: window.form.members.join(','),
     Categoria: window.form.category,
     "Trasporto Tipo": window.form.transport.type,
@@ -298,17 +289,24 @@ async function delEvt(id){
   renderView();
 }
 
-/* --- RICORRENZE LOCALI --- */
+/* --- RICORRENZE VIA SHEETDB (NUOVO FOGLIO "Ricorrenze") --- */
 async function loadRic(){
   try {
-    const r = localStorage.getItem('casa-decino-ric-v1');
-    if (r) { ricorrenze = JSON.parse(r); } 
-    else { ricorrenze = [...SAMPLE_RIC]; await saveRic2(); }
-  } catch { ricorrenze = [...SAMPLE_RIC]; }
-}
-
-async function saveRic2(){
-  try { localStorage.setItem('casa-decino-ric-v1', JSON.stringify(ricorrenze)); } catch {}
+    const res = await fetch(API_EVENTS + '?sheet=Ricorrenze');
+    const data = await res.json();
+    if(data && data.length > 0 && data[0].ID) {
+        ricorrenze = data.map(row => ({
+            id: row.ID,
+            title: row.Titolo,
+            date: row.Data,
+            type: row.Tipo,
+            member: row.Membro || ''
+        }));
+    } else { ricorrenze = []; }
+  } catch(e) {
+    console.error("Errore download ricorrenze:", e);
+    ricorrenze = [];
+  }
 }
 
 /* --- INTEGRAZIONE METEO 3 GIORNI SICURA (CAP 00012) --- */
@@ -439,7 +437,6 @@ function evCard(e, mContext){
   else if(tr.type==='accompanied'){const w=M(tr.by);tb=`<span class="badge" style="background:#FAEEDA;color:#633806">🚗 Con ${w.name}</span>`;}
   else tb=`<span class="badge" style="background:#FAECE7;color:#712B13">📞 Aiuto${tr.note?': '+tr.note:''}</span>`;
   
-  // Mostra iconcine extra se ci sono altre persone nell'evento
   const others = e.members.filter(mid => mid !== m.id).map(mid => M(mid));
   const othersHtml = others.map(ox => `<span title="Insieme a ${ox.name}" style="font-size:13px;margin-left:2px">${ox.icon}</span>`).join('');
 
@@ -663,7 +660,7 @@ function renderEvModal(){
     trD=`<input type="text" placeholder="Es. Nonna, Zio Mario…" value="${form.transport.note||''}" oninput="window.form.transport.note=this.value">`;
   }
   
-  const cm = M(form.members[0] || 'antonio'); // Avatar generico in alto basato sulla prima persona
+  const cm = M(form.members[0] || 'antonio');
   document.getElementById('modal-box').innerHTML=`
     <div class="modal-hdr">
       <div class="modal-ttl"><div class="avatar" style="${ms(cm)};width:30px;height:30px;border-radius:8px;font-size:16px">${cm.icon}</div>${editId?'Modifica evento':'Nuovo evento'}</div>
@@ -730,11 +727,45 @@ function renderRicModal(){
 }
 async function saveRicorrenza(){
   if(!ricForm.title.trim()){alert('Inserisci un titolo');return;}
-  if(ricEditId){const i=ricorrenze.findIndex(r=>r.id===ricEditId);if(i>-1)ricorrenze[i]={...ricForm,id:ricEditId};}
-  else ricorrenze.push({...ricForm,id:uid()});
-  await saveRic2();closeModal();renderView();
+
+  const isEdit = !!ricEditId;
+  const rId = isEdit ? ricEditId : uid();
+
+  const newRow = {
+    ID: rId,
+    Titolo: ricForm.title,
+    Data: ricForm.date,
+    Tipo: ricForm.type,
+    Membro: ricForm.member || ''
+  };
+
+  if(isEdit){
+    const i = ricorrenze.findIndex(r=>r.id===ricEditId);
+    if(i>-1) ricorrenze[i] = {...ricForm, id: ricEditId};
+    fetch(`${API_EVENTS}/ID/${ricEditId}?sheet=Ricorrenze`, {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({data: newRow})
+    });
+  } else {
+    ricorrenze.push({...ricForm, id: rId});
+    fetch(`${API_EVENTS}?sheet=Ricorrenze`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({data: newRow})
+    });
+  }
+  
+  closeModal();
+  renderView();
 }
-async function deleteRic(id){if(!confirm('Eliminare questa ricorrenza?'))return;ricorrenze=ricorrenze.filter(r=>r.id!==id);await saveRic2();closeModal();renderView();}
+async function deleteRic(id){
+  if(!confirm('Eliminare questa ricorrenza?'))return;
+  ricorrenze = ricorrenze.filter(r=>r.id!==id);
+  fetch(`${API_EVENTS}/ID/${id}?sheet=Ricorrenze`, { method: 'DELETE' });
+  closeModal();
+  renderView();
+}
 
 async function init(){
   await Promise.all([loadEvents(),loadRic()]);
