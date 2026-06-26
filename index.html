@@ -380,6 +380,50 @@
     .ch-badge-ok { background:#D4EDDA; color:#155724; padding:5px 10px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
     .ch-badge-no { background:#F8D7DA; color:#721c24; padding:5px 10px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
 
+    /* FILTRI INLINE */
+    .inline-filters { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+    .inline-pill {
+      display:inline-flex; align-items:center; gap:4px;
+      padding:5px 11px; border-radius:20px; font-size:12px; font-weight:700;
+      cursor:pointer; transition:opacity 0.15s; border:1px solid transparent;
+    }
+
+    /* BACHECA WIDGET HOME */
+    .bacheca-widget {
+      background: #b5835a;
+      background-image:
+        radial-gradient(ellipse at 15% 40%, rgba(185,140,85,0.5) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 60%, rgba(130,80,30,0.3) 0%, transparent 50%);
+      border-radius: var(--radius-lg);
+      border: 3px solid #7a4820;
+      padding: 16px;
+      margin-bottom: 20px;
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.2), 0 4px 14px rgba(0,0,0,0.1);
+    }
+    .bacheca-widget-hdr {
+      display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;
+    }
+    .bacheca-widget-title { font-size:12px; font-weight:800; color:rgba(255,255,255,0.85); text-transform:uppercase; letter-spacing:0.06em; }
+    .bacheca-widget-link { font-size:12px; font-weight:700; color:rgba(255,255,255,0.7); cursor:pointer; background:rgba(0,0,0,0.15); padding:4px 10px; border-radius:20px; border:none; }
+    .bacheca-widget-link:hover { color:#fff; background:rgba(0,0,0,0.25); }
+    .mini-postits { display:flex; gap:12px; overflow-x:auto; padding-bottom:4px; }
+    .mini-postit {
+      flex-shrink:0; width:130px; min-height:100px;
+      border-radius:2px 2px 2px 8px;
+      padding:12px 10px 8px;
+      box-shadow: 3px 4px 10px rgba(0,0,0,0.3);
+      position:relative; display:flex; flex-direction:column;
+    }
+    .mini-postit-pin {
+      width:10px; height:10px;
+      background:radial-gradient(circle at 38% 32%, #ff8080, #bb0000);
+      border-radius:50%; position:absolute; top:-4px; left:50%;
+      transform:translateX(-50%); box-shadow:0 2px 4px rgba(0,0,0,0.3);
+    }
+    .mini-postit-text { font-size:11px; font-weight:600; line-height:1.4; flex:1; overflow:hidden; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; }
+    .mini-postit-author { font-size:9px; font-weight:800; margin-top:6px; opacity:0.6; }
+    .bacheca-widget-empty { text-align:center; padding:16px; color:rgba(255,255,255,0.6); font-size:13px; font-weight:600; }
+
     /* BACHECA */
     .bacheca-board {
       background: #b5835a;
@@ -486,7 +530,6 @@
         <button class="tab" id="t-bacheca"    onclick="switchView('bacheca')">📌 Bacheca</button>
       </div>
     </div>
-    <div class="filters" id="filters"></div>
     <div class="content" id="view"></div>
   </div>
   
@@ -661,20 +704,20 @@ function openWeatherPopup() {
 }
 
 /* --- GESTIONE VISTE --- */
-function render(){renderFilters();renderView();}
-function renderFilters(){
-  document.getElementById('filters').innerHTML=MEMBERS.map(m=>`
-    <div class="pill" onclick="toggleF('${m.id}')" style="background:${m.bg}; color:${m.txt}; ${filters.includes(m.id)?'':'opacity:0.25; border-color:var(--border-light);'} cursor:pointer;">
-      <span class="dot8" style="background:${m.dot}"></span>
-      <span>${getIcon(m.id)} ${m.name}</span>
-    </div>`).join('');
+function render(){renderView();}
+function inlineFilters(){
+  return `<div class="inline-filters">${MEMBERS.map(m=>`
+    <div class="inline-pill" onclick="toggleF('${m.id}')" style="background:${m.bg};color:${m.txt};opacity:${filters.includes(m.id)?1:0.28}">
+      <span style="width:6px;height:6px;border-radius:50%;background:${m.dot};display:inline-block"></span>
+      ${getIcon(m.id)} ${m.name}
+    </div>`).join('')}</div>`;
 }
 function toggleF(id){ if(filters.includes(id)){if(filters.length>1)filters=filters.filter(f=>f!==id);}else filters.push(id); render(); }
 function hdrAdd(){if(view==='ricorrenze')openRicModal(null);else if(view==='bacheca')openBachecaModal();else openModal(null);}
 
 function switchView(v){
   view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge','t-bacheca'].forEach(id=>document.getElementById(id).classList.remove('active'));
-  document.getElementById('t-'+v).classList.add('active'); document.getElementById('filters').style.display=['today','week','month'].includes(v)?'flex':'none';
+  document.getElementById('t-'+v).classList.add('active');
   const fab=document.getElementById('fab-add'); const fabTxt=document.getElementById('fab-text');
   if(v==='challenge'){ fab.style.display='none'; }
   else if(v==='bacheca'){ fab.style.display='inline-flex'; fabTxt.innerText='Post-it'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='📌'; }
@@ -696,10 +739,38 @@ function bdayBanners(d_str){
   }).join('');
 }
 
+function bachecaWidget(){
+  const recent = [...bachecaNotes].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3);
+  let inner = '';
+  if(!recent.length){
+    inner = `<div class="bacheca-widget-empty">Nessun messaggio ancora 📝</div>`;
+  } else {
+    inner = `<div class="mini-postits">${recent.map(n=>{
+      const col = POSTIT_COLORS.find(c=>c.id===n.color)||POSTIT_COLORS[0];
+      const fnt = POSTIT_FONTS.find(f=>f.id===n.font)||POSTIT_FONTS[0];
+      const txc = POSTIT_TEXT_COLORS.find(c=>c.id===n.textColor)||POSTIT_TEXT_COLORS[0];
+      const rot = noteRotation(n.id);
+      const m = M(n.author);
+      return `<div class="mini-postit" style="background:${col.hex};transform:rotate(${rot}deg)">
+        <div class="mini-postit-pin"></div>
+        <div class="mini-postit-text" style="font-family:${fnt.family};color:${txc.hex}">${escH(n.text)}</div>
+        <div class="mini-postit-author" style="color:${m.dot}">${getIcon(m.id)} ${m.name}</div>
+      </div>`;
+    }).join('')}</div>`;
+  }
+  return `<div class="bacheca-widget">
+    <div class="bacheca-widget-hdr">
+      <span class="bacheca-widget-title">📌 Bacheca</span>
+      <button class="bacheca-widget-link" onclick="switchView('bacheca')">Vedi tutti →</button>
+    </div>
+    ${inner}
+  </div>`;
+}
+
 function todayView(){
   const evs=events.filter(e=>e.date===viewDate && e.members.some(m=>filters.includes(m))).sort((a,b)=>a.startTime.localeCompare(b.startTime));
   const byM={};MEMBERS.forEach(m=>byM[m.id]=[]); evs.forEach(e=>{e.members.forEach(mid => {if(byM[mid] && filters.includes(mid)) byM[mid].push(e);});});
-  let h=bdayBanners(viewDate);
+  let h=bachecaWidget()+bdayBanners(viewDate)+inlineFilters();
   h+=`<div class="sec-lbl" style="display:flex;align-items:center;width:100%">📅 ${new Date(viewDate).toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'})} ${viewDate===REAL_TODAY?'':`<button onclick="viewDate=REAL_TODAY;renderView()" style="margin-left:auto;background:var(--main-bg);border:1px solid var(--border-light);padding:4px 10px;border-radius:20px;color:#378ADD;font-weight:700;font-size:11px;cursor:pointer">TORNA A OGGI</button>`}</div>`;
   let activeHtml='', freeMembers=[];
   MEMBERS.filter(m=>filters.includes(m.id)).forEach(m=>{
@@ -721,7 +792,7 @@ function evCard(e, mContext){
 /* ── SETTIMANA ── */
 function weekView(){
   const DAYS=['Lun','Mar','Mer','Gio','Ven','Sab','Dom']; const end=addDays(wkStart,6);
-  let h=`<div class="nav-row"><button class="nav-btn" onclick="wkStart=addDays(wkStart,-7);renderView()">‹</button><span class="nav-lbl">🗓 ${wkStart.toLocaleDateString('it-IT',{day:'numeric',month:'short'})} — ${end.toLocaleDateString('it-IT',{day:'numeric',month:'short',year:'numeric'})}</span><button class="nav-btn" onclick="wkStart=addDays(wkStart,7);renderView()">›</button></div><div class="wk-grid">`;
+  let h=inlineFilters()+`<div class="nav-row"><button class="nav-btn" onclick="wkStart=addDays(wkStart,-7);renderView()">‹</button><span class="nav-lbl">🗓 ${wkStart.toLocaleDateString('it-IT',{day:'numeric',month:'short'})} — ${end.toLocaleDateString('it-IT',{day:'numeric',month:'short',year:'numeric'})}</span><button class="nav-btn" onclick="wkStart=addDays(wkStart,7);renderView()">›</button></div><div class="wk-grid">`;
   for(let i=0;i<7;i++){
     const d=addDays(wkStart,i); const ds=fmtD(d);
     const de=events.filter(e=>e.date===ds && e.members.some(m=>filters.includes(m))).sort((a,b)=>a.startTime.localeCompare(b.startTime));
@@ -739,7 +810,7 @@ function weekView(){
 function monthView(){
   const yr=curMonth.getFullYear(), mo=curMonth.getMonth(); const fd=new Date(yr,mo,1), ld=new Date(yr,mo+1,0);
   let dow=fd.getDay()-1; if(dow<0) dow=6;
-  let h=`<div class="nav-row"><button class="nav-btn" onclick="curMonth=new Date(curMonth.getFullYear(),curMonth.getMonth()-1,1);renderView()">‹</button><span class="nav-lbl">📆 ${curMonth.toLocaleDateString('it-IT',{month:'long',year:'numeric'}).toUpperCase()}</span><button class="nav-btn" onclick="curMonth=new Date(curMonth.getFullYear(),curMonth.getMonth()+1,1);renderView()">›</button></div><div class="mn-grid">`;
+  let h=inlineFilters()+`<div class="nav-row"><button class="nav-btn" onclick="curMonth=new Date(curMonth.getFullYear(),curMonth.getMonth()-1,1);renderView()">‹</button><span class="nav-lbl">📆 ${curMonth.toLocaleDateString('it-IT',{month:'long',year:'numeric'}).toUpperCase()}</span><button class="nav-btn" onclick="curMonth=new Date(curMonth.getFullYear(),curMonth.getMonth()+1,1);renderView()">›</button></div><div class="mn-grid">`;
   ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'].forEach(d=>{h+=`<div class="mn-dh">${d}</div>`;});
   for(let i=0;i<dow;i++){ const d2=new Date(fd); d2.setDate(fd.getDate()-(dow-i)); h+=mnDay(d2,true); }
   for(let d=1;d<=ld.getDate();d++){ h+=mnDay(new Date(yr,mo,d),false); }
@@ -1152,8 +1223,11 @@ function fmtDateShort(ds){
 }
 
 function bachecaView(){
+  const LIMIT = 9;
   const sorted = [...bachecaNotes].sort((a,b)=>b.date.localeCompare(a.date));
-  let cards = sorted.map(n=>{
+  const toShow = bachecaShowAll ? sorted : sorted.slice(0, LIMIT);
+  const hasMore = !bachecaShowAll && sorted.length > LIMIT;
+  let cards = toShow.map(n=>{
     const m = M(n.author);
     const rot = noteRotation(n.id);
     const col = POSTIT_COLORS.find(c=>c.id===n.color)||POSTIT_COLORS[0];
@@ -1175,11 +1249,14 @@ function bachecaView(){
     <span>Nuovo post-it</span>
   </div>`;
 
+  const showMoreBtn = hasMore ? `<div style="text-align:center;margin-top:16px"><button onclick="bachecaShowAll=true;renderView()" style="background:rgba(255,255,255,0.85);border:none;padding:10px 24px;border-radius:30px;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,0.2)">Mostra tutti (${sorted.length}) ↓</button></div>` : bachecaShowAll && sorted.length > LIMIT ? `<div style="text-align:center;margin-top:16px"><button onclick="bachecaShowAll=false;renderView()" style="background:rgba(255,255,255,0.85);border:none;padding:10px 24px;border-radius:30px;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,0.2)">Mostra meno ↑</button></div>` : '';
+
   return `<div style="margin-bottom:14px"><div class="sec-lbl">📌 Bacheca di famiglia</div></div>
-    <div class="bacheca-board"><div class="postit-grid">${cards}</div></div>`;
+    <div class="bacheca-board"><div class="postit-grid">${cards}</div>${showMoreBtn}</div>`;
 }
 
 let bachecaForm = { text:'', author:'antonio', color:'yellow', font:'caveat', textColor:'dark' };
+let bachecaShowAll = false;
 
 function openBachecaModal(){
   bachecaForm = { text:'', author:'antonio', color:'yellow', font:'caveat', textColor:'dark' };
