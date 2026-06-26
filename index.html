@@ -377,6 +377,73 @@
     .ch-badge-pending { background:#FFF3CD; color:#856404; padding:5px 10px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
     .ch-badge-ok { background:#D4EDDA; color:#155724; padding:5px 10px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
     .ch-badge-no { background:#F8D7DA; color:#721c24; padding:5px 10px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
+
+    /* BACHECA */
+    .bacheca-board {
+      background: #b5835a;
+      background-image:
+        radial-gradient(ellipse at 20% 25%, rgba(185,140,85,0.5) 0%, transparent 45%),
+        radial-gradient(ellipse at 75% 70%, rgba(130,80,30,0.35) 0%, transparent 45%),
+        radial-gradient(ellipse at 55% 45%, rgba(210,170,110,0.25) 0%, transparent 60%);
+      border-radius: var(--radius-lg);
+      padding: 28px 20px 24px;
+      min-height: 260px;
+      box-shadow: inset 0 3px 10px rgba(0,0,0,0.25), 0 6px 20px rgba(0,0,0,0.12);
+      border: 4px solid #7a4820;
+    }
+    .postit-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 22px;
+    }
+    .postit {
+      background: #fef08a;
+      border-radius: 3px 3px 3px 12px;
+      padding: 18px 12px 12px;
+      box-shadow: 4px 5px 12px rgba(0,0,0,0.28), inset 0 -2px 4px rgba(0,0,0,0.06);
+      position: relative;
+      min-height: 150px;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .postit:hover { transform: scale(1.04) translateY(-2px); box-shadow: 6px 8px 18px rgba(0,0,0,0.32); }
+    .postit-pin {
+      width: 16px; height: 16px;
+      background: radial-gradient(circle at 38% 32%, #ff8080, #bb0000);
+      border-radius: 50%;
+      position: absolute;
+      top: -7px; left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 3px 6px rgba(0,0,0,0.35);
+    }
+    .postit-text {
+      font-size: 13px; font-weight: 600; color: #2a2a2a;
+      line-height: 1.55; flex: 1; word-break: break-word;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+    .postit-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 10px; padding-top: 8px;
+      border-top: 1px dashed rgba(0,0,0,0.12);
+    }
+    .postit-author { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; color: #444; }
+    .postit-date { font-size: 10px; color: #999; font-weight: 600; }
+    .postit-del {
+      position: absolute; top: 7px; right: 7px;
+      background: none; border: none; cursor: pointer;
+      font-size: 11px; color: rgba(0,0,0,0.25); opacity: 0;
+      transition: opacity 0.15s; font-weight: bold; line-height: 1;
+    }
+    .postit:hover .postit-del { opacity: 1; }
+    .bacheca-add-btn {
+      background: rgba(255,255,255,0.85); border: 2px dashed rgba(0,0,0,0.2);
+      border-radius: 3px 3px 3px 12px; min-height: 150px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      cursor: pointer; color: rgba(0,0,0,0.4); font-weight: 700; font-size: 13px;
+      gap: 8px; transition: background 0.15s;
+    }
+    .bacheca-add-btn:hover { background: rgba(255,255,255,0.97); color: rgba(0,0,0,0.6); }
   </style>
 </head>
 <body>
@@ -414,6 +481,7 @@
         <button class="tab" id="t-trasporti"  onclick="switchView('trasporti')">🚗 Trasporti</button>
         <button class="tab" id="t-ricorrenze" onclick="switchView('ricorrenze')">🎂 Ricorrenze</button>
         <button class="tab" id="t-challenge"  onclick="switchView('challenge')">🏆 Challenge</button>
+        <button class="tab" id="t-bacheca"    onclick="switchView('bacheca')">📌 Bacheca</button>
       </div>
     </div>
     <div class="filters" id="filters"></div>
@@ -461,6 +529,49 @@ const MONTHS_IT=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio
 
 let events=[],ricorrenze=[];
 let view='today',filters=MEMBERS.map(m=>m.id);
+
+// Avatar personalizzati — salvati in localStorage
+let memberIcons = JSON.parse(localStorage.getItem('casaDecino_icons')||'{}');
+function getIcon(id){ return memberIcons[id] || M(id).icon; }
+
+const EMOJI_LIST = [
+  '😀','😁','😎','🤓','🥳','😍','🤩','😇','🧔','🧑','👨','👩','👧','👦','👴','👵',
+  '⚽','🏀','🏈','🎾','🚴','🏊','🤸','🏃','🎯','🎮','🎸','🎨','🎭','🎵','📚','💻',
+  '🦁','🐯','🐸','🦊','🐼','🦄','🐉','🦋','🐬','🦅','🌟','✨','🔥','⭐','🌈','🌊',
+  '🚀','🌙','☀️','🌺','🌸','🍕','🍦','🎁','👑','🏆','💪','❤️','💃','🕺','🎀','🎠'
+];
+
+function openIconPicker(memberId){
+  const m = M(memberId);
+  const grid = EMOJI_LIST.map(e =>
+    `<button onclick="saveIcon('${memberId}','${e}')" style="font-size:26px;background:none;border:none;cursor:pointer;padding:6px;border-radius:10px;transition:background 0.1s" onmouseover="this.style.background='var(--main-bg)'" onmouseout="this.style.background='none'">${e}</button>`
+  ).join('');
+  document.getElementById('modal-box').innerHTML = `
+    <div class="modal-hdr">
+      <div class="modal-ttl"><span style="font-size:22px">${getIcon(memberId)}</span> Avatar di ${m.name}</div>
+      <button class="cl-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:4px;max-height:320px;overflow-y:auto;padding:4px 0">${grid}</div>
+    <div style="margin-top:16px;text-align:center">
+      <button class="btn-cancel" onclick="closeModal()">Annulla</button>
+      ${memberIcons[memberId]?`<button class="btn-del-ev" onclick="resetIcon('${memberId}')" style="margin-left:12px">↩ Ripristina default</button>`:''}
+    </div>`;
+  showOv();
+}
+
+function saveIcon(memberId, emoji){
+  memberIcons[memberId] = emoji;
+  localStorage.setItem('casaDecino_icons', JSON.stringify(memberIcons));
+  closeModal();
+  render();
+}
+
+function resetIcon(memberId){
+  delete memberIcons[memberId];
+  localStorage.setItem('casaDecino_icons', JSON.stringify(memberIcons));
+  closeModal();
+  render();
+}
 let wkStart=weekStart(new Date(REAL_TODAY)),curMonth=new Date(REAL_TODAY);
 var editId=null,form={},ricEditId=null,ricForm={};
 let weatherCacheData = null;
@@ -549,20 +660,28 @@ function openWeatherPopup() {
 
 /* --- GESTIONE VISTE --- */
 function render(){renderFilters();renderView();}
-function renderFilters(){ document.getElementById('filters').innerHTML=MEMBERS.map(m=>`<div class="pill" onclick="toggleF('${m.id}')" style="background:${m.bg}; color:${m.txt}; ${filters.includes(m.id)?'':'opacity:0.25; border-color:var(--border-light);'}"><span class="dot8" style="background:${m.dot}"></span>${m.icon} ${m.name}</div>`).join(''); }
+function renderFilters(){
+  document.getElementById('filters').innerHTML=MEMBERS.map(m=>`
+    <div class="pill" style="background:${m.bg}; color:${m.txt}; ${filters.includes(m.id)?'':'opacity:0.25; border-color:var(--border-light);'} padding-right:8px;">
+      <span class="dot8" style="background:${m.dot}"></span>
+      <span onclick="toggleF('${m.id}')" style="cursor:pointer">${getIcon(m.id)} ${m.name}</span>
+      <span onclick="openIconPicker('${m.id}')" style="margin-left:6px;font-size:13px;cursor:pointer;opacity:0.55" title="Cambia avatar">✏️</span>
+    </div>`).join('');
+}
 function toggleF(id){ if(filters.includes(id)){if(filters.length>1)filters=filters.filter(f=>f!==id);}else filters.push(id); render(); }
-function hdrAdd(){if(view==='ricorrenze')openRicModal(null);else openModal(null);}
+function hdrAdd(){if(view==='ricorrenze')openRicModal(null);else if(view==='bacheca')openBachecaModal();else openModal(null);}
 
 function switchView(v){
-  view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge','t-bacheca'].forEach(id=>document.getElementById(id).classList.remove('active'));
   document.getElementById('t-'+v).classList.add('active'); document.getElementById('filters').style.display=['today','week','month'].includes(v)?'flex':'none';
   const fab=document.getElementById('fab-add'); const fabTxt=document.getElementById('fab-text');
   if(v==='challenge'){ fab.style.display='none'; }
-  else { fab.style.display='inline-flex'; fabTxt.innerText=(v==='ricorrenze')?'Ricorrenza':'Impegno'; }
+  else if(v==='bacheca'){ fab.style.display='inline-flex'; fabTxt.innerText='Post-it'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='📌'; }
+  else { fab.style.display='inline-flex'; fabTxt.innerText=(v==='ricorrenze')?'Ricorrenza':'Impegno'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='📝'; }
   renderView();
 }
 
-function renderView(){ const el=document.getElementById('view'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else el.innerHTML=ricorrenzeView(); }
+function renderView(){ const el=document.getElementById('view'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else el.innerHTML=ricorrenzeView(); }
 
 /* ── VISTA OGGI COMPLETA ── */
 function bdayBanners(d_str){
@@ -584,10 +703,10 @@ function todayView(){
   let activeHtml='', freeMembers=[];
   MEMBERS.filter(m=>filters.includes(m.id)).forEach(m=>{
     const me=byM[m.id]; if(!me.length){freeMembers.push(m);} 
-    else { activeHtml+=`<div class="mem-sec"><div class="mem-hdr"><div class="avatar" style="${ms(m)}">${m.icon}</div><div><div style="font-size:15px;font-weight:700">${m.name}</div><div style="font-size:11px;color:var(--text-sec);font-weight:500">${m.role}</div></div><span style="margin-left:auto;font-size:12px;color:var(--text-sec);font-weight:700;background:var(--main-bg);padding:2px 8px;border-radius:10px">${me.length} impegni</span></div><div class="mem-body">`; me.forEach(e=>{activeHtml+=evCard(e,m);}); activeHtml+=`</div></div>`; }
+    else { activeHtml+=`<div class="mem-sec"><div class="mem-hdr"><div class="avatar" style="${ms(m)}">${getIcon(m.id)}</div><div><div style="font-size:15px;font-weight:700">${m.name}</div><div style="font-size:11px;color:var(--text-sec);font-weight:500">${m.role}</div></div><span style="margin-left:auto;font-size:12px;color:var(--text-sec);font-weight:700;background:var(--main-bg);padding:2px 8px;border-radius:10px">${me.length} impegni</span></div><div class="mem-body">`; me.forEach(e=>{activeHtml+=evCard(e,m);}); activeHtml+=`</div></div>`; }
   });
   if(!activeHtml) activeHtml=`<div class="empty-state"><span class="big">🛋️</span><div style="font-size:16px;font-weight:700;">Nessun impegno in famiglia</div></div>`;
-  if(freeMembers.length>0 && activeHtml.indexOf('empty-state')===-1){ activeHtml+=`<div style="margin-top:24px;padding-top:16px;border-top:1px dashed var(--border-light);text-align:center"><div class="sec-lbl" style="text-align:center">🎉 Liberi oggi</div><div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px">${freeMembers.map(m => `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--main-bg);padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;color:var(--text-main)"><span style="font-size:14px">${m.icon}</span>${m.name}</span>`).join('')}</div></div>`; }
+  if(freeMembers.length>0 && activeHtml.indexOf('empty-state')===-1){ activeHtml+=`<div style="margin-top:24px;padding-top:16px;border-top:1px dashed var(--border-light);text-align:center"><div class="sec-lbl" style="text-align:center">🎉 Liberi oggi</div><div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px">${freeMembers.map(m => `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--main-bg);padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;color:var(--text-main)"><span style="font-size:14px">${getIcon(m.id)}</span>${m.name}</span>`).join('')}</div></div>`; }
   return h+activeHtml;
 }
 
@@ -646,7 +765,7 @@ function trasportiView(){
   const byDriver={}; MEMBERS.forEach(m=>byDriver[m.id]=[]); const exts=[];
   nonAuto.forEach(e=>{ if(e.transport.type=='accompanied'&&byDriver[e.transport.by])byDriver[e.transport.by].push(e); else if(e.transport.type=='external')exts.push(e); });
   h+=`<div class="stat-grid">`;
-  MEMBERS.filter(m=>byDriver[m.id].length>0).forEach(m=>{ h+=`<div class="stat-card" style="background:${m.bg}; color:${m.txt};"><div style="display:flex;align-items:center;gap:7px"><div class="avatar" style="${ms(m)}; width:24px; height:24px; font-size:12px">${m.icon}</div><span style="font-weight:700">${m.name}</span></div><div class="stat-num">${byDriver[m.id].length}</div></div>`; });
+  MEMBERS.filter(m=>byDriver[m.id].length>0).forEach(m=>{ h+=`<div class="stat-card" style="background:${m.bg}; color:${m.txt};"><div style="display:flex;align-items:center;gap:7px"><div class="avatar" style="${ms(m)}; width:24px; height:24px; font-size:12px">${getIcon(m.id)}</div><span style="font-weight:700">${m.name}</span></div><div class="stat-num">${byDriver[m.id].length}</div></div>`; });
   h+=`</div>`;
   if(exts.length) h+=`<div class="sec-lbl" style="color:#ff3b30;">📞 AIUTO ESTERNO — ${exts.length} VIAGGI</div>`;
   
@@ -683,13 +802,13 @@ function showOv(){ const ov=document.getElementById('modal-ov'); ov.style.height
 function closeModal(){ const ov=document.getElementById('modal-ov'); ov.style.display='none'; ov.style.alignItems='flex-end'; }
 
 function renderEvModal(){
-  const mbrBtns = MEMBERS.map(m => `<button class="tr-btn${form.members.includes(m.id)?' sel':''}" onclick="toggleMbr('${m.id}')" style="${form.members.includes(m.id)?ms(m):''}">${m.icon} ${m.name}</button>`).join('');
+  const mbrBtns = MEMBERS.map(m => `<button class="tr-btn${form.members.includes(m.id)?' sel':''}" onclick="toggleMbr('${m.id}')" style="${form.members.includes(m.id)?ms(m):''}">${getIcon(m.id)} ${m.name}</button>`).join('');
   const cOpts=CATS.map(c=>`<option value="${c.id}"${form.category===c.id?' selected':''}>${c.icon} ${c.label}</option>`).join('');
   const tBtns=TRANS.map(t=>`<button class="tr-btn${form.transport.type===t.id?' sel':''}" onclick="setTr('${t.id}')">${t.icon} ${t.label}</button>`).join('');
-  let trD = form.transport.type=='accompanied' ? `<select onchange="window.form.transport.by=this.value"><option value="">-- Chi guida? --</option>${MEMBERS.map(m=>`<option value="${m.id}"${form.transport.by===m.id?' selected':''}>${m.icon} ${m.name}</option>`).join('')}</select>` : form.transport.type=='external' ? `<input type="text" placeholder="Es. Nonna, Zio Mario…" value="${form.transport.note||''}" oninput="window.form.transport.note=this.value">` : '';
+  let trD = form.transport.type=='accompanied' ? `<select onchange="window.form.transport.by=this.value"><option value="">-- Chi guida? --</option>${MEMBERS.map(m=>`<option value="${m.id}"${form.transport.by===m.id?' selected':''}>${getIcon(m.id)} ${m.name}</option>`).join('')}</select>` : form.transport.type=='external' ? `<input type="text" placeholder="Es. Nonna, Zio Mario…" value="${form.transport.note||''}" oninput="window.form.transport.note=this.value">` : '';
   const cm = M(form.members[0] || 'antonio');
   document.getElementById('modal-box').innerHTML=`
-    <div class="modal-hdr"><div class="modal-ttl"><div class="avatar" style="background:${cm.bg}; color:${cm.txt}; width:28px; height:28px; font-size:14px">${cm.icon}</div> ${editId?'Modifica impegni':'Nuovo impegno'}</div><button class="cl-btn" onclick="closeModal()">✕</button></div>
+    <div class="modal-hdr"><div class="modal-ttl"><div class="avatar" style="background:${cm.bg}; color:${cm.txt}; width:28px; height:28px; font-size:14px">${getIcon(cm.id)}</div> ${editId?'Modifica impegni':'Nuovo impegno'}</div><button class="cl-btn" onclick="closeModal()">✕</button></div>
     <div class="fgrp"><label class="flbl">Titolo</label><input type="text" value="${form.title.replace(/"/g,'&quot;')}" oninput="window.form.title=this.value" placeholder="Es. Calcio"></div>
     <div class="fgrp"><label class="flbl">Persone coinvolte</label><div class="tr-opts">${mbrBtns}</div></div>
     <div class="frow fgrp"><div><label class="flbl">Data</label><input type="date" value="${form.date}" onchange="window.form.date=this.value"></div><div><label class="flbl">Categoria</label><select onchange="window.form.category=this.value">${cOpts}</select></div></div>
@@ -710,7 +829,7 @@ function renderRicModal(){
     <div class="modal-hdr"><div class="modal-ttl">🎂 Gestione Ricorrenza</div><button class="cl-btn" onclick="closeModal()">✕</button></div>
     <div class="fgrp"><label class="flbl">Titolo</label><input type="text" value="${ricForm.title.replace(/"/g,'&quot;')}" oninput="ricForm.title=this.value"></div>
     <div class="fgrp"><label class="flbl">Tipo</label><div class="tr-opts">${tBtns}</div></div>
-    <div class="frow fgrp"><div><label class="flbl">Data</label><input type="date" value="2026-${ricForm.date}" onchange="ricForm.date=this.value.slice(5)"></div><div><label class="flbl">Membro associato</label><select onchange="ricForm.member=this.value"><option value="">-- Nessuno --</option>${MEMBERS.map(m=>`<option value="${m.id}"${ricForm.member===m.id?' selected':''}>${m.icon} ${m.name}</option>`).join('')}</select></div></div>
+    <div class="frow fgrp"><div><label class="flbl">Data</label><input type="date" value="2026-${ricForm.date}" onchange="ricForm.date=this.value.slice(5)"></div><div><label class="flbl">Membro associato</label><select onchange="ricForm.member=this.value"><option value="">-- Nessuno --</option>${MEMBERS.map(m=>`<option value="${m.id}"${ricForm.member===m.id?' selected':''}>${getIcon(m.id)} ${m.name}</option>`).join('')}</select></div></div>
     <div class="modal-actions">${ricEditId?`<button class="btn-del-ev" onclick="deleteRic('${ricEditId}')">🗑 Elimina</button>`:'<span></span>'}<div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Annulla</button><button class="btn-save" onclick="saveRicorrenza()">Salva</button></div></div>
   `;
 }
@@ -773,7 +892,7 @@ function sfideView(){
   CHALLENGE_KIDS.forEach(kid=>{
     const m=M(kid);
     const approvedPts=challengeLog.filter(l=>l.member===kid&&l.date===viewDate&&l.status==='approved').reduce((s,l)=>s+l.points,0);
-    h+=`<div class="mem-sec"><div class="mem-hdr"><div class="avatar" style="${ms(m)}">${m.icon}</div><div><div style="font-size:15px;font-weight:700">${m.name}</div><div style="font-size:11px;color:var(--text-sec)">${m.role}</div></div><span style="margin-left:auto;background:var(--main-bg);padding:4px 12px;border-radius:12px;font-size:14px;font-weight:800;color:#378ADD">⭐ ${approvedPts} pt</span></div><div class="mem-body">`;
+    h+=`<div class="mem-sec"><div class="mem-hdr"><div class="avatar" style="${ms(m)}">${getIcon(m.id)}</div><div><div style="font-size:15px;font-weight:700">${m.name}</div><div style="font-size:11px;color:var(--text-sec)">${m.role}</div></div><span style="margin-left:auto;background:var(--main-bg);padding:4px 12px;border-radius:12px;font-size:14px;font-weight:800;color:#378ADD">⭐ ${approvedPts} pt</span></div><div class="mem-body">`;
     tasks.forEach(task=>{
       const log=challengeLog.find(l=>l.member===kid&&l.taskId===task.id&&l.date===viewDate);
       let btn='';
@@ -829,7 +948,7 @@ function classificaView(){
       const rank=CHALLENGE_KIDS.map(k=>({k,pts:pts[k]})).sort((a,b)=>b.pts-a.pts);
       const winner=rank[0]; const wm=M(winner.k);
       const prevPremio=challengeSettings[`premio_${ym}`];
-      h+=`<div class="rank-row"><div class="avatar" style="${ms(wm)}">${wm.icon}</div><div style="flex:1"><div style="font-weight:800">${MONTHS_IT[+mo-1].charAt(0).toUpperCase()+MONTHS_IT[+mo-1].slice(1)} ${y}</div><div style="font-size:12px;color:var(--text-sec);font-weight:600">🥇 ${wm.name} — ${winner.pts} punti${prevPremio?` · 🎁 ${escH(prevPremio)}`:''}</div></div></div>`;
+      h+=`<div class="rank-row"><div class="avatar" style="${ms(wm)}">${getIcon(wm.id)}</div><div style="flex:1"><div style="font-weight:800">${MONTHS_IT[+mo-1].charAt(0).toUpperCase()+MONTHS_IT[+mo-1].slice(1)} ${y}</div><div style="font-size:12px;color:var(--text-sec);font-weight:600">🥇 ${wm.name} — ${winner.pts} punti${prevPremio?` · 🎁 ${escH(prevPremio)}`:''}</div></div></div>`;
     });
   }
   return h;
@@ -843,7 +962,7 @@ function renderPodio(ranking){
   visual.forEach((item,i)=>{
     if(!item){h+=`<div class="podio-item" style="width:76px"></div>`;return;}
     const m=M(item.k);
-    h+=`<div class="podio-item"><div style="font-size:30px;margin-bottom:4px">${m.icon}</div><div style="font-size:12px;font-weight:800;margin-bottom:4px">${m.name}</div><div style="font-size:18px;margin-bottom:6px">${medals[i]}</div><div class="podio-bar" style="background:${m.dot};height:${heights[i]}px"><span style="color:#fff;font-weight:800;font-size:13px">${item.pts}pt</span></div></div>`;
+    h+=`<div class="podio-item"><div style="font-size:30px;margin-bottom:4px">${getIcon(m.id)}</div><div style="font-size:12px;font-weight:800;margin-bottom:4px">${m.name}</div><div style="font-size:18px;margin-bottom:6px">${medals[i]}</div><div class="podio-bar" style="background:${m.dot};height:${heights[i]}px"><span style="color:#fff;font-weight:800;font-size:13px">${item.pts}pt</span></div></div>`;
   });
   return h+`</div>`;
 }
@@ -853,7 +972,7 @@ function renderRankTable(ranking){
   let h='';
   ranking.forEach((item,i)=>{
     const m=M(item.k); const pct=maxPts>0?Math.round((item.pts/maxPts)*100):0;
-    h+=`<div class="rank-row"><span style="font-size:20px;width:28px;text-align:center">${medals[i]||`#${i+1}`}</span><div class="avatar" style="${ms(m)}">${m.icon}</div><div style="flex:1"><div style="font-weight:700">${m.name}</div><div style="margin-top:5px;background:var(--main-bg);border-radius:20px;height:6px;overflow:hidden"><div style="background:${m.dot};height:100%;width:${pct}%;border-radius:20px"></div></div></div><span style="font-size:17px;font-weight:800">${item.pts}<span style="font-size:10px;font-weight:600"> pt</span></span></div>`;
+    h+=`<div class="rank-row"><span style="font-size:20px;width:28px;text-align:center">${medals[i]||`#${i+1}`}</span><div class="avatar" style="${ms(m)}">${getIcon(m.id)}</div><div style="flex:1"><div style="font-weight:700">${m.name}</div><div style="margin-top:5px;background:var(--main-bg);border-radius:20px;height:6px;overflow:hidden"><div style="background:${m.dot};height:100%;width:${pct}%;border-radius:20px"></div></div></div><span style="font-size:17px;font-weight:800">${item.pts}<span style="font-size:10px;font-weight:600"> pt</span></span></div>`;
   });
   return h;
 }
@@ -886,7 +1005,7 @@ function adminView(){
   if(!pending.length) h+=`<div style="text-align:center;color:var(--text-sec);font-size:13px;padding:12px;font-weight:600">Tutto approvato ✅</div>`;
   else pending.forEach(item=>{
     const m=M(item.member);
-    h+=`<div class="pending-row"><div class="avatar" style="${ms(m)};width:32px;height:32px;font-size:16px">${m.icon}</div><div style="flex:1"><div style="font-weight:700;font-size:13px">${m.name} — ${escH(item.taskTitle)}</div><div style="font-size:11px;color:var(--text-sec)">📅 ${item.date} · ⭐ ${item.points}pt</div></div><button onclick="approveLog('${item.id}',true)" style="background:#D4EDDA;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:16px">✅</button><button onclick="approveLog('${item.id}',false)" style="background:#F8D7DA;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:16px;margin-left:4px">❌</button></div>`;
+    h+=`<div class="pending-row"><div class="avatar" style="${ms(m)};width:32px;height:32px;font-size:16px">${getIcon(m.id)}</div><div style="flex:1"><div style="font-weight:700;font-size:13px">${m.name} — ${escH(item.taskTitle)}</div><div style="font-size:11px;color:var(--text-sec)">📅 ${item.date} · ⭐ ${item.points}pt</div></div><button onclick="approveLog('${item.id}',true)" style="background:#D4EDDA;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:16px">✅</button><button onclick="approveLog('${item.id}',false)" style="background:#F8D7DA;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:16px;margin-left:4px">❌</button></div>`;
   });
   h+=`</div>`;
 
@@ -980,7 +1099,95 @@ function checkPin(targetView){
   else{document.getElementById('pin-err').style.display='block';document.getElementById('pin-input').value='';}
 }
 
-async function init(){ await Promise.all([loadEvents(),loadRic(),loadChallenge()]); render(); loadWeather(); }
+/* =============================================
+   BACHECA MODULE
+   ============================================= */
+let bachecaNotes = [];
+const API_BACHECA = () => `${API_EVENTS}?sheet=Bacheca`;
+const API_BACHECA_ID = (id) => `${API_EVENTS}/ID/${id}?sheet=Bacheca`;
+
+async function loadBacheca(){
+  try{
+    const res = await fetch(API_BACHECA());
+    const data = await res.json();
+    bachecaNotes = (data && data.length > 0 && data[0].ID)
+      ? data.map(r=>({id:r.ID, text:r.Testo, author:r.Autore, date:r.Data}))
+      : [];
+  } catch(e){ bachecaNotes=[]; }
+}
+
+function noteRotation(id){
+  let h=0; for(let i=0;i<id.length;i++) h=(h*31+id.charCodeAt(i))&0xffff;
+  return (((h%9)-4)*0.7).toFixed(1);
+}
+
+function fmtDateShort(ds){
+  if(!ds) return '';
+  const [y,m,d] = ds.split('-');
+  return `${d}/${m}/${y.slice(2)}`;
+}
+
+function bachecaView(){
+  const sorted = [...bachecaNotes].sort((a,b)=>b.date.localeCompare(a.date));
+  let cards = sorted.map(n=>{
+    const m = M(n.author);
+    const rot = noteRotation(n.id);
+    return `<div class="postit" style="transform:rotate(${rot}deg)">
+      <div class="postit-pin"></div>
+      <button class="postit-del" onclick="event.stopPropagation();deleteBachecaNote('${n.id}')">✕</button>
+      <div class="postit-text">${escH(n.text)}</div>
+      <div class="postit-footer">
+        <div class="postit-author"><span style="width:8px;height:8px;border-radius:50%;background:${m.dot};display:inline-block"></span>${m.name}</div>
+        <span class="postit-date">${fmtDateShort(n.date)}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  cards += `<div class="bacheca-add-btn" onclick="openBachecaModal()">
+    <span style="font-size:28px">📝</span>
+    <span>Nuovo post-it</span>
+  </div>`;
+
+  return `<div style="margin-bottom:14px"><div class="sec-lbl">📌 Bacheca di famiglia</div></div>
+    <div class="bacheca-board"><div class="postit-grid">${cards}</div></div>`;
+}
+
+let bachecaForm = { text:'', author:'antonio' };
+
+function openBachecaModal(){
+  bachecaForm = { text:'', author:'antonio' };
+  renderBachecaModal();
+  showOv();
+}
+
+function renderBachecaModal(){
+  const mbrBtns = MEMBERS.map(m=>`<button class="tr-btn${bachecaForm.author===m.id?' sel':''}" onclick="bachecaForm.author='${m.id}';renderBachecaModal()" style="${bachecaForm.author===m.id?ms(m):''}">${getIcon(m.id)} ${m.name}</button>`).join('');
+  document.getElementById('modal-box').innerHTML=`
+    <div class="modal-hdr"><div class="modal-ttl">📌 Nuovo Post-it</div><button class="cl-btn" onclick="closeModal()">✕</button></div>
+    <div class="fgrp"><label class="flbl">Messaggio</label><textarea id="bacheca-text" rows="4" placeholder="Scrivi il tuo pensiero…" style="width:100%;resize:none" oninput="bachecaForm.text=this.value">${escH(bachecaForm.text)}</textarea></div>
+    <div class="fgrp"><label class="flbl">Firma</label><div class="tr-opts">${mbrBtns}</div></div>
+    <div class="modal-actions"><span></span><div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Annulla</button><button class="btn-save" onclick="saveBachecaNote()">Aggiungi</button></div></div>
+  `;
+}
+
+async function saveBachecaNote(){
+  const text = document.getElementById('bacheca-text')?.value.trim() || bachecaForm.text.trim();
+  if(!text){ alert('Scrivi un messaggio'); return; }
+  const id = uid();
+  const entry = { id, text, author: bachecaForm.author, date: REAL_TODAY };
+  bachecaNotes.push(entry);
+  fetch(API_BACHECA(), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({data:{ID:id, Testo:text, Autore:bachecaForm.author, Data:REAL_TODAY}}) });
+  closeModal(); renderView();
+}
+
+async function deleteBachecaNote(id){
+  if(!confirm('Rimuovere questo post-it?')) return;
+  bachecaNotes = bachecaNotes.filter(n=>n.id!==id);
+  fetch(API_BACHECA_ID(id), { method:'DELETE' });
+  renderView();
+}
+
+async function init(){ await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca()]); render(); loadWeather(); }
 init();
 </script>
 </body>
