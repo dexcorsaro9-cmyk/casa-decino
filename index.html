@@ -621,7 +621,33 @@ let wkStart=weekStart(new Date(REAL_TODAY)),curMonth=new Date(REAL_TODAY);
 var editId=null,form={},ricEditId=null,ricForm={};
 let weatherCacheData = null;
 
-const API_EVENTS = 'https://sheetdb.io/api/v1/zvwyy4hugc3je';
+/* ── AIRTABLE API ── */
+const AT_BASE  = 'https://api.airtable.com/v0/appmfStiVB53NEKoY';
+const AT_TOKEN = 'pat9K6W2IgOxx75Pm.87d40a4670ab4f23c24095ad8cb924e5f54ed89c2f5ee2e4c011aa777d3b5e2c';
+const AT_H     = { 'Authorization': `Bearer ${AT_TOKEN}`, 'Content-Type': 'application/json' };
+const AT_HR    = { 'Authorization': `Bearer ${AT_TOKEN}` };
+
+async function atGetAll(table){
+  let records=[], offset=null;
+  do {
+    const url=`${AT_BASE}/${encodeURIComponent(table)}`+(offset?`?offset=${offset}`:'');
+    const res=await fetch(url,{headers:AT_H});
+    const d=await res.json();
+    if(d.records) records=records.concat(d.records);
+    offset=d.offset||null;
+  } while(offset);
+  return records;
+}
+async function atPost(table,fields){
+  const res=await fetch(`${AT_BASE}/${encodeURIComponent(table)}`,{method:'POST',headers:AT_H,body:JSON.stringify({records:[{fields}]})});
+  return res.json();
+}
+function atPatch(table,recId,fields){
+  fetch(`${AT_BASE}/${encodeURIComponent(table)}/${recId}`,{method:'PATCH',headers:AT_H,body:JSON.stringify({fields})});
+}
+function atDelete(table,recId){
+  fetch(`${AT_BASE}/${encodeURIComponent(table)}/${recId}`,{method:'DELETE',headers:AT_HR});
+}
 
 function weekStart(d){const dt=new Date(d);const dy=dt.getDay();dt.setDate(dt.getDate()+(dy===0?-6:1-dy));dt.setHours(0,0,0,0);return dt;}
 function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
@@ -642,33 +668,48 @@ function fmtMD(md){const[mm,dd]=md.split('-').map(Number);return `${dd} ${MONTHS
 
 async function loadEvents(){
   try {
-    const res = await fetch(API_EVENTS);
-    const data = await res.json();
-    events = (data && data.length > 0 && data[0].ID) ? data.map(row => ({id: row.ID, title: row.Titolo, date: row.Data, startTime: row['Ora Inizio'], endTime: row['Ora Fine'], members: (row.Membro || '').split(',').map(s=>s.trim()).filter(Boolean), category: row.Categoria, transport: { type: row['Trasporto Tipo'], by: row['Trasporto Da'], note: row['Trasporto Note'] }, notes: row.Note})) : [];
-  } catch(e) { events = []; }
+    const records = await atGetAll('Events');
+    events = records.map(r=>({
+      _recId: r.id,
+      id: r.fields.ID||r.id,
+      title: r.fields.Titolo||'',
+      date: r.fields.Data||'',
+      startTime: r.fields['Ora Inizio']||'',
+      endTime: r.fields['Ora Fine']||'',
+      members: (r.fields.Membro||'').split(',').map(s=>s.trim()).filter(Boolean),
+      category: r.fields.Categoria||'altro',
+      transport:{type:r.fields['Trasporto Tipo']||'autonomous',by:r.fields['Trasporto Da']||'',note:r.fields['Trasporto Note']||''},
+      notes: r.fields.Note||''
+    }));
+  } catch(e){ events=[]; }
 }
 
 async function saveEvt(){
-  if(!window.form.title.trim() || !window.form.date || window.form.members.length === 0){alert('Completa tutti i campi');return;}
-  const isEdit = !!editId; const evId = isEdit ? editId : uid();
-  const newRow = {ID: evId, Titolo: window.form.title, Data: window.form.date, "Ora Inizio": window.form.startTime, "Ora Fine": window.form.endTime, Membro: window.form.members.join(','), Categoria: window.form.category, "Trasporto Tipo": window.form.transport.type, "Trasporto Da": window.form.transport.by, "Trasporto Note": window.form.transport.note, Note: window.form.notes};
+  if(!window.form.title.trim()||!window.form.date||window.form.members.length===0){alert('Completa tutti i campi');return;}
+  const isEdit=!!editId;
+  const fields={ID:isEdit?editId:uid(),Titolo:window.form.title,Data:window.form.date,'Ora Inizio':window.form.startTime,'Ora Fine':window.form.endTime,Membro:window.form.members.join(','),Categoria:window.form.category,'Trasporto Tipo':window.form.transport.type,'Trasporto Da':window.form.transport.by,'Trasporto Note':window.form.transport.note,Note:window.form.notes};
   if(isEdit){
-    const i = events.findIndex(e=>e.id===editId);
-    if(i>-1) events[i] = {...window.form, id: editId};
-    fetch(`${API_EVENTS}/ID/${editId}`, {method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({data: newRow})});
+    const ev=events.find(e=>e.id===editId);
+    if(ev){Object.assign(ev,{...window.form,id:editId,_recId:ev._recId});atPatch('Events',ev._recId,fields);}
   } else {
-    events.push({...window.form, id: evId});
-    fetch(API_EVENTS, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({data: newRow})});
+    const res=await atPost('Events',fields);
+    events.push({...window.form,id:fields.ID,_recId:res.records?.[0]?.id});
   }
   closeModal(); renderView();
 }
 
 async function delEvt(id){
   if(!confirm('Eliminare questo impegno?'))return;
-  events = events.filter(e=>e.id!==id); fetch(`${API_EVENTS}/ID/${id}`, { method: 'DELETE' }); closeModal(); renderView();
+  const ev=events.find(e=>e.id===id);
+  events=events.filter(e=>e.id!==id);
+  if(ev?._recId) atDelete('Events',ev._recId);
+  closeModal(); renderView();
 }
 async function loadRic(){
-  try { const res = await fetch(API_EVENTS + '?sheet=Ricorrenze'); const data = await res.json(); ricorrenze = (data && data.length > 0 && data[0].ID) ? data.map(row => ({id: row.ID, title: row.Titolo, date: row.Data, type: row.Tipo, member: row.Membro || ''})) : []; } catch(e) { ricorrenze = []; }
+  try {
+    const records=await atGetAll('Ricorrenze');
+    ricorrenze=records.map(r=>({_recId:r.id,id:r.fields.ID||r.id,title:r.fields.Titolo||'',date:r.fields.Data||'',type:r.fields.Tipo||'birthday',member:r.fields.Membro||''}));
+  } catch(e){ ricorrenze=[]; }
 }
 
 /* --- FUNZIONI METEO COORD. GUIDONIA (00012) --- */
@@ -955,13 +996,24 @@ function renderRicModal(){
 }
 async function saveRicorrenza(){
   if(!ricForm.title.trim()){alert('Inserisci un titolo');return;}
-  const isEdit = !!ricEditId; const rId = isEdit ? ricEditId : uid();
-  const newRow = {ID: rId, Titolo: ricForm.title, Data: ricForm.date, Tipo: ricForm.type, Membro: ricForm.member || ''};
-  if(isEdit){ ricorrenze[ricorrenze.findIndex(r=>r.id===ricEditId)] = {...ricForm, id: ricEditId}; fetch(`${API_EVENTS}/ID/${ricEditId}?sheet=Ricorrenze`, {method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({data: newRow})}); }
-  else { ricorrenze.push({...ricForm, id: rId}); fetch(`${API_EVENTS}?sheet=Ricorrenze`, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({data: newRow})}); }
+  const isEdit=!!ricEditId;
+  const fields={ID:isEdit?ricEditId:uid(),Titolo:ricForm.title,Data:ricForm.date,Tipo:ricForm.type,Membro:ricForm.member||''};
+  if(isEdit){
+    const r=ricorrenze.find(r=>r.id===ricEditId);
+    if(r){Object.assign(r,{...ricForm,id:ricEditId,_recId:r._recId});atPatch('Ricorrenze',r._recId,fields);}
+  } else {
+    const res=await atPost('Ricorrenze',fields);
+    ricorrenze.push({...ricForm,id:fields.ID,_recId:res.records?.[0]?.id});
+  }
   closeModal(); renderView();
 }
-async function deleteRic(id){ if(!confirm('Eliminare la ricorrenza?'))return; ricorrenze = ricorrenze.filter(r=>r.id!==id); fetch(`${API_EVENTS}/ID/${id}?sheet=Ricorrenze`, { method: 'DELETE' }); closeModal(); renderView(); }
+async function deleteRic(id){
+  if(!confirm('Eliminare la ricorrenza?'))return;
+  const r=ricorrenze.find(r=>r.id===id);
+  ricorrenze=ricorrenze.filter(r=>r.id!==id);
+  if(r?._recId) atDelete('Ricorrenze',r._recId);
+  closeModal(); renderView();
+}
 
 /* =============================================
    CHALLENGE MODULE
@@ -970,21 +1022,13 @@ const CHALLENGE_KIDS = ['valerio','federico','sara'];
 let challengeTasks=[], challengeLog=[], challengeSettings={};
 let parentUnlocked=false, challengeSubView='sfide', selectedPoints=2;
 
-const API_CH = (sheet) => `${API_EVENTS}?sheet=${sheet}`;
-const API_CH_ID = (sheet, id) => `${API_EVENTS}/ID/${id}?sheet=${sheet}`;
-
 async function loadChallenge(){
   try{
-    const [rt,rl,rs]=await Promise.all([
-      fetch(API_CH('ChallengeTasks')).then(r=>r.json()),
-      fetch(API_CH('ChallengeLog')).then(r=>r.json()),
-      fetch(API_CH('ChallengeSettings')).then(r=>r.json())
-    ]);
-    // DataInizio = the date from which the task recurs forward
-    challengeTasks=(rt&&rt[0]?.ID)?rt.map(r=>({id:r.ID,dateStart:r.DataInizio||r.Data||'',title:r.Titolo,points:+r.Punti||0})):[];
-    challengeLog=(rl&&rl[0]?.ID)?rl.map(r=>({id:r.ID,date:r.Data,member:r.Membro,taskId:r.TaskID,taskTitle:r.TaskTitolo,points:+r.Punti,status:r.Stato,approvedAt:r.DataApprovazione||''})):[];
+    const [rt,rl,rs]=await Promise.all([atGetAll('ChallengeTasks'),atGetAll('ChallengeLog'),atGetAll('ChallengeSettings')]);
+    challengeTasks=rt.map(r=>({_recId:r.id,id:r.fields.ID||r.id,dateStart:r.fields.DataInizio||r.fields.Data||'',title:r.fields.Titolo||'',points:+r.fields.Punti||0}));
+    challengeLog=rl.map(r=>({_recId:r.id,id:r.fields.ID||r.id,date:r.fields.Data||'',member:r.fields.Membro||'',taskId:r.fields.TaskID||'',taskTitle:r.fields.TaskTitolo||'',points:+r.fields.Punti||0,status:r.fields.Stato||'pending',approvedAt:r.fields.DataApprovazione||''}));
     challengeSettings={};
-    if(rs&&rs[0]?.Chiave)rs.forEach(r=>{challengeSettings[r.Chiave]=r.Valore;});
+    rs.forEach(r=>{ if(r.fields.Chiave){ challengeSettings[r.fields.Chiave]=r.fields.Valore; challengeSettings[`_recId_${r.fields.Chiave}`]=r.id; } });
   }catch(e){challengeTasks=[];challengeLog=[];challengeSettings={};}
 }
 
@@ -1036,7 +1080,8 @@ async function submitTask(kid,taskId,taskTitle,points,date){
   const id=uid();
   const entry={id,date,member:kid,taskId,taskTitle,points,status:'pending',approvedAt:''};
   challengeLog.push(entry);
-  fetch(API_CH('ChallengeLog'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:{ID:id,Data:date,Membro:kid,TaskID:taskId,TaskTitolo:taskTitle,Punti:points,Stato:'pending',DataApprovazione:''}})});
+  const res=await atPost('ChallengeLog',{ID:id,Data:date,Membro:kid,TaskID:taskId,TaskTitolo:taskTitle,Punti:points,Stato:'pending',DataApprovazione:''});
+  const last=challengeLog[challengeLog.length-1]; last._recId=res.records?.[0]?.id;
   renderView();
 }
 
@@ -1148,15 +1193,16 @@ async function addChallengeTask(){
   const dateStart=document.getElementById('ch-task-date')?.value;
   if(!title||!dateStart){alert('Inserisci titolo e data di inizio');return;}
   const id=uid();
-  challengeTasks.push({id,dateStart,title,points:selectedPoints});
-  fetch(API_CH('ChallengeTasks'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:{ID:id,DataInizio:dateStart,Titolo:title,Punti:selectedPoints}})});
+  const res=await atPost('ChallengeTasks',{ID:id,DataInizio:dateStart,Titolo:title,Punti:selectedPoints});
+  challengeTasks.push({id,dateStart,title,points:selectedPoints,_recId:res.records?.[0]?.id});
   renderView();
 }
 
 async function deleteChallengeTask(id){
   if(!confirm('Eliminare questa sfida? Sparirà da tutti i giorni.'))return;
+  const t=challengeTasks.find(t=>t.id===id);
   challengeTasks=challengeTasks.filter(t=>t.id!==id);
-  fetch(API_CH_ID('ChallengeTasks',id),{method:'DELETE'});
+  if(t?._recId) atDelete('ChallengeTasks',t._recId);
   renderView();
 }
 
@@ -1165,7 +1211,7 @@ async function approveLog(id,approved){
   if(i<0)return;
   const status=approved?'approved':'rejected';
   challengeLog[i].status=status; challengeLog[i].approvedAt=REAL_TODAY;
-  fetch(API_CH_ID('ChallengeLog',id),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:{Stato:status,DataApprovazione:REAL_TODAY}})});
+  if(challengeLog[i]._recId) atPatch('ChallengeLog',challengeLog[i]._recId,{Stato:status,DataApprovazione:REAL_TODAY});
   renderView();
 }
 
@@ -1173,20 +1219,20 @@ async function savePremio(){
   const val=document.getElementById('ch-premio')?.value.trim()||'';
   const curYM=`${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
   const key=`premio_${curYM}`;
-  const existed=challengeSettings[key]!==undefined;
+  const recId=challengeSettings[`_recId_${key}`];
   challengeSettings[key]=val;
-  if(existed) fetch(`${API_EVENTS}/Chiave/${encodeURIComponent(key)}?sheet=ChallengeSettings`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:{Valore:val}})});
-  else fetch(API_CH('ChallengeSettings'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:{Chiave:key,Valore:val}})});
+  if(recId){ atPatch('ChallengeSettings',recId,{Valore:val}); }
+  else { const res=await atPost('ChallengeSettings',{Chiave:key,Valore:val}); challengeSettings[`_recId_${key}`]=res.records?.[0]?.id; }
   alert('Premio salvato! 🎁');
 }
 
 async function savePin(){
   const val=document.getElementById('ch-pin-new')?.value.trim()||'';
   if(val.length<4){alert('Il PIN deve essere di almeno 4 caratteri');return;}
-  const existed=challengeSettings['pin']!==undefined;
+  const recId=challengeSettings['_recId_pin'];
   challengeSettings['pin']=val;
-  if(existed) fetch(`${API_EVENTS}/Chiave/pin?sheet=ChallengeSettings`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:{Valore:val}})});
-  else fetch(API_CH('ChallengeSettings'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:{Chiave:'pin',Valore:val}})});
+  if(recId){ atPatch('ChallengeSettings',recId,{Valore:val}); }
+  else { const res=await atPost('ChallengeSettings',{Chiave:'pin',Valore:val}); challengeSettings['_recId_pin']=res.records?.[0]?.id; }
   alert('PIN aggiornato! 🔐');
 }
 
@@ -1223,8 +1269,7 @@ function checkPin(targetView){
    BACHECA MODULE
    ============================================= */
 let bachecaNotes = [];
-const API_BACHECA = () => `${API_EVENTS}?sheet=Bacheca`;
-const API_BACHECA_ID = (id) => `${API_EVENTS}/ID/${id}?sheet=Bacheca`;
+// Bacheca usa direttamente le funzioni atGetAll/atPost/atDelete
 
 const POSTIT_COLORS = [
   { id:'yellow',  hex:'#fef08a', label:'Giallo'  },
@@ -1251,11 +1296,8 @@ const POSTIT_TEXT_COLORS = [
 
 async function loadBacheca(){
   try{
-    const res = await fetch(API_BACHECA());
-    const data = await res.json();
-    bachecaNotes = (data && data.length > 0 && data[0].ID)
-      ? data.map(r=>({id:r.ID, text:r.Testo, author:r.Autore, date:r.Data, color:r.Colore||'yellow', font:r.Font||'caveat', textColor:r.ColoreTesto||'dark'}))
-      : [];
+    const records=await atGetAll('Bacheca');
+    bachecaNotes=records.map(r=>({_recId:r.id,id:r.fields.ID||r.id,text:r.fields.Testo||'',author:r.fields.Autore||'antonio',date:r.fields.Data||'',color:r.fields.Colore||'yellow',font:r.fields.Font||'caveat',textColor:r.fields.ColoreTesto||'dark'}));
   } catch(e){ bachecaNotes=[]; }
 }
 
@@ -1334,19 +1376,19 @@ function renderBachecaModal(){
 }
 
 async function saveBachecaNote(){
-  const text = document.getElementById('bacheca-text')?.value.trim() || bachecaForm.text.trim();
+  const text=document.getElementById('bacheca-text')?.value.trim()||bachecaForm.text.trim();
   if(!text){ alert('Scrivi un messaggio'); return; }
-  const id = uid();
-  const entry = { id, text, author: bachecaForm.author, date: REAL_TODAY, color: bachecaForm.color, font: bachecaForm.font, textColor: bachecaForm.textColor };
-  bachecaNotes.push(entry);
-  fetch(API_BACHECA(), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({data:{ID:id, Testo:text, Autore:bachecaForm.author, Data:REAL_TODAY, Colore:bachecaForm.color, Font:bachecaForm.font, ColoreTesto:bachecaForm.textColor}}) });
+  const id=uid();
+  const res=await atPost('Bacheca',{ID:id,Testo:text,Autore:bachecaForm.author,Data:REAL_TODAY,Colore:bachecaForm.color,Font:bachecaForm.font,ColoreTesto:bachecaForm.textColor});
+  bachecaNotes.push({id,text,author:bachecaForm.author,date:REAL_TODAY,color:bachecaForm.color,font:bachecaForm.font,textColor:bachecaForm.textColor,_recId:res.records?.[0]?.id});
   closeModal(); renderView();
 }
 
 async function deleteBachecaNote(id){
   if(!confirm('Rimuovere questo post-it?')) return;
-  bachecaNotes = bachecaNotes.filter(n=>n.id!==id);
-  fetch(API_BACHECA_ID(id), { method:'DELETE' });
+  const n=bachecaNotes.find(n=>n.id===id);
+  bachecaNotes=bachecaNotes.filter(n=>n.id!==id);
+  if(n?._recId) atDelete('Bacheca',n._recId);
   renderView();
 }
 
