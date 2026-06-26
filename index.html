@@ -492,6 +492,7 @@ async function saveEvt(){
 async function delEvt(id){
   if(!confirm('Eliminare questo impegno?'))return;
   events = events.filter(e=>e.id!==id); fetch(`${API_EVENTS}/ID/${id}`, { method: 'DELETE' }); closeModal(); renderView();
+}
 async function loadRic(){
   try { const res = await fetch(API_EVENTS + '?sheet=Ricorrenze'); const data = await res.json(); ricorrenze = (data && data.length > 0 && data[0].ID) ? data.map(row => ({id: row.ID, title: row.Titolo, date: row.Data, type: row.Tipo, member: row.Membro || ''})) : []; } catch(e) { ricorrenze = []; }
 }
@@ -707,4 +708,3 @@ init();
 </script>
 </body>
 </html>
-  
