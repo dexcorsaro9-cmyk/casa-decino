@@ -7,45 +7,48 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
     :root {
+      /* Colori iconici e vivaci dei membri */
       --a-bg: #E6F1FB; --a-txt: #0C447C; --a-dot: #378ADD;
       --p-bg: #FAECE7; --p-txt: #712B13; --p-dot: #D85A30;
       --v-bg: #E1F5EE; --v-txt: #085041; --v-dot: #1D9E75;
       --f-bg: #DAEEFF; --f-txt: #0B5A7A; --f-dot: #29B8E0;
       --s-bg: #EEEDFE; --s-txt: #3C3489; --s-dot: #7F77DD;
       
-      /* Variabili Apple Light */
-      --main-bg: #F2F2F7;
+      /* Palette Color-Pop Light (Vivace e Accogliente) */
+      --main-bg: #F0F4F8;
       --card-bg: #FFFFFF;
-      --text-primary: #1C1C1E;
-      --text-secondary: #8E8E93;
-      --border-light: rgba(0, 0, 0, 0.04);
-      --soft-shadow: 0 8px 24px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.02);
-      --radius-lg: 16px;
-      --radius-md: 12px;
+      --text-main: #1C2541;
+      --text-sec: #657786;
+      --border-light: rgba(55, 138, 221, 0.08);
+      --shadow-sm: 0 4px 12px rgba(28, 37, 65, 0.04);
+      --shadow-md: 0 8px 24px rgba(28, 37, 65, 0.08);
+      --radius-lg: 20px;
+      --radius-md: 14px;
     }
 
     @media(prefers-color-scheme:dark) {
       :root {
-        --a-bg: #042C53; --a-txt: #B5D4F4;
-        --p-bg: #4A1B0C; --p-txt: #F5C4B3;
-        --v-bg: #04342C; --v-txt: #9FE1CB;
-        --f-bg: #041C28; --f-txt: #9DD9F0;
-        --s-bg: #26215C; --s-txt: #CECBF6;
+        --a-bg: #0C2440; --a-txt: #B5D4F4;
+        --p-bg: #3A150A; --p-txt: #F5C4B3;
+        --v-bg: #052620; --v-txt: #9FE1CB;
+        --f-bg: #051A26; --f-txt: #9DD9F0;
+        --s-bg: #1A163B; --s-txt: #CECBF6;
         
-        /* Nuova Palette Soft Dark (Grigio Sfumato Apple/Spotify) */
-        --main-bg: #121214;
-        --card-bg: #1C1C1E;
-        --text-primary: #F2F2F7;
-        --text-secondary: #A2A2A7;
-        --border-light: rgba(255, 255, 255, 0.04);
-        --soft-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        /* Palette Color-Pop Dark (Deep Velvet Blue — Niente nero cupo!) */
+        --main-bg: #0B132B;
+        --card-bg: #1C2541;
+        --text-main: #F4F6F9;
+        --text-sec: #8A99AD;
+        --border-light: rgba(255, 255, 255, 0.06);
+        --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.2);
+        --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.35);
       }
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--main-bg);
-      color: var(--text-primary);
+      color: var(--text-main);
       font-size: 14px;
       line-height: 1.4;
       padding-bottom: 40px;
@@ -53,22 +56,23 @@
 
     #app { position: relative; max-width: 800px; margin: 0 auto; padding: 0 12px; }
 
+    /* Header Curvo e Moderno */
     .hdr {
       background: var(--card-bg);
       border-radius: var(--radius-lg);
-      box-shadow: var(--soft-shadow);
-      padding: 18px 20px 0;
+      box-shadow: var(--shadow-md);
+      padding: 20px 20px 4px;
       position: sticky;
       top: 12px;
       z-index: 10;
       margin-top: 12px;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
       border: 1px solid var(--border-light);
     }
     
     .hdr-top {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
       gap: 16px;
       margin-bottom: 16px;
@@ -77,115 +81,201 @@
     .brand { display: flex; align-items: center; gap: 12px; }
     
     .brand-icon {
-      width: 40px;
-      height: 40px;
+      width: 44px;
+      height: 44px;
       border-radius: var(--radius-md);
-      background: var(--a-bg);
-      color: var(--a-txt);
+      background: linear-gradient(135deg, #378ADD, #29B8E0);
+      color: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
+      font-size: 22px;
+      box-shadow: 0 4px 12px rgba(55,138,221,0.3);
     }
     
-    .brand-name { font-size: 19px; font-weight: 700; letter-spacing: -0.02em; }
-    .brand-sub { font-size: 12px; color: var(--text-secondary); margin-top: 1px; }
+    .brand-name { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+    .brand-sub { font-size: 12px; color: var(--text-sec); font-weight: 500; }
     
     .weather-box {
-      margin-top: 6px;
+      margin-top: 8px;
       display: none;
       font-size: 11px;
-      color: var(--text-secondary);
+      color: var(--text-main);
       background: var(--main-bg);
-      padding: 4px 8px;
-      border-radius: 8px;
+      padding: 6px 10px;
+      border-radius: 20px;
+      font-weight: 600;
     }
-    .w-day { display: inline-block; margin-right: 8px; }
-    .w-day:last-child{margin-right:0}
-    
+    .w-day { display: inline-block; margin-right: 10px; }
+    .w-day:last-child { margin-right: 0; }
+
+    /* Bottone Aggiungi in Stile Pillola Pop */
     .add-btn {
-      padding: 8px 16px;
-      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 18px;
+      border-radius: 30px;
       border: none;
-      background: var(--text-main);
-      color: var(--card-bg);
+      background: linear-gradient(135deg, #34C759, #28A745);
+      color: #fff;
       cursor: pointer;
       font-size: 13px;
-      font-weight: 600;
-      transition: opacity 0.1s;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(52,199,89,0.3);
+      transition: all 0.2s;
+      white-space: nowrap;
     }
-    .add-btn:hover { opacity: 0.9; }
+    .add-btn:active { transform: scale(0.95); }
+
+    /* Tabs di Navigazione Colorate */
+    .tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 4px; padding-bottom: 4px; }
+    .tab {
+      padding: 10px 16px;
+      font-size: 13px;
+      border: none;
+      background: var(--main-bg);
+      cursor: pointer;
+      border-radius: 20px;
+      color: var(--text-sec);
+      font-weight: 600;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .tab.active {
+      color: #fff;
+      background: #378ADD;
+      box-shadow: 0 4px 10px rgba(55,138,221,0.25);
+    }
+
+    /* Filtri Persone in evidenza */
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    .pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s;
+      border: 1px solid transparent;
+    }
+    .pill.off { opacity: 0.25; background: var(--card-bg) !important; color: var(--text-sec) !important; border-color: var(--border-light); }
+    .dot8 { width: 8px; height: 8px; border-radius: 50%; }
+
+    /* Sezioni Membri */
+    .content { padding-top: 4px; }
+    .sec-lbl {
+      font-size: 11px;
+      color: var(--text-sec);
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
     
-    .tabs { display: flex; gap: 4px; overflow-x: auto; margin-bottom: -1px; }
-    .tab { padding: 10px 14px; font-size: 13px; border: none; background: none; cursor: pointer; border-radius: 8px 8px 0 0; color: var(--text-sec); font-weight: 500; transition: all 0.15s; white-space: nowrap; }
-    .tab.active { color: var(--text-main); font-weight: 700; background: var(--bg-color); }
+    .mem-sec {
+      margin-bottom: 20px;
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-light);
+      overflow: hidden;
+    }
     
-    .filters { background: var(--card-bg); padding: 12px 15px; display: flex; gap: 8px; flex-wrap: wrap; border-radius: var(--radius); margin-bottom: 16px; box-shadow: var(--shadow); }
-    .pill { display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; user-select: none; }
-    .pill.off { opacity: .3; background: #eee !important; color: #888 !important; }
-    .dot8 { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .mem-hdr {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      background: linear-gradient(to right, var(--main-bg), transparent);
+    }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: var(--shadow-sm); }
+    .mem-body { padding: 12px; }
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-sec); font-weight: 600; }
+    .empty-state .big { font-size: 44px; margin-bottom: 10px; display: block; }
+
+    /* Card Evento Colorata e Sfumata */
+    .ev-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-light);
+    }
+    .ev-card:last-child { margin-bottom: 0; }
+    .ev-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
     
-    .content { padding: 4px 0 80px; }
-    .sec-lbl { font-size: 11px; color: var(--text-sec); letter-spacing: .06em; margin: 10px 0 14px 5px; font-weight: 700; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
+    /* Nota: lo sfondo reale delle card viene iniettato dinamicamente via JS (ms(m)) */
+    .ev-strip { width: 5px; height: 100%; position: absolute; left: 0; top: 0; bottom: 0; border-radius: var(--radius-md) 0 0 var(--radius-md); }
+    .ev-time { font-size: 12px; font-weight: 800; min-width: 55px; line-height: 1.4; text-align: center; opacity: 0.9; }
+    .ev-info { flex: 1; min-width: 0; padding-left: 4px; }
+    .ev-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
     
-    .mem-sec { margin-bottom: 16px; background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
-    .mem-hdr { display: flex; align-items: center; gap: 10px; padding: 14px; border-bottom: 0.5px solid rgba(0,0,0,0.05); }
-    .avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; }
-    .mem-body { padding: 10px 14px; }
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; background: rgba(255,255,255,0.25); box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
+    .ev-note { font-size: 12px; margin-top: 6px; font-weight: 500; opacity: 0.8; }
     
-    .ev-card { display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: 12px; background: var(--bg-color); margin-bottom: 8px; cursor: pointer; transition: transform 0.1s; position: relative; }
-    .ev-card:active { transform: scale(0.99); }
-    .ev-strip { width: 4px; border-radius: 2px; align-self: stretch; flex-shrink: 0; min-height: 36px; }
-    .ev-time { font-size: 11px; color: var(--text-sec); min-width: 50px; font-weight: 700; line-height: 1.5; }
-    .ev-info { flex: 1; min-width: 0; }
-    .ev-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; color: var(--text-main); }
-    .ev-meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
+    .del-btn {
+      background: var(--card-bg); border: none; cursor: pointer; color: #ff3b30;
+      width: 26px; height: 26px; border-radius: 50%; position: absolute; top: 12px; right: 12px; 
+      opacity: 0; transition: opacity 0.15s; font-size: 12px; font-weight: bold; box-shadow: var(--shadow-sm);
+    }
+    .ev-card:hover .del-btn { opacity: 1; }
+
+    /* Viste Navigazione Calendari */
+    .nav-row {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+      background: var(--card-bg); padding: 14px 18px; border-radius: var(--radius-md); box-shadow: var(--shadow-md);
+    }
+    .nav-lbl { font-size: 15px; font-weight: 800; }
+    .nav-btn { background: var(--main-bg); border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; font-size: 16px; color: var(--text-main); font-weight: bold; }
     
-    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; white-space: nowrap; }
-    .ev-note { font-size: 11px; color: var(--text-sec); margin-top: 6px; }
-    .del-btn { background: none; border: none; cursor: pointer; color: var(--text-sec); padding: 6px; position: absolute; top: 8px; right: 8px; font-size: 14px; }
-    
-    .nav-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; background: var(--card-bg); padding: 12px; border-radius: var(--radius); box-shadow: var(--shadow); }
-    .nav-lbl { font-size: 14px; font-weight: 700; }
-    .nav-btn { background: var(--bg-color); border: none; border-radius: 8px; cursor: pointer; padding: 6px 14px; font-weight: 700; }
-    
-    /* Viste Calendario Moderne */
-    .wk-grid { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap: 6px; }
-    .day-col { min-height: 200px; }
-    .day-hdr { text-align: center; padding: 8px 4px; border-radius: 10px; margin-bottom: 8px; background: var(--card-bg); box-shadow: var(--shadow); }
-    .day-hdr.td { background: #378ADD; color: #fff; }
+    .wk-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+    .day-hdr { text-align: center; padding: 10px 4px; border-radius: var(--radius-md); margin-bottom: 8px; background: var(--card-bg); box-shadow: var(--shadow-sm); }
+    .day-hdr.td { background: linear-gradient(135deg, #378ADD, #29B8E0); color: #fff; }
     .day-hdr.td .d-name { color: rgba(255,255,255,0.8); }
-    .d-name { font-size: 10px; color: var(--text-sec); text-transform: uppercase; font-weight: 700; }
-    .d-num { font-size: 15px; font-weight: 700; }
-    .wk-ev { padding: 6px; border-radius: 8px; font-size: 10px; margin-bottom: 4px; cursor: pointer; font-weight: 600; box-shadow: var(--shadow); }
-    .wk-add { width: 100%; padding: 6px; border-radius: 8px; border: 1px dashed var(--text-sec); background: none; color: var(--text-sec); cursor: pointer; }
-    
-    .mn-grid { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; padding: 2px; }
-    .mn-dh { text-align: center; padding: 10px; font-size: 11px; color: var(--text-sec); font-weight: 700; }
-    .mn-day { min-height: 70px; padding: 6px; border-radius: 8px; cursor: pointer; }
-    .mn-day.td { background: var(--bg-color); border: 1.5px solid #378ADD; }
-    .mn-day.other { opacity: .25; }
-    .mn-dn { font-size: 12px; font-weight: 700; }
-    .dots { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; }
-    .mn-dot { width: 6px; height: 6px; border-radius: 50%; }
-    .mn-dot-r { width: 6px; height: 6px; border-radius: 2px; }
-    
-    /* Modal Form UI */
-    #modal-ov { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); backdrop-filter: blur(8px); z-index: 1000; display: none; align-items: flex-end; justify-content: center; }
-    .modal { background: var(--card-bg); border-radius: 24px 24px 0 0; width: 100%; max-width: 500px; padding: 24px; box-shadow: 0 -8px 32px rgba(0,0,0,0.1); animation: slideUp 0.3s ease-out; }
+    .d-name { font-size: 10px; color: var(--text-sec); text-transform: uppercase; font-weight: 800; }
+    .d-num { font-size: 16px; font-weight: 800; margin-top: 2px; }
+    .wk-ev { padding: 8px; border-radius: 10px; font-size: 11px; margin-bottom: 5px; cursor: pointer; font-weight: 700; box-shadow: var(--shadow-sm); }
+    .wk-add { width: 100%; padding: 8px; border-radius: 10px; border: 2px dashed var(--text-sec); background: none; color: var(--text-sec); cursor: pointer; font-weight: bold; }
+
+    .mn-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); background: var(--card-bg); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); overflow: hidden; padding: 4px; gap: 2px; }
+    .mn-dh { text-align: center; padding: 10px; font-size: 11px; color: var(--text-sec); font-weight: 800; text-transform: uppercase; }
+    .mn-day { min-height: 78px; padding: 8px; border-radius: var(--radius-md); cursor: pointer; background: var(--main-bg); }
+    .mn-day.td { background: var(--a-bg); border: 2px solid #378ADD; }
+    .mn-day.other { opacity: 0.3; }
+    .mn-dn { font-size: 13px; font-weight: 800; }
+    .dots { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+    .mn-dot { width: 7px; height: 7px; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .mn-dot-r { width: 7px; height: 7px; border-radius: 2px; }
+
+    /* Modali Moderni Arrotondati */
+    #modal-ov { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 19, 43, 0.4); backdrop-filter: blur(12px); z-index: 1000; display: none; align-items: flex-end; justify-content: center; }
+    .modal { background: var(--card-bg); border-radius: 30px 30px 0 0; width: 100%; max-width: 520px; padding: 26px; box-shadow: 0 -10px 40px rgba(0,0,0,0.15); border: 1px solid var(--border-light); animation: slideUp 0.25s cubic-bezier(0.1, 0.76, 0.55, 0.94); }
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
     .modal-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-    .modal-ttl { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
-    .cl-btn { background: var(--main-bg); border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-weight: bold; }
+    .modal-ttl { font-size: 19px; font-weight: 800; letter-spacing: -0.01em; }
+    .cl-btn { background: var(--main-bg); border: none; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 14px; color: var(--text-main); font-weight: bold; }
     
-    input, select, textarea { font-family: inherit; font-size: 14px; background: var(--main-bg); border: none; border-radius: 10px; padding: 12px; color: var(--text-primary); margin-top: 4px; }
-    .tr-sec { background: var(--main-bg); border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px; }
+    input, select, textarea { font-family: inherit; font-size: 14px; background: var(--main-bg); border: 1px solid var(--border-light); border-radius: 14px; padding: 12px 14px; color: var(--text-primary); margin-top: 6px; font-weight: 600; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #378ADD; background: var(--card-bg); }
+    .tr-sec { background: var(--main-bg); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; border: 1px solid var(--border-light); }
     
-    .btn-save { background: #34c759; color: #fff; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; cursor: pointer; }
-    .btn-cancel { background: var(--main-bg); color: var(--text-secondary); border: none; padding: 12px 16px; border-radius: 12px; font-weight: 600; cursor: pointer; }
+    .btn-save { background: linear-gradient(135deg, #34C759, #28A745); color: #fff; border: none; padding: 12px 26px; border-radius: 30px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(52,199,89,0.2); }
+    .btn-cancel { background: var(--main-bg); color: var(--text-sec); border: none; padding: 12px 20px; border-radius: 30px; font-weight: 700; cursor: pointer; }
     
-    .bday-banner { background: linear-gradient(135deg, #ff9500, #ffcc00); color: #fff; border-radius: var(--radius-md); }
-    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-secondary); }
+    .bday-banner { background: linear-gradient(135deg, #FF9500, #FFCC00); color: #fff; border-radius: var(--radius-md); box-shadow: 0 6px 16px rgba(255,149,0,0.3); }
+    .stat-card { border-radius: var(--radius-md); padding: 16px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light); }
+    .stat-num { font-size: 26px; font-weight: 800; margin-top: 4px; }
   </style>
 </head>
 <body>
@@ -226,7 +316,7 @@ const MEMBERS=[
   {id:'antonio',name:'Antonio',role:'Papà',      dot:'#378ADD',bg:'var(--a-bg)',txt:'var(--a-txt)',icon:'👨'},
   {id:'pamela', name:'Pamela', role:'Mamma',      dot:'#D85A30',bg:'var(--p-bg)',txt:'var(--p-txt)',icon:'👩'},
   {id:'valerio',name:'Valerio',role:'Figlio 21a', dot:'#1D9E75',bg:'var(--v-bg)',txt:'var(--v-txt)',icon:'⚽'},
-  {id:'federico',name:'Federico',role:'Figlio 14a',dot:'#29B8E0',bg:'var(--f-bg)',txt:'var(--f-txt)',icon:'🚴'},
+  {id:'federico',name:'Federico',role:'Figlio 14a',dot:'#29B8E0',bg(--f-bg)',txt:'var(--f-txt)',icon:'🚴'},
   {id:'sara',   name:'Sara',   role:'Figlia 14a', dot:'#7F77DD',bg:'var(--s-bg)',txt:'var(--s-txt)',icon:'💃'},
 ];
 const CATS=[
@@ -411,7 +501,7 @@ async function loadWeather() {
 function render(){renderFilters();renderView();}
 function renderFilters(){
   document.getElementById('filters').innerHTML=MEMBERS.map(m=>
-    `<div class="pill${filters.includes(m.id)?'':' off'}" onclick="toggleF('${m.id}')" style="background:${m.bg}; color:${m.txt};">
+    `<div class="pill" onclick="toggleF('${m.id}')" style="background:${m.bg}; color:${m.txt}; ${filters.includes(m.id)?'':'opacity:0.25; border-color:var(--border-light);'}">
       <span class="dot8" style="background:${m.dot}"></span>${m.icon} ${m.name}
     </div>`).join('');
 }
@@ -422,7 +512,8 @@ function toggleF(id){
 function hdrAdd(){if(view==='ricorrenze')openRicModal(null);else openModal(null);}
 function switchView(v){
   view=v;
-  ['today','week','month','trasporti','ricorrenze'].forEach(t=>document.getElementById('t-'+t).classList.toggle('active',t===v));
+  ['t-today','t-week','t-month','t-trasporti','t-ricorrenze'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById('t-'+v).classList.add('active');
   document.getElementById('filters').style.display=['today','week','month'].includes(v)?'flex':'none';
   renderView();
 }
@@ -435,12 +526,12 @@ function renderView(){
   else el.innerHTML=ricorrenzeView();
 }
 
-/* ── TODAY ── */
+/* ── TODAY (MOSTRA IL GIORNO SELEZIONATO) ── */
 function bdayBanners(d_str){
   const md=d_str.slice(5);
   return ricorrenze.filter(r=>r.date===md).map(r=>{
     const mb=r.member?M(r.member):null;
-    const style=mb?ms(mb):'background:var(--main-bg);color:var(--text-primary)';
+    const style=mb?ms(mb):'background:var(--card-bg);color:var(--text-primary)';
     const ico=r.type==='anniversary'?'💍':'🎂';
     const txt = d_str === REAL_TODAY ? 'Oggi! 🎉' : 'In questa data 🎉';
     return `<div class="bday-banner" style="${style}"><span style="font-size:28px">${ico}</span><div><div style="font-weight:700;font-size:14px">${r.title}</div><div style="font-size:12px;opacity:.8">${txt}</div></div></div>`;
@@ -458,7 +549,7 @@ function todayView(){
   
   let h=bdayBanners(viewDate);
   const isT = viewDate === REAL_TODAY;
-  h+=`<div class="sec-lbl" style="display:flex;align-items:center;width:100%">📅 ${lbl.charAt(0).toUpperCase()+lbl.slice(1)} ${isT?'':`<button onclick="viewDate=REAL_TODAY;renderView()" style="margin-left:auto;background:var(--main-bg);border:none;padding:4px 8px;border-radius:6px;color:var(--text-primary);font-weight:700;font-size:10px;cursor:pointer">TORNA A OGGI</button>`}</div>`;
+  h+=`<div class="sec-lbl" style="display:flex;align-items:center;width:100%">📅 ${lbl.charAt(0).toUpperCase()+lbl.slice(1)} ${isT?'':`<button onclick="viewDate=REAL_TODAY;renderView()" style="margin-left:auto;background:var(--main-bg);border:1px solid var(--border-light);padding:4px 10px;border-radius:20px;color:#378ADD;font-weight:700;font-size:11px;cursor:pointer">TORNA A OGGI</button>`}</div>`;
 
   let activeHtml = '';
   let freeMembers = [];
@@ -470,8 +561,8 @@ function todayView(){
     } else {
       activeHtml+=`<div class="mem-sec"><div class="mem-hdr">
         <div class="avatar" style="${ms(m)}">${m.icon}</div>
-        <div><div style="font-size:14px;font-weight:600">${m.name}</div><div style="font-size:11px;color:var(--text-secondary)">${m.role}</div></div>
-        <span style="margin-left:auto;font-size:12px;color:var(--text-secondary);font-weight:600">${me.length} event${me.length>1?'i':'o'}</span>
+        <div><div style="font-size:15px;font-weight:700">${m.name}</div><div style="font-size:11px;color:var(--text-sec);font-weight:500">${m.role}</div></div>
+        <span style="margin-left:auto;font-size:12px;color:var(--text-sec);font-weight:700;background:var(--main-bg);padding:2px 8px;border-radius:10px">${me.length} event${me.length>1?'i':'o'}</span>
       </div><div class="mem-body">`;
       me.forEach(e=>{activeHtml+=evCard(e,m);});
       activeHtml+=`</div></div>`;
@@ -479,14 +570,14 @@ function todayView(){
   });
 
   if(!activeHtml) {
-    activeHtml = `<div class="empty-state"><span class="big">🛋️</span><div style="font-size:16px;font-weight:600;color:var(--text-primary)">Giornata totalmente libera!</div><div style="font-size:13px;margin-top:6px;opacity:.7">Nessun impegno in famiglia in questa data</div></div>`;
+    activeHtml = `<div class="empty-state"><span class="big">🛋️</span><div style="font-size:16px;font-weight:700;">Giornata totalmente libera!</div><div style="font-size:13px;margin-top:4px;opacity:.7">Nessun impegno in famiglia in questa data</div></div>`;
   }
 
   let freeHtml = '';
   if(freeMembers.length > 0 && activeHtml.indexOf('empty-state') === -1){
-     const freeNames = freeMembers.map(m => `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--main-bg);padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--border-light);color:var(--text-primary)"><span style="font-size:14px">${m.icon}</span>${m.name}</span>`).join(' ');
+     const freeNames = freeMembers.map(m => `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--main-bg);padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;border:1px solid var(--border-light);color:var(--text-main)"><span style="font-size:14px">${m.icon}</span>${m.name}</span>`).join(' ');
      freeHtml = `<div style="margin-top:24px;padding-top:16px;border-top:1px dashed var(--border-light);text-align:center">
-       <div style="font-size:10px;color:var(--text-secondary);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.06em;font-weight:700">🎉 Liberi da impegni</div>
+       <div style="font-size:10px;color:var(--text-sec);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.06em;font-weight:800">🎉 Liberi da impegni oggi</div>
        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px">${freeNames}</div>
      </div>`;
   }
@@ -498,19 +589,19 @@ function evCard(e, mContext){
   const m = mContext || M(e.members[0]);
   const cat=C(e.category);const tr=e.transport;
   let tb='';
-  if(tr.type==='autonomous')tb=`<span class="badge" style="background:#EAF3DE;color:#27500A">✅ Autonomo</span>`;
-  else if(tr.type==='accompanied'){const w=M(tr.by);tb=`<span class="badge" style="background:#FAEEDA;color:#633806">🚗 Con ${w.name}</span>`;}
-  else tb=`<span class="badge" style="background:#FAECE7;color:#712B13">📞 Aiuto${tr.note?': '+tr.note:''}</span>`;
+  if(tr.type==='autonomous')tb=`<span class="badge">✅ Autonomo</span>`;
+  else if(tr.type==='accompanied'){const w=M(tr.by);tb=`<span class="badge">🚗 Con ${w.name}</span>`;}
+  else tb=`<span class="badge">📞 Aiuto${tr.note?': '+tr.note:''}</span>`;
   
   const others = e.members.filter(mid => mid !== m.id).map(mid => M(mid));
-  const othersHtml = others.map(ox => `<span title="Insieme a ${ox.name}" style="font-size:13px;margin-left:2px">${ox.icon}</span>`).join('');
+  const othersHtml = others.map(ox => `<span title="Insieme a ${ox.name}" style="font-size:13px;margin-left:4px">${ox.icon}</span>`).join('');
 
-  return `<div class="ev-card" onclick="openModal('${e.id}')">
+  return `<div class="ev-card" onclick="openModal('${e.id}')" style="${ms(m)}">
     <div class="ev-strip" style="background:${m.dot}"></div>
     <div class="ev-time">${e.startTime}<br>${e.endTime}</div>
     <div class="ev-info">
       <div class="ev-title">${e.title}</div>
-      <div class="ev-meta"><span class="badge" style="${ms(m)}">${cat.icon} ${cat.label}</span>${othersHtml}${tb}</div>
+      <div class="ev-meta"><span class="badge">${cat.icon} ${cat.label}</span>${othersHtml}${tb}</div>
       ${e.notes?`<div class="ev-note">📝 ${e.notes}</div>`:''}
     </div>
     <button class="del-btn" onclick="event.stopPropagation();delEvt('${e.id}')" aria-label="Elimina">✕</button>
@@ -533,12 +624,12 @@ function weekView(){
     const ric=ricorrenze.filter(r=>r.date===ds.slice(5));
     const ricBadge=ric.length?`<span class="wk-bday">🎂 ${ric.map(r=>r.title.split(' ')[1]||r.title).join(', ')}</span>`:'';
     h+=`<div class="day-col"><div class="day-hdr${it?' td':''}"><span class="d-name">${DAYS[i]}</span><span class="d-num">${d.getDate()}</span>${ricBadge}</div>`;
-    if(!de.length)h+=`<div class="empty-week">·</div>`;
+    if(!de.length)h+=`<div class="empty-state" style="padding:15px 0; font-size:11px;">·</div>`;
     de.forEach(e=>{
       e.members.forEach(mid => {
         if(filters.includes(mid)) {
           const m = M(mid);
-          h+=`<div class="wk-ev" style="${ms(m)}" onclick="openModal('${e.id}')"><span class="wk-ev-name">${e.title}</span><span class="wk-ev-time">${e.startTime} — ${m.name}</span></div>`;
+          h+=`<div class="wk-ev" style="${ms(m)}" onclick="openModal('${e.id}')"><span style="display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${e.title}</span><span style="font-size:9px; opacity:0.8;">${e.startTime} — ${m.name}</span></div>`;
         }
       });
     });
@@ -578,7 +669,7 @@ function mnDay(date,other){
     });
   });
   
-  const visDots = dots.slice(0, 5);
+  const visDots = dots.slice(0, 4);
   const more = dots.length - visDots.length;
 
   let h=`<div class="mn-day${it?' td':''}${other?' other':''}" onclick="viewDate='${ds}'; switchView('today')">
@@ -586,11 +677,11 @@ function mnDay(date,other){
   
   visDots.forEach(d => {
     const m = M(d.mid);
-    h+=`<span class="mn-dot" style="background:${m.dot}" title="${m.name} — ${d.title}"></span>`;
+    h+=`<span class="mn-dot" style="background:${m.dot}"></span>`;
   });
   
-  ric.forEach(r=>{const mb=r.member?M(r.member):null;h+=`<span class="mn-dot-r" style="background:${mb?mb.dot:'#EF9F27'}" title="${r.title}"></span>`;});
-  h+=`</div>${more>0?`<div class="mn-more">+${more}</div>`:''}</div>`;
+  ric.forEach(r=>{const mb=r.member?M(r.member):null;h+=`<span class="mn-dot-r" style="background:${mb?mb.dot:'#EF9F27'}"></span>`;});
+  h+=`</div>${more>0?`<div style="font-size:9px; font-weight:700; margin-top:2px;">+${more}</div>`:''}</div>`;
   return h;
 }
 
@@ -618,20 +709,20 @@ function trasportiView(){
     activeD.forEach(m=>{
       const cnt=byDriver[m.id].length;
       h+=`<div class="stat-card" style="background:${m.bg}; color:${m.txt};">
-        <div style="display:flex;align-items:center;gap:7px"><div class="avatar" style="background:${m.bg}; color:${m.txt}; width:26px; height:26px; font-size:14px">${m.icon}</div><span style="font-size:13px;font-weight:600">${m.name}</span></div>
-        <div class="stat-num">${cnt}</div><div class="stat-lbl">cors${cnt===1?'a':'e'} questa settimana</div>
+        <div style="display:flex;align-items:center;gap:7px"><div class="avatar" style="background:${m.bg}; color:${m.txt}; width:26px; height:26px; font-size:14px">${m.icon}</div><span style="font-size:13px;font-weight:700">${m.name}</span></div>
+        <div class="stat-num">${cnt}</div><div style="font-size:10px; opacity:0.8;">cors${cnt===1?'a':'e'}</div>
       </div>`;
     });
     h+=`</div>`;
   }
-  if(exts.length)h+=`<div class="sec-lbl" style="color:#ff3b30">📞 Aiuto esterno — ${exts.length} event${exts.length>1?'i':'o'}</div>`;
-  h+=`<div class="sec-lbl">≡ Dettaglio per giorno</div>`;
+  if(exts.length)h+=`<div class="sec-lbl" style="color:#ff3b30; font-weight:800;">📞 Aiuto esterno — ${exts.length} impegni</div>`;
+  h+=`<div class="sec-lbl">≡ Dettaglio trasporti</div>`;
   const byDay={};
   nonAuto.forEach(e=>{const ds=fmtD(e._d);if(!byDay[ds])byDay[ds]={d:e._d,evs:[]};byDay[ds].evs.push(e);});
   Object.entries(byDay).sort(([a],[b])=>a.localeCompare(b)).forEach(([ds,{d,evs:dayEvs}])=>{
     const isT=ds===REAL_TODAY;
     const lbl2=d.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
-    h+=`<div style="margin-bottom:16px"><div class="tr-day-hdr" style="${isT?'color:var(--a-dot)':''}">${lbl2.charAt(0).toUpperCase()+lbl2.slice(1)}${isT?' — oggi':''}</div>`;
+    h+=`<div style="margin-bottom:16px"><div style="font-size:13px; font-weight:700; margin-bottom:8px; padding-left:4px; ${isT?'color:#378ADD;':''}">${lbl2.charAt(0).toUpperCase()+lbl2.slice(1)}${isT?' — oggi':''}</div>`;
     dayEvs.forEach(e=>{
       const passList = e.members.map(mid => M(mid));
       const mainPass = passList[0];
@@ -639,19 +730,19 @@ function trasportiView(){
       let trHtml='';
       if(e.transport.type==='accompanied'){
         const drv=M(e.transport.by);
-        trHtml=`<div style="display:flex;align-items:center;gap:6px;margin-top:6px"><div class="avatar" style="background:${drv.bg}; color:${drv.txt}; width:22px; height:22px; font-size:13px">${drv.icon}</div><span class="badge" style="background:${drv.bg}; color:${drv.txt};">${drv.name} accompagna</span></div>`;
+        trHtml=`<div style="display:flex;align-items:center;gap:6px;margin-top:6px"><div class="avatar" style="background:${drv.bg}; color:${drv.txt}; width:22px; height:22px; font-size:13px">${drv.icon}</div><span class="badge">${drv.name} accompagna</span></div>`;
       } else {
-        trHtml=`<div style="font-size:11px;color:var(--text-secondary);margin-top:5px">📞 Aiuto esterno${e.transport.note?': '+e.transport.note:''}</div>`;
+        trHtml=`<div style="font-size:11px; margin-top:5px; font-weight:600;">📞 Aiuto esterno${e.transport.note?': '+e.transport.note:''}</div>`;
       }
       
       const passAvatars = passList.map(px => `<div class="avatar" style="background:${px.bg}; color:${px.txt}; width:22px; height:22px; font-size:13px" title="${px.name}">${px.icon}</div>`).join('');
 
-      h+=`<div class="ev-card" onclick="openModal('${e.id}')">
+      h+=`<div class="ev-card" onclick="openModal('${e.id}')" style="${ms(mainPass)}">
         <div class="ev-strip" style="background:${mainPass.dot}"></div>
         <div class="ev-time">${e.startTime}<br>${e.endTime}</div>
         <div class="ev-info">
           <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">${passAvatars}<span class="ev-title" style="margin:0;margin-left:4px">${e.title}</span></div>
-          <span class="badge" style="background:var(--main-bg);color:var(--text-secondary)">${cat.icon} ${cat.label}</span>
+          <span class="badge">${cat.icon} ${cat.label}</span>
           ${trHtml}
         </div>
       </div>`;
@@ -665,24 +756,24 @@ function trasportiView(){
 function ricorrenzeView(){
   const sorted=[...ricorrenze].sort((a,b)=>daysUntil(a.date)-daysUntil(b.date));
   let h=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-    <div class="sec-lbl" style="margin:0">🎂 Compleanni & ricorrenze</div>
+    <div class="sec-lbl" style="margin:0">🎂 Ricorrenze di famiglia</div>
     <button class="add-btn" onclick="openRicModal(null)">＋ Aggiungi</button>
   </div>`;
-  if(!sorted.length){h+=`<div class="empty-state"><span class="big">🎂</span><div>Nessuna ricorrenza</div></div>`;return h;}
+  if(!sorted.length){h+=`<div class="empty-state"><span class="big">🎂</span><div>Nessuna ricorrenza salvata</div></div>`;return h;}
   sorted.forEach(r=>{
     const rt=RIC_TYPES.find(t=>t.id===r.type)||RIC_TYPES[2];
     const mb=r.member?M(r.member):null;
     const days=daysUntil(r.date);
     const dayStr=days===0?'Oggi! 🎉':days===1?'Domani':`Tra ${days} giorni`;
-    const dayColor=days===0?'#ff3b30':days<=7?'#854F0B':'var(--text-secondary)';
-    h+=`<div class="ev-card" onclick="openRicModal('${r.id}')">
+    const dayColor=days===0?'#ff3b30':days<=7?'#FF9500':'var(--text-sec)';
+    h+=`<div class="ev-card" onclick="openRicModal('${r.id}')" style="${mb?ms(mb):'background:var(--card-bg); color:var(--text-main);'}">
       <div class="ev-strip" style="background:${mb?mb.dot:'#EF9F27'}"></div>
       <div style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--main-bg);flex-shrink:0;font-size:18px">${rt.icon}</div>
       <div class="ev-info">
         <div class="ev-title">${r.title}</div>
         <div class="ev-meta">
-          <span class="badge" style="background:var(--main-bg);color:var(--text-secondary)">📅 ${fmtMD(r.date)} (ogni anno)</span>
-          <span style="font-size:11px;font-weight:700;color:${dayColor}">${dayStr}</span>
+          <span class="badge">📅 ${fmtMD(r.date)}</span>
+          <span style="font-size:11px;font-weight:800;color:${dayColor}">${dayStr}</span>
         </div>
       </div>
       <button class="del-btn" onclick="event.stopPropagation();deleteRic('${r.id}')" aria-label="Elimina">✕</button>
@@ -713,7 +804,7 @@ function showOv(){const ov=document.getElementById('modal-ov');ov.style.height=M
 function closeModal(){document.getElementById('modal-ov').style.display='none';}
 
 function renderEvModal(){
-  const mbrBtns = MEMBERS.map(m => `<button class="tr-btn${form.members.includes(m.id)?' sel':''}" onclick="toggleMbr('${m.id}')">${m.icon} ${m.name}</button>`).join('');
+  const mbrBtns = MEMBERS.map(m => `<button class="tr-btn${form.members.includes(m.id)?' sel':''}" onclick="toggleMbr('${m.id}')" style="${form.members.includes(m.id)?ms(m):''}">${m.icon} ${m.name}</button>`).join('');
   const cOpts=CATS.map(c=>`<option value="${c.id}"${form.category===c.id?' selected':''}>${c.icon} ${c.label}</option>`).join('');
   const tBtns=TRANS.map(t=>`<button class="tr-btn${form.transport.type===t.id?' sel':''}" onclick="setTr('${t.id}')">${t.icon} ${t.label}</button>`).join('');
   
@@ -733,7 +824,7 @@ function renderEvModal(){
     </div>
     
     <div class="fgrp"><label class="flbl">Titolo</label><input type="text" value="${form.title.replace(/"/g,'&quot;')}" oninput="window.form.title=this.value" placeholder="Es. Allenamento calcio"></div>
-    <div class="fgrp"><label class="flbl">Chi (tocca per selezionare più persone)</label><div class="tr-opts">${mbrBtns}</div></div>
+    <div class="fgrp"><label class="flbl">Chi partecipa (selezione multipla)</label><div class="tr-opts">${mbrBtns}</div></div>
     
     <div class="frow fgrp">
       <div><label class="flbl">Data</label><input type="date" value="${form.date}" onchange="window.form.date=this.value"></div>
@@ -743,16 +834,16 @@ function renderEvModal(){
       <label class="flbl">Orario</label>
       <div class="t-row">
         <input type="time" value="${form.startTime}" onchange="window.form.startTime=this.value">
-        <span style="color:var(--text-secondary);font-size:12px;flex-shrink:0">→</span>
+        <span style="color:var(--text-sec);font-weight:bold;padding:0 4px;">→</span>
         <input type="time" value="${form.endTime}" onchange="window.form.endTime=this.value">
       </div>
     </div>
     
-    <div class="tr-sec"><span class="tr-lbl">🚗 Trasporto & supporto</span><div class="tr-opts">${tBtns}</div>${trD}</div>
-    <div class="fgrp"><label class="flbl">Note</label><textarea rows="2" oninput="window.form.notes=this.value" placeholder="Promemoria, materiale…" style="resize:none">${form.notes||''}</textarea></div>
+    <div class="tr-sec"><span class="tr-lbl">🚗 Gestione Trasporto</span><div class="tr-opts">${tBtns}</div>${trD}</div>
+    <div class="fgrp"><label class="flbl">Note extra</label><textarea rows="2" oninput="window.form.notes=this.value" placeholder="Dettagli aggiuntivi…" style="resize:none">${form.notes||''}</textarea></div>
     <div class="modal-actions">
       ${editId?`<button class="btn-del-ev" onclick="delEvt('${editId}')">🗑 Elimina</button>`:'<span></span>'}
-      <div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Annulla</button><button class="btn-save" onclick="saveEvt()">✓ Salva</button></div>
+      <div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Annulla</button><button class="btn-save" onclick="saveEvt()">Salva</button></div>
     </div>`;
 }
 
@@ -783,11 +874,11 @@ function renderRicModal(){
     </div>
     <div class="fgrp"><label class="flbl">Titolo</label><input type="text" value="${ricForm.title.replace(/"/g,'&quot;')}" oninput="ricForm.title=this.value" placeholder="Es. Compleanno Nonna Rosa"></div>
     <div class="fgrp"><label class="flbl">Tipo</label><div class="tr-opts">${tBtns}</div></div>
-    <div class="fgrp"><label class="flbl">Data (giorno e mese — si ripete ogni anno)</label><input type="date" value="2026-${ricForm.date}" onchange="ricForm.date=this.value.slice(5)"></div>
-    <div class="fgrp"><label class="flbl">Membro famiglia (opzionale)</label><select onchange="ricForm.member=this.value">${mOpts}</select></div>
+    <div class="fgrp"><label class="flbl">Data (giorno e mese)</label><input type="date" value="2026-${ricForm.date}" onchange="ricForm.date=this.value.slice(5)"></div>
+    <div class="fgrp"><label class="flbl">Membro famiglia associato</label><select onchange="ricForm.member=this.value">${mOpts}</select></div>
     <div class="modal-actions">
       ${ricEditId?`<button class="btn-del-ev" onclick="deleteRic('${ricEditId}')">🗑 Elimina</button>`:'<span></span>'}
-      <div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Annulla</button><button class="btn-save" onclick="saveRicorrenza()">✓ Salva</button></div>
+      <div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Annulla</button><button class="btn-save" onclick="saveRicorrenza()">Salva</button></div>
     </div>`;
 }
 async function saveRicorrenza(){
