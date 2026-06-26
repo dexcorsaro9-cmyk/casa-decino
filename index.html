@@ -960,7 +960,7 @@ function ricorrenzeView(){
 /* ── INTERFACCIA POPUP MODALI ── */
 function openModal(id){ editId=id; if(id){ const e=events.find(ev=>ev.id===id); if(!e)return; form={...e, members: [...e.members], transport:{...e.transport}}; } else { form={id:'',title:'',date:viewDate,startTime:'08:00',endTime:'13:00',members:['antonio'],category:'scuola',transport:{type:'autonomous',by:'',note:''},notes:''}; } renderEvModal(); showOv(); }
 function openModalForDate(ds){ editId=null; form={id:'',title:'',date:ds,startTime:'08:00',endTime:'13:00',members:['antonio'],category:'scuola',transport:{type:'autonomous',by:'',note:''},notes:''}; renderEvModal(); showOv(); }
-function showOv(){ const ov=document.getElementById('modal-ov'); ov.style.height=Math.max(document.getElementById('app').scrollHeight,700)+'px'; ov.style.display='flex'; }
+function showOv(){ const ov=document.getElementById('modal-ov'); ov.style.display='flex'; window.scrollTo({top:0,behavior:'smooth'}); }
 function closeModal(){ const ov=document.getElementById('modal-ov'); ov.style.display='none'; ov.style.alignItems='flex-end'; }
 
 function renderEvModal(){
