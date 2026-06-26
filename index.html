@@ -13,7 +13,7 @@
       --f-bg: #DAEEFF; --f-txt: #0B5A7A; --f-dot: #29B8E0;
       --s-bg: #EEEDFE; --s-txt: #3C3489; --s-dot: #7F77DD;
       
-      /* Variabili Stile Apple-like */
+      /* Variabili Apple Light */
       --main-bg: #F2F2F7;
       --card-bg: #FFFFFF;
       --text-primary: #1C1C1E;
@@ -32,12 +32,13 @@
         --f-bg: #041C28; --f-txt: #9DD9F0;
         --s-bg: #26215C; --s-txt: #CECBF6;
         
-        --main-bg: #1C1C1E;
-        --card-bg: #2C2C2E;
-        --text-primary: #FFFFFF;
-        --text-secondary: #AEAEB2;
-        --border-light: rgba(255, 255, 255, 0.06);
-        --soft-shadow: 0 8px 32px rgba(0, 0, 0, 0.24);
+        /* Nuova Palette Soft Dark (Grigio Sfumato Apple/Spotify) */
+        --main-bg: #121214;
+        --card-bg: #1C1C1E;
+        --text-primary: #F2F2F7;
+        --text-secondary: #A2A2A7;
+        --border-light: rgba(255, 255, 255, 0.04);
+        --soft-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
       }
     }
 
@@ -52,7 +53,6 @@
 
     #app { position: relative; max-width: 800px; margin: 0 auto; padding: 0 12px; }
 
-    /* Struttura Header Allineata ed Elegante */
     .hdr {
       background: var(--card-bg);
       border-radius: var(--radius-lg);
@@ -91,7 +91,6 @@
     .brand-name { font-size: 19px; font-weight: 700; letter-spacing: -0.02em; }
     .brand-sub { font-size: 12px; color: var(--text-secondary); margin-top: 1px; }
     
-    /* Widget Meteo Compatto Multilinea Integrato */
     .weather-box {
       margin-top: 6px;
       display: none;
@@ -102,189 +101,91 @@
       border-radius: 8px;
     }
     .w-day { display: inline-block; margin-right: 8px; }
-    .w-day:last-child { margin-right: 0; }
-
-    /* Pulsante Primario Moderno */
+    .w-day:last-child{margin-right:0}
+    
     .add-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 10px 16px;
-      border-radius: var(--radius-md);
+      padding: 8px 16px;
+      border-radius: 8px;
       border: none;
-      background: var(--text-primary);
+      background: var(--text-main);
       color: var(--card-bg);
       cursor: pointer;
       font-size: 13px;
       font-weight: 600;
-      transition: opacity 0.15s, transform 0.1s;
-      white-space:nowrap;
+      transition: opacity 0.1s;
     }
-    .add-btn:active { transform: scale(0.97); }
-
-    /* Navigation Tabs */
-    .tabs { display: flex; gap: 4px; overflow-x: auto; margin-bottom: -1px; padding-bottom: 4px; }
-    .tab {
-      padding: 8px 14px;
-      font-size: 13px;
-      border: none;
-      background: none;
-      cursor: pointer;
-      border-radius: 8px;
-      color: var(--text-secondary);
-      font-weight: 500;
-      transition: all 0.15s;
-      white-space: nowrap;
-    }
-    .tab.active {
-      color: var(--text-primary);
-      font-weight: 600;
-      background: var(--main-bg);
-    }
-
-    /* Filtri Persone */
-    .filters {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
-      padding: 4px 0;
-    }
-    .pill {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      border: 1px solid var(--border-light);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-      transition: opacity 0.15s, transform 0.1s;
-    }
-    .pill:active { transform: scale(0.95); }
-    .pill.off { opacity: 0.35; background: var(--card-bg) !important; color: var(--text-secondary) !important; }
-    .dot8 { width: 8px; height: 8px; border-radius: 50%; }
-
-    /* Layout delle Sezioni e Contenuti */
-    .content { padding-top: 4px; }
-    .sec-lbl {
-      font-size: 11px;
-      color: var(--text-secondary);
-      letter-spacing: 0.05em;
-      margin-bottom: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
+    .add-btn:hover { opacity: 0.9; }
     
-    .mem-sec {
-      margin-bottom: 16px;
-      background: var(--card-bg);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--soft-shadow);
-      border: 1px solid var(--border-light);
-      overflow: hidden;
-    }
+    .tabs { display: flex; gap: 4px; overflow-x: auto; margin-bottom: -1px; }
+    .tab { padding: 10px 14px; font-size: 13px; border: none; background: none; cursor: pointer; border-radius: 8px 8px 0 0; color: var(--text-sec); font-weight: 500; transition: all 0.15s; white-space: nowrap; }
+    .tab.active { color: var(--text-main); font-weight: 700; background: var(--bg-color); }
     
-    .mem-hdr {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--border-light);
-    }
-    .avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; }
-    .mem-body { padding: 8px 12px; }
-    .no-ev { font-size: 13px; color: var(--text-secondary); padding: 12px 6px; }
-
-    /* Card Evento Ottimizzata */
-    .ev-card {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 12px;
-      border-radius: var(--radius-md);
-      background: var(--main-bg);
-      margin-bottom: 8px;
-      cursor: pointer;
-      transition: background 0.15s, transform 0.1s;
-      position: relative;
-    }
-    .ev-card:last-child { margin-bottom: 0; }
-    .ev-card:hover { filter: brightness(0.97); }
-    .ev-strip { width: 4px; border-radius: 2px; align-self: stretch; min-height: 32px; }
-    .ev-time { font-size: 12px; font-weight: 600; color: var(--text-primary); min-width: 50px; line-height: 1.4; }
+    .filters { background: var(--card-bg); padding: 12px 15px; display: flex; gap: 8px; flex-wrap: wrap; border-radius: var(--radius); margin-bottom: 16px; box-shadow: var(--shadow); }
+    .pill { display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; user-select: none; }
+    .pill.off { opacity: .3; background: #eee !important; color: #888 !important; }
+    .dot8 { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    
+    .content { padding: 4px 0 80px; }
+    .sec-lbl { font-size: 11px; color: var(--text-sec); letter-spacing: .06em; margin: 10px 0 14px 5px; font-weight: 700; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
+    
+    .mem-sec { margin-bottom: 16px; background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .mem-hdr { display: flex; align-items: center; gap: 10px; padding: 14px; border-bottom: 0.5px solid rgba(0,0,0,0.05); }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; }
+    .mem-body { padding: 10px 14px; }
+    
+    .ev-card { display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: 12px; background: var(--bg-color); margin-bottom: 8px; cursor: pointer; transition: transform 0.1s; position: relative; }
+    .ev-card:active { transform: scale(0.99); }
+    .ev-strip { width: 4px; border-radius: 2px; align-self: stretch; flex-shrink: 0; min-height: 36px; }
+    .ev-time { font-size: 11px; color: var(--text-sec); min-width: 50px; font-weight: 700; line-height: 1.5; }
     .ev-info { flex: 1; min-width: 0; }
-    .ev-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
-    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
-    .ev-note { font-size: 12px; color: var(--text-secondary); margin-top: 6px; }
+    .ev-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; color: var(--text-main); }
+    .ev-meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
     
-    .del-btn {
-      background: none; border: none; cursor: pointer; color: var(--text-secondary);
-      padding: 4px 8px; position: absolute; top: 10px; right: 8px; opacity: 0; transition: opacity 0.15s; font-size: 14px;
-    }
-    .ev-card:hover .del-btn { opacity: 0.5; }
-    .del-btn:hover { opacity: 1 !important; color: #ff3b30; }
-
-    /* Planning Settimanale */
-    .nav-row {
-      display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
-      background: var(--card-bg); padding: 12px 16px; border-radius: var(--radius-md); box-shadow: var(--soft-shadow);
-    }
-    .nav-btn { background: var(--main-bg); border: none; border-radius: 8px; cursor: pointer; padding: 6px 14px; font-size: 15px; color: var(--text-primary); font-weight: bold; }
-    .wk-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+    .ev-note { font-size: 11px; color: var(--text-sec); margin-top: 6px; }
+    .del-btn { background: none; border: none; cursor: pointer; color: var(--text-sec); padding: 6px; position: absolute; top: 8px; right: 8px; font-size: 14px; }
+    
+    .nav-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; background: var(--card-bg); padding: 12px; border-radius: var(--radius); box-shadow: var(--shadow); }
+    .nav-lbl { font-size: 14px; font-weight: 700; }
+    .nav-btn { background: var(--bg-color); border: none; border-radius: 8px; cursor: pointer; padding: 6px 14px; font-weight: 700; }
+    
+    /* Viste Calendario Moderne */
+    .wk-grid { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap: 6px; }
     .day-col { min-height: 200px; }
-    .day-hdr { text-align: center; padding: 8px 4px; border-radius: 10px; margin-bottom: 8px; background: var(--card-bg); box-shadow: var(--soft-shadow); }
-    .day-hdr.td { background: var(--a-bg); border: 1px solid var(--a-dot); }
-    .d-name { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; }
-    .d-num { font-size: 15px; font-weight: 700; margin-top: 2px; }
-    .day-hdr.td .d-num { color: var(--a-txt); }
-    .wk-ev { padding: 6px; border-radius: 6px; font-size: 11px; margin-bottom: 4px; cursor: pointer; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-    .wk-add { width: 100%; padding: 6px; border-radius: 6px; border: 1px dashed var(--text-secondary); background: none; cursor: pointer; color: var(--text-secondary); font-size: 12px; }
-
-    /* Planning Mensile */
-    .mn-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); background: var(--card-bg); border-radius: var(--radius-lg); box-shadow: var(--soft-shadow); overflow: hidden; border: 1px solid var(--border-light); }
-    .mn-dh { text-align: center; padding: 10px 4px; font-size: 11px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; background: var(--main-bg); }
-    .mn-day { min-height: 75px; padding: 6px; background: var(--card-bg); border-right: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light); cursor: pointer; }
-    .mn-day.td { background: var(--a-bg); }
-    .mn-day.other { opacity: 0.3; }
-    .mn-dn { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
-    .dots { display: flex; flex-wrap: wrap; gap: 3px; }
+    .day-hdr { text-align: center; padding: 8px 4px; border-radius: 10px; margin-bottom: 8px; background: var(--card-bg); box-shadow: var(--shadow); }
+    .day-hdr.td { background: #378ADD; color: #fff; }
+    .day-hdr.td .d-name { color: rgba(255,255,255,0.8); }
+    .d-name { font-size: 10px; color: var(--text-sec); text-transform: uppercase; font-weight: 700; }
+    .d-num { font-size: 15px; font-weight: 700; }
+    .wk-ev { padding: 6px; border-radius: 8px; font-size: 10px; margin-bottom: 4px; cursor: pointer; font-weight: 600; box-shadow: var(--shadow); }
+    .wk-add { width: 100%; padding: 6px; border-radius: 8px; border: 1px dashed var(--text-sec); background: none; color: var(--text-sec); cursor: pointer; }
+    
+    .mn-grid { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; padding: 2px; }
+    .mn-dh { text-align: center; padding: 10px; font-size: 11px; color: var(--text-sec); font-weight: 700; }
+    .mn-day { min-height: 70px; padding: 6px; border-radius: 8px; cursor: pointer; }
+    .mn-day.td { background: var(--bg-color); border: 1.5px solid #378ADD; }
+    .mn-day.other { opacity: .25; }
+    .mn-dn { font-size: 12px; font-weight: 700; }
+    .dots { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; }
     .mn-dot { width: 6px; height: 6px; border-radius: 50%; }
     .mn-dot-r { width: 6px; height: 6px; border-radius: 2px; }
-
-    /* Altre Schermate e Banners */
-    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 20px; }
-    .stat-card { border-radius: var(--radius-md); padding: 14px; box-shadow: var(--soft-shadow); }
-    .stat-num { font-size: 24px; font-weight: 700; margin-top: 4px; }
-    .bday-banner { border-radius: var(--radius-md); padding: 14px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px; box-shadow: var(--soft-shadow); }
+    
+    /* Modal Form UI */
+    #modal-ov { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); backdrop-filter: blur(8px); z-index: 1000; display: none; align-items: flex-end; justify-content: center; }
+    .modal { background: var(--card-bg); border-radius: 24px 24px 0 0; width: 100%; max-width: 500px; padding: 24px; box-shadow: 0 -8px 32px rgba(0,0,0,0.1); animation: slideUp 0.3s ease-out; }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .modal-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .modal-ttl { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+    .cl-btn { background: var(--main-bg); border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-weight: bold; }
+    
+    input, select, textarea { font-family: inherit; font-size: 14px; background: var(--main-bg); border: none; border-radius: 10px; padding: 12px; color: var(--text-primary); margin-top: 4px; }
+    .tr-sec { background: var(--main-bg); border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px; }
+    
+    .btn-save { background: #34c759; color: #fff; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; cursor: pointer; }
+    .btn-cancel { background: var(--main-bg); color: var(--text-secondary); border: none; padding: 12px 16px; border-radius: 12px; font-weight: 600; cursor: pointer; }
+    
+    .bday-banner { background: linear-gradient(135deg, #ff9500, #ffcc00); color: #fff; border-radius: var(--radius-md); }
     .empty-state { text-align: center; padding: 40px 20px; color: var(--text-secondary); }
-    .empty-state .big { font-size: 36px; margin-bottom: 8px; display: block; }
-
-    /* Finestre Pop-up (Modali) */
-    #modal-ov { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); backdrop-filter: blur(8px); z-index: 999; padding: 16px; align-items: center; justify-content: center; }
-    .modal { background: var(--card-bg); border-radius: var(--radius-lg); width: 100%; max-width: 440px; padding: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); border: 1px solid var(--border-light); }
-    .modal-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-light); }
-    .modal-ttl { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-    .cl-btn { background: var(--main-bg); border: none; border-radius: 50%; width: 28px; height: 32px; cursor: pointer; color: var(--text-secondary); font-size: 14px; }
-    
-    .fgrp { margin-bottom: 14px; }
-    .flbl { display: block; font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 700; text-transform: uppercase; }
-    .tr-sec { background: var(--main-bg); border-radius: var(--radius-md); padding: 12px; margin-bottom: 14px; }
-    .tr-lbl { font-size: 11px; color: var(--text-secondary); font-weight: 700; margin-bottom: 8px; display: block; text-transform: uppercase; }
-    .tr-opts { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
-    .tr-btn { padding: 6px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; border: 1px solid var(--border-light); background: var(--card-bg); color: var(--text-secondary); font-weight: 600; }
-    .tr-btn.sel { background: var(--a-bg); color: var(--a-txt); border-color: var(--a-dot); font-weight: 700; }
-    
-    input, select, textarea { font-family: inherit; font-size: 14px; color: var(--text-primary); background: var(--main-bg); border: 1px solid var(--border-light); border-radius: 10px; padding: 10px; width: 100%; }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a-dot); }
-    
-    .modal-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--border-light); }
-    .btn-del-ev { background: none; border: none; cursor: pointer; color: #ff3b30; font-size: 13px; font-weight: 600; }
-    .btn-row { display: flex; gap: 8px; }
-    .btn-cancel { background: var(--main-bg); border: none; border-radius: 10px; padding: 10px 16px; cursor: pointer; font-size: 13px; color: var(--text-secondary); font-weight: 600; }
-    .btn-save { background: #34c759; border: none; border-radius: 10px; padding: 10px 20px; cursor: pointer; font-size: 13px; color: #fff; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -510,7 +411,7 @@ async function loadWeather() {
 function render(){renderFilters();renderView();}
 function renderFilters(){
   document.getElementById('filters').innerHTML=MEMBERS.map(m=>
-    `<div class="pill${filters.includes(m.id)?'':' off'}" onclick="toggleF('${m.id}')" style="${ms(m)}">
+    `<div class="pill${filters.includes(m.id)?'':' off'}" onclick="toggleF('${m.id}')" style="background:${m.bg}; color:${m.txt};">
       <span class="dot8" style="background:${m.dot}"></span>${m.icon} ${m.name}
     </div>`).join('');
 }
@@ -534,12 +435,12 @@ function renderView(){
   else el.innerHTML=ricorrenzeView();
 }
 
-/* ── TODAY (MOSTRA IL GIORNO SELEZIONATO) ── */
+/* ── TODAY ── */
 function bdayBanners(d_str){
   const md=d_str.slice(5);
   return ricorrenze.filter(r=>r.date===md).map(r=>{
     const mb=r.member?M(r.member):null;
-    const style=mb?ms(mb):'background:var(--color-background-secondary,#f0efeb);color:var(--color-text-primary)';
+    const style=mb?ms(mb):'background:var(--main-bg);color:var(--text-primary)';
     const ico=r.type==='anniversary'?'💍':'🎂';
     const txt = d_str === REAL_TODAY ? 'Oggi! 🎉' : 'In questa data 🎉';
     return `<div class="bday-banner" style="${style}"><span style="font-size:28px">${ico}</span><div><div style="font-weight:700;font-size:14px">${r.title}</div><div style="font-size:12px;opacity:.8">${txt}</div></div></div>`;
@@ -557,7 +458,7 @@ function todayView(){
   
   let h=bdayBanners(viewDate);
   const isT = viewDate === REAL_TODAY;
-  h+=`<div class="sec-lbl" style="display:flex;align-items:center;width:100%">📅 ${lbl.charAt(0).toUpperCase()+lbl.slice(1)} ${isT?'':`<button onclick="viewDate=REAL_TODAY;renderView()" style="margin-left:auto;background:var(--main-bg);border:0.5px solid rgba(0,0,0,0.1);padding:4px 8px;border-radius:6px;color:var(--text-primary);font-weight:700;font-size:10px;cursor:pointer">TORNA A OGGI</button>`}</div>`;
+  h+=`<div class="sec-lbl" style="display:flex;align-items:center;width:100%">📅 ${lbl.charAt(0).toUpperCase()+lbl.slice(1)} ${isT?'':`<button onclick="viewDate=REAL_TODAY;renderView()" style="margin-left:auto;background:var(--main-bg);border:none;padding:4px 8px;border-radius:6px;color:var(--text-primary);font-weight:700;font-size:10px;cursor:pointer">TORNA A OGGI</button>`}</div>`;
 
   let activeHtml = '';
   let freeMembers = [];
@@ -583,7 +484,7 @@ function todayView(){
 
   let freeHtml = '';
   if(freeMembers.length > 0 && activeHtml.indexOf('empty-state') === -1){
-     const freeNames = freeMembers.map(m => `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--card-bg);padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--border-light);color:var(--text-primary)"><span style="font-size:14px">${m.icon}</span>${m.name}</span>`).join(' ');
+     const freeNames = freeMembers.map(m => `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--main-bg);padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--border-light);color:var(--text-primary)"><span style="font-size:14px">${m.icon}</span>${m.name}</span>`).join(' ');
      freeHtml = `<div style="margin-top:24px;padding-top:16px;border-top:1px dashed var(--border-light);text-align:center">
        <div style="font-size:10px;color:var(--text-secondary);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.06em;font-weight:700">🎉 Liberi da impegni</div>
        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px">${freeNames}</div>
@@ -646,7 +547,7 @@ function weekView(){
   return h+'</div>';
 }
 
-/* ── MONTH (CLICCARE SUL GIORNO ORA APRE LA VISTA DETTAGLIATA) ── */
+/* ── MONTH ── */
 function monthView(){
   const yr=curMonth.getFullYear(),mo=curMonth.getMonth();
   const mn=curMonth.toLocaleDateString('it-IT',{month:'long',year:'numeric'});
@@ -716,8 +617,8 @@ function trasportiView(){
     h+=`<div class="sec-lbl">🚗 Chi guida questa settimana</div><div class="stat-grid">`;
     activeD.forEach(m=>{
       const cnt=byDriver[m.id].length;
-      h+=`<div class="stat-card" style="${ms(m)}">
-        <div style="display:flex;align-items:center;gap:7px"><div class="avatar" style="${ms(m)};width:26px;height:26px;font-size:14px">${m.icon}</div><span style="font-size:13px;font-weight:600">${m.name}</span></div>
+      h+=`<div class="stat-card" style="background:${m.bg}; color:${m.txt};">
+        <div style="display:flex;align-items:center;gap:7px"><div class="avatar" style="background:${m.bg}; color:${m.txt}; width:26px; height:26px; font-size:14px">${m.icon}</div><span style="font-size:13px;font-weight:600">${m.name}</span></div>
         <div class="stat-num">${cnt}</div><div class="stat-lbl">cors${cnt===1?'a':'e'} questa settimana</div>
       </div>`;
     });
@@ -738,12 +639,12 @@ function trasportiView(){
       let trHtml='';
       if(e.transport.type==='accompanied'){
         const drv=M(e.transport.by);
-        trHtml=`<div style="display:flex;align-items:center;gap:6px;margin-top:6px"><div class="avatar" style="${ms(drv)};width:22px;height:22px;font-size:13px">${drv.icon}</div><span class="badge" style="${ms(drv)}">${drv.name} accompagna</span></div>`;
+        trHtml=`<div style="display:flex;align-items:center;gap:6px;margin-top:6px"><div class="avatar" style="background:${drv.bg}; color:${drv.txt}; width:22px; height:22px; font-size:13px">${drv.icon}</div><span class="badge" style="background:${drv.bg}; color:${drv.txt};">${drv.name} accompagna</span></div>`;
       } else {
         trHtml=`<div style="font-size:11px;color:var(--text-secondary);margin-top:5px">📞 Aiuto esterno${e.transport.note?': '+e.transport.note:''}</div>`;
       }
       
-      const passAvatars = passList.map(px => `<div class="avatar" style="${ms(px)};width:22px;height:22px;font-size:13px" title="${px.name}">${px.icon}</div>`).join('');
+      const passAvatars = passList.map(px => `<div class="avatar" style="background:${px.bg}; color:${px.txt}; width:22px; height:22px; font-size:13px" title="${px.name}">${px.icon}</div>`).join('');
 
       h+=`<div class="ev-card" onclick="openModal('${e.id}')">
         <div class="ev-strip" style="background:${mainPass.dot}"></div>
@@ -827,7 +728,7 @@ function renderEvModal(){
   const cm = M(form.members[0] || 'antonio');
   document.getElementById('modal-box').innerHTML=`
     <div class="modal-hdr">
-      <div class="modal-ttl"><div class="avatar" style="${ms(cm)};width:30px;height:30px;border-radius:8px;font-size:16px">${cm.icon}</div>${editId?'Modifica evento':'Nuovo evento'}</div>
+      <div class="modal-ttl"><div class="avatar" style="background:${cm.bg}; color:${cm.txt}; width:30px; height:30px; border-radius:8px; font-size:16px">${cm.icon}</div>${editId?'Modifica evento':'Nuovo evento'}</div>
       <button class="cl-btn" onclick="closeModal()">✕</button>
     </div>
     
