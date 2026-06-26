@@ -7,14 +7,14 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
     :root {
-      /* Colori iconici e vivaci dei membri */
+      /* Colori dei membri */
       --a-bg: #E6F1FB; --a-txt: #0C447C; --a-dot: #378ADD;
       --p-bg: #FAECE7; --p-txt: #712B13; --p-dot: #D85A30;
       --v-bg: #E1F5EE; --v-txt: #085041; --v-dot: #1D9E75;
       --f-bg: #DAEEFF; --f-txt: #0B5A7A; --f-dot: #29B8E0;
       --s-bg: #EEEDFE; --s-txt: #3C3489; --s-dot: #7F77DD;
       
-      /* Palette Color-Pop Light (Vivace e Accogliente) */
+      /* Palette Color-Pop Light */
       --main-bg: #F0F4F8;
       --card-bg: #FFFFFF;
       --text-main: #1C2541;
@@ -34,7 +34,7 @@
         --f-bg: #051A26; --f-txt: #9DD9F0;
         --s-bg: #1A163B; --s-txt: #CECBF6;
         
-        /* Palette Color-Pop Dark (Deep Velvet Blue — Niente nero cupo!) */
+        /* Palette Color-Pop Dark Deep Velvet Blue */
         --main-bg: #0B132B;
         --card-bg: #1C2541;
         --text-main: #F4F6F9;
@@ -56,12 +56,11 @@
 
     #app { position: relative; max-width: 800px; margin: 0 auto; padding: 0 12px; }
 
-    /* Header Curvo e Moderno */
     .hdr {
       background: var(--card-bg);
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-md);
-      padding: 20px 20px 4px;
+      padding: 20px 20px 10px;
       position: sticky;
       top: 12px;
       z-index: 10;
@@ -109,7 +108,6 @@
     .w-day { display: inline-block; margin-right: 10px; }
     .w-day:last-child { margin-right: 0; }
 
-    /* Bottone Aggiungi in Stile Pillola Pop */
     .add-btn {
       display: inline-flex;
       align-items: center;
@@ -128,7 +126,6 @@
     }
     .add-btn:active { transform: scale(0.95); }
 
-    /* Tabs di Navigazione Colorate */
     .tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 4px; padding-bottom: 4px; }
     .tab {
       padding: 10px 16px;
@@ -148,7 +145,6 @@
       box-shadow: 0 4px 10px rgba(55,138,221,0.25);
     }
 
-    /* Filtri Persone in evidenza */
     .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
     .pill {
       display: flex;
@@ -166,7 +162,6 @@
     .pill.off { opacity: 0.25; background: var(--card-bg) !important; color: var(--text-sec) !important; border-color: var(--border-light); }
     .dot8 { width: 8px; height: 8px; border-radius: 50%; }
 
-    /* Sezioni Membri */
     .content { padding-top: 4px; }
     .sec-lbl {
       font-size: 11px;
@@ -198,7 +193,6 @@
     .empty-state { text-align: center; padding: 40px 20px; color: var(--text-sec); font-weight: 600; }
     .empty-state .big { font-size: 44px; margin-bottom: 10px; display: block; }
 
-    /* Card Evento Colorata e Sfumata */
     .ev-card {
       display: flex;
       align-items: center;
@@ -215,7 +209,6 @@
     .ev-card:last-child { margin-bottom: 0; }
     .ev-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
     
-    /* Nota: lo sfondo reale delle card viene iniettato dinamicamente via JS (ms(m)) */
     .ev-strip { width: 5px; height: 100%; position: absolute; left: 0; top: 0; bottom: 0; border-radius: var(--radius-md) 0 0 var(--radius-md); }
     .ev-time { font-size: 12px; font-weight: 800; min-width: 55px; line-height: 1.4; text-align: center; opacity: 0.9; }
     .ev-info { flex: 1; min-width: 0; padding-left: 4px; }
@@ -231,7 +224,6 @@
     }
     .ev-card:hover .del-btn { opacity: 1; }
 
-    /* Viste Navigazione Calendari */
     .nav-row {
       display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
       background: var(--card-bg); padding: 14px 18px; border-radius: var(--radius-md); box-shadow: var(--shadow-md);
@@ -240,6 +232,7 @@
     .nav-btn { background: var(--main-bg); border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; font-size: 16px; color: var(--text-main); font-weight: bold; }
     
     .wk-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+    .day-col { min-height: 200px; }
     .day-hdr { text-align: center; padding: 10px 4px; border-radius: var(--radius-md); margin-bottom: 8px; background: var(--card-bg); box-shadow: var(--shadow-sm); }
     .day-hdr.td { background: linear-gradient(135deg, #378ADD, #29B8E0); color: #fff; }
     .day-hdr.td .d-name { color: rgba(255,255,255,0.8); }
@@ -258,7 +251,6 @@
     .mn-dot { width: 7px; height: 7px; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     .mn-dot-r { width: 7px; height: 7px; border-radius: 2px; }
 
-    /* Modali Moderni Arrotondati */
     #modal-ov { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 19, 43, 0.4); backdrop-filter: blur(12px); z-index: 1000; display: none; align-items: flex-end; justify-content: center; }
     .modal { background: var(--card-bg); border-radius: 30px 30px 0 0; width: 100%; max-width: 520px; padding: 26px; box-shadow: 0 -10px 40px rgba(0,0,0,0.15); border: 1px solid var(--border-light); animation: slideUp 0.25s cubic-bezier(0.1, 0.76, 0.55, 0.94); }
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -316,7 +308,7 @@ const MEMBERS=[
   {id:'antonio',name:'Antonio',role:'Papà',      dot:'#378ADD',bg:'var(--a-bg)',txt:'var(--a-txt)',icon:'👨'},
   {id:'pamela', name:'Pamela', role:'Mamma',      dot:'#D85A30',bg:'var(--p-bg)',txt:'var(--p-txt)',icon:'👩'},
   {id:'valerio',name:'Valerio',role:'Figlio 21a', dot:'#1D9E75',bg:'var(--v-bg)',txt:'var(--v-txt)',icon:'⚽'},
-  {id:'federico',name:'Federico',role:'Figlio 14a',dot:'#29B8E0',bg(--f-bg)',txt:'var(--f-txt)',icon:'🚴'},
+  {id:'federico',name:'Federico',role:'Figlio 14a',dot:'#29B8E0',bg:'var(--f-bg)',txt:'var(--f-txt)',icon:'🚴'},
   {id:'sara',   name:'Sara',   role:'Figlia 14a', dot:'#7F77DD',bg:'var(--s-bg)',txt:'var(--s-txt)',icon:'💃'},
 ];
 const CATS=[
@@ -526,12 +518,12 @@ function renderView(){
   else el.innerHTML=ricorrenzeView();
 }
 
-/* ── TODAY (MOSTRA IL GIORNO SELEZIONATO) ── */
+/* ── TODAY ── */
 function bdayBanners(d_str){
   const md=d_str.slice(5);
   return ricorrenze.filter(r=>r.date===md).map(r=>{
     const mb=r.member?M(r.member):null;
-    const style=mb?ms(mb):'background:var(--card-bg);color:var(--text-primary)';
+    const style=mb?ms(mb):'background:var(--card-bg);color:var(--text-main)';
     const ico=r.type==='anniversary'?'💍':'🎂';
     const txt = d_str === REAL_TODAY ? 'Oggi! 🎉' : 'In questa data 🎉';
     return `<div class="bday-banner" style="${style}"><span style="font-size:28px">${ico}</span><div><div style="font-weight:700;font-size:14px">${r.title}</div><div style="font-size:12px;opacity:.8">${txt}</div></div></div>`;
@@ -594,7 +586,7 @@ function evCard(e, mContext){
   else tb=`<span class="badge">📞 Aiuto${tr.note?': '+tr.note:''}</span>`;
   
   const others = e.members.filter(mid => mid !== m.id).map(mid => M(mid));
-  const othersHtml = others.map(ox => `<span title="Insieme a ${ox.name}" style="font-size:13px;margin-left:4px">${ox.icon}</span>`).join('');
+  const othersHtml = others.map(ox => `<span title="Insieme a ${ox.name}" style="font-size:13px;margin-left:2px">${ox.icon}</span>`).join('');
 
   return `<div class="ev-card" onclick="openModal('${e.id}')" style="${ms(m)}">
     <div class="ev-strip" style="background:${m.dot}"></div>
@@ -824,7 +816,7 @@ function renderEvModal(){
     </div>
     
     <div class="fgrp"><label class="flbl">Titolo</label><input type="text" value="${form.title.replace(/"/g,'&quot;')}" oninput="window.form.title=this.value" placeholder="Es. Allenamento calcio"></div>
-    <div class="fgrp"><label class="flbl">Chi partecipa (selezione multipla)</label><div class="tr-opts">${mbrBtns}</div></div>
+    <div class="fgrp"><label class="flbl">Chi (tocca per selezionare più persone)</label><div class="tr-opts">${mbrBtns}</div></div>
     
     <div class="frow fgrp">
       <div><label class="flbl">Data</label><input type="date" value="${form.date}" onchange="window.form.date=this.value"></div>
@@ -834,12 +826,12 @@ function renderEvModal(){
       <label class="flbl">Orario</label>
       <div class="t-row">
         <input type="time" value="${form.startTime}" onchange="window.form.startTime=this.value">
-        <span style="color:var(--text-sec);font-weight:bold;padding:0 4px;">→</span>
+        <span style="color:var(--text-secondary);font-size:12px;flex-shrink:0">→</span>
         <input type="time" value="${form.endTime}" onchange="window.form.endTime=this.value">
       </div>
     </div>
     
-    <div class="tr-sec"><span class="tr-lbl">🚗 Gestione Trasporto</span><div class="tr-opts">${tBtns}</div>${trD}</div>
+    <div class="tr-sec"><span class="tr-lbl">🚗 Trasporto & supporto</span><div class="tr-opts">${tBtns}</div>${trD}</div>
     <div class="fgrp"><label class="flbl">Note extra</label><textarea rows="2" oninput="window.form.notes=this.value" placeholder="Dettagli aggiuntivi…" style="resize:none">${form.notes||''}</textarea></div>
     <div class="modal-actions">
       ${editId?`<button class="btn-del-ev" onclick="delEvt('${editId}')">🗑 Elimina</button>`:'<span></span>'}
