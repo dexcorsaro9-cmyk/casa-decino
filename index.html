@@ -680,7 +680,7 @@ function ricorrenzeView(){
 function openModal(id){ editId=id; if(id){ const e=events.find(ev=>ev.id===id); if(!e)return; form={...e, members: [...e.members], transport:{...e.transport}}; } else { form={id:'',title:'',date:viewDate,startTime:'08:00',endTime:'13:00',members:['antonio'],category:'scuola',transport:{type:'autonomous',by:'',note:''},notes:''}; } renderEvModal(); showOv(); }
 function openModalForDate(ds){ editId=null; form={id:'',title:'',date:ds,startTime:'08:00',endTime:'13:00',members:['antonio'],category:'scuola',transport:{type:'autonomous',by:'',note:''},notes:''}; renderEvModal(); showOv(); }
 function showOv(){ const ov=document.getElementById('modal-ov'); ov.style.height=Math.max(document.getElementById('app').scrollHeight,700)+'px'; ov.style.display='flex'; }
-function closeModal(){ document.getElementById('modal-ov').style.display='none'; }
+function closeModal(){ const ov=document.getElementById('modal-ov'); ov.style.display='none'; ov.style.alignItems='flex-end'; }
 
 function renderEvModal(){
   const mbrBtns = MEMBERS.map(m => `<button class="tr-btn${form.members.includes(m.id)?' sel':''}" onclick="toggleMbr('${m.id}')" style="${form.members.includes(m.id)?ms(m):''}">${m.icon} ${m.name}</button>`).join('');
@@ -964,8 +964,14 @@ function openPinModal(targetView){
       <button class="btn-cancel" onclick="closeModal()">Annulla</button>
       <button class="btn-save" onclick="checkPin('${targetView}')">Entra</button>
     </div>`;
-  showOv();
+  // Centra il modal PIN sullo schermo (non in basso come gli altri modal)
+  const ov=document.getElementById('modal-ov');
+  ov.style.height='100%';
+  ov.style.alignItems='center';
+  ov.style.display='flex';
+  window.scrollTo({top:0,behavior:'smooth'});
 }
+
 
 function checkPin(targetView){
   const entered=document.getElementById('pin-input')?.value||'';
