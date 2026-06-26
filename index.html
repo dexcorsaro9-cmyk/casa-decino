@@ -742,7 +742,7 @@ async function loadChallenge(){
       fetch(API_CH('ChallengeSettings')).then(r=>r.json())
     ]);
     // DataInizio = the date from which the task recurs forward
-    challengeTasks=(rt&&rt[0]?.ID)?rt.map(r=>({id:r.ID,dateStart:r.DataInizio,title:r.Titolo,points:+r.Punti})):[];
+    challengeTasks=(rt&&rt[0]?.ID)?rt.map(r=>({id:r.ID,dateStart:r.DataInizio||r.Data||'',title:r.Titolo,points:+r.Punti||0})):[];
     challengeLog=(rl&&rl[0]?.ID)?rl.map(r=>({id:r.ID,date:r.Data,member:r.Membro,taskId:r.TaskID,taskTitle:r.TaskTitolo,points:+r.Punti,status:r.Stato,approvedAt:r.DataApprovazione||''})):[];
     challengeSettings={};
     if(rs&&rs[0]?.Chiave)rs.forEach(r=>{challengeSettings[r.Chiave]=r.Valore;});
@@ -756,6 +756,7 @@ function challengeView(){
   const subnav=`<div class="ch-subnav"><button class="ch-tab${challengeSubView==='sfide'?' active':''}" onclick="setChallengeView('sfide')">🎯 Sfide</button><button class="ch-tab${challengeSubView==='classifica'?' active':''}" onclick="setChallengeView('classifica')">🏆 Classifica</button><button class="ch-tab${challengeSubView==='admin'?' active':''}" onclick="setChallengeView('admin')">⚙️ Gestione</button></div>`;
   if(challengeSubView==='sfide') return subnav+sfideView();
   if(challengeSubView==='classifica') return subnav+classificaView();
+  if(!parentUnlocked){challengeSubView='sfide';return subnav+sfideView();}
   return subnav+adminView();
 }
 
@@ -776,7 +777,7 @@ function sfideView(){
     tasks.forEach(task=>{
       const log=challengeLog.find(l=>l.member===kid&&l.taskId===task.id&&l.date===viewDate);
       let btn='';
-      if(!log) btn=`<button onclick="submitTask('${kid}','${task.id}','${escH(task.title)}',${task.points},'${viewDate}')" class="ch-fatto-btn">Fatto! ✋</button>`;
+      if(!log) btn=`<button onclick="submitTaskById('${kid}','${task.id}','${viewDate}')" class="ch-fatto-btn">Fatto! ✋</button>`;
       else if(log.status==='pending') btn=`<span class="ch-badge-pending">⏳ In attesa</span>`;
       else if(log.status==='approved') btn=`<span class="ch-badge-ok">✅ Approvato</span>`;
       else btn=`<span class="ch-badge-no">❌ Rifiutato</span>`;
@@ -787,7 +788,9 @@ function sfideView(){
   return h;
 }
 
-function escH(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function escH(s){return String(s).replace(/&/g,'&amp;').replace(/'/g,'&#39;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+// Lookup task by ID to avoid passing title strings through onclick HTML
+function submitTaskById(kid,taskId,date){const task=challengeTasks.find(t=>t.id===taskId);if(task)submitTask(kid,taskId,task.title,task.points,date);}
 
 async function submitTask(kid,taskId,taskTitle,points,date){
   if(challengeLog.find(l=>l.member===kid&&l.taskId===taskId&&l.date===date))return;
@@ -894,7 +897,7 @@ function adminView(){
   </div>`;
 
   h+=`<div class="ch-admin-sec">
-    <div class="sec-lbl" style="margin-bottom:14px">🔐 Cambia PIN (attuale: ${escH(curPin)})</div>
+    <div class="sec-lbl" style="margin-bottom:14px">🔐 Cambia PIN</div>
     <div style="display:flex;gap:8px"><input type="password" id="ch-pin-new" placeholder="Nuovo PIN (min 4 caratteri)" maxlength="6" style="flex:1"><button class="btn-save" onclick="savePin()">Salva</button></div>
   </div>`;
 
