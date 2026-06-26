@@ -96,6 +96,7 @@
       align-items: center;
       justify-content: center;
       box-shadow: 0 6px 20px rgba(28, 37, 65, 0.25);
+      flex-shrink: 0;
     }
     @media(prefers-color-scheme:dark) {
       .brand-logo-badge { background: linear-gradient(135deg, #378ADD, #5B6BC2); }
@@ -319,6 +320,7 @@
     .mn-dot { width: 7px; height: 7px; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     .mn-dot-r { width: 7px; height: 7px; border-radius: 2px; }
 
+    /* Modali */
     #modal-ov { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 19, 43, 0.4); backdrop-filter: blur(12px); z-index: 1000; display: none; align-items: flex-end; justify-content: center; }
     .modal { background: var(--card-bg); border-radius: 30px 30px 0 0; width: 100%; max-width: 520px; padding: 26px; box-shadow: 0 -10px 40px rgba(0,0,0,0.15); border: 1px solid var(--border-light); animation: slideUp 0.25s cubic-bezier(0.1, 0.76, 0.55, 0.94); }
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -326,7 +328,7 @@
     .modal-ttl { font-size: 19px; font-weight: 800; letter-spacing: -0.01em; }
     .cl-btn { background: var(--main-bg); border: none; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 14px; color: var(--text-main); font-weight: bold; }
     
-    /* Box Meteo Avanzato Dettagliato nel Pop-up di Guidonia */
+    /* Box Meteo Avanzato Dettagliato */
     .w-pop-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--main-bg); border-radius: var(--radius-md); margin-bottom: 10px; border: 1px solid var(--border-light); }
     .w-pop-day { font-size: 14px; font-weight: 700; color: var(--text-main); }
     .w-pop-info { display: flex; align-items: center; gap: 10px; }
@@ -472,16 +474,22 @@ async function loadEvents(){
   try {
     const res = await fetch(API_EVENTS);
     const data = await res.json();
-    events = (data && data[0] && data[0].ID) ? data.map(row => ({id: row.ID, title: row.Titolo, date: row.Data, startTime: row['Ora Inizio'], endTime: row['Ora Fine'], members: (row.Membro || '').split(',').map(s=>s.trim()).filter(Boolean), category: row.Categoria, transport: { type: row['Trasporto Tipo'], by: row['Trasporto Da'], note: row['Trasporto Note'] }, notes: row.Note})) : [];
+    events = (data && data.length > 0 && data[0].ID) ? data.map(row => ({id: row.ID, title: row.Titolo, date: row.Data, startTime: row['Ora Inizio'], endTime: row['Ora Fine'], members: (row.Membro || '').split(',').map(s=>s.trim()).filter(Boolean), category: row.Categoria, transport: { type: row['Trasporto Tipo'], by: row['Trasporto Da'], note: row['Trasporto Note'] }, notes: row.Note})) : [];
   } catch(e) { events = []; }
 }
 
 async function saveEvt(){
-  if(!window.form.title.trim() || !window.form.date || window.form.members.length === 0){alert('Completa tutti i campi');return;}
+  if(!window.form.title.trim() || !window.form.date || window.form.members.length === 0){alert('Completa tutti i campi Required');return;}
   const isEdit = !!editId; const evId = isEdit ? editId : uid();
   const newRow = {ID: evId, Titolo: window.form.title, Data: window.form.date, "Ora Inizio": window.form.startTime, "Ora Fine": window.form.endTime, Membro: window.form.members.join(','), Categoria: window.form.category, "Trasporto Tipo": window.form.transport.type, "Trasporto Da": window.form.transport.by, "Trasporto Note": window.form.transport.note, Note: window.form.notes};
-  if(isEdit){ const i = events.findIndex(e=>e.id===editId); if(i>-1) events[i] = {...window.form, id: editId}; fetch(`${API_EVENTS}/ID/${editId}`, {method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({data: newRow})}); }
-  else { events.push({...window.form, id: evId}); fetch(API_EVENTS, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({data: newRow})}); }
+  if(isEdit){
+    const i = events.findIndex(e=>e.id===editId);
+    if(i>-1) events[i] = {...window.form, id: editId};
+    fetch(`${API_EVENTS}/ID/${editId}`, {method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({data: newRow})});
+  } else {
+    events.push({...window.form, id: evId});
+    fetch(API_EVENTS, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({data: newRow})});
+  }
   closeModal(); renderView();
 }
 
@@ -499,62 +507,31 @@ const METEO_DESC = {
   0: {txt:'Sereno', ico:'☀️'}, 1: {txt:'Preval. sereno', ico:'🌤'}, 2: {txt:'Nuvoloso', ico:'⛅'}, 3: {txt:'Coperto', ico:'☁️'},
   45: {txt:'Nebbia', ico:'🌫'}, 48: {txt:'Nebbia brinosa', ico:'🌫'}, 51: {txt:'Pioggerella', ico:'🌧'}, 53: {txt:'Pioggerella', ico:'🌧'},
   55: {txt:'Pioggerella fitta', ico:'🌧'}, 61: {txt:'Pioggia debole', ico:'☔'}, 63: {txt:'Pioggia moderata', ico:'☔'}, 65: {txt:'Pioggia forte', ico:'☔'},
-  71: {txt:'Neve leggera', ico:'❄️'}, 75: {txt:'Neve intensa', ico:'❄️'}, 95: {txt:'Temporale', ico:'⛈'}, 96: {txt:'Temporale con grandine', ico:'⛈'}
+  71: {txt:'Neve leggera', ico:'❄️'}, 73: {txt:'Neve intensa', ico:'❄️'}, 95: {txt:'Temporale', ico:'⛈'}, 96: {txt:'Temporale con grandine', ico:'⛈'}
 };
 
 async function loadWeather() {
   try {
-    // Coordinate esatte Guidonia Montecelio (CAP 00012)
     const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=41.99&longitude=12.72&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=Europe%2FRome&forecast_days=3');
-    if (!res.ok) return;
-    const data = await res.json();
-    if (!data.daily) return;
-    
-    weatherCacheData = data.daily;
-    const condOggi = METEO_DESC[weatherCacheData.weathercode[0]] || {txt:'Nuvoloso', ico:'☁️'};
-    
+    if (!res.ok) return; const data = await res.json(); if (!data.daily) return;
+    weatherCacheData = data.daily; const condOggi = METEO_DESC[weatherCacheData.weathercode[0]] || {txt:'Nuvoloso', ico:'☁️'};
     const widget = document.getElementById('weather-widget');
     widget.innerHTML = `<span class="w-loc">📍 Guidonia</span> ${condOggi.ico} Oggi ${Math.round(weatherCacheData.temperature_2m_max[0])}° / ${Math.round(weatherCacheData.temperature_2m_min[0])}°`;
     widget.style.display = 'inline-block';
-  } catch (e) {
-    document.getElementById('weather-widget').style.display = 'none';
-  }
+  } catch (e) { document.getElementById('weather-widget').style.display = 'none'; }
 }
 
 function openWeatherPopup() {
   if(!weatherCacheData) return;
   const lbls = ['Oggi', 'Domani', 'Dopodomani'];
-  let html = `
-    <div class="modal-hdr">
-      <div class="modal-ttl">📍 Previsioni — Guidonia Montecelio</div>
-      <button class="cl-btn" onclick="closeModal()">✕</button>
-    </div>
-    <div style="margin-bottom: 14px; font-size: 12px; color: var(--text-sec); font-weight: 600;">PROSPETTO DEI PROSSIMI 3 GIORNI:</div>
-  `;
-  
+  let html = `<div class="modal-hdr"><div class="modal-ttl">📍 Previsioni — Guidonia Montecelio</div><button class="cl-btn" onclick="closeModal()">✕</button></div><div style="margin-bottom: 14px; font-size: 12px; color: var(--text-sec); font-weight: 600;">PROSPETTO DEI PROSSIMI 3 GIORNI:</div>`;
   for(let i=0; i<3; i++) {
-    const code = weatherCacheData.weathercode[i];
-    const cond = METEO_DESC[code] || {txt:'Variabile', ico:'☁️'};
-    const max = Math.round(weatherCacheData.temperature_2m_max[i]);
-    const min = Math.round(weatherCacheData.temperature_2m_min[i]);
-    
-    html += `
-      <div class="w-pop-row">
-        <span class="w-pop-day">${lbls[i]}</span>
-        <div class="w-pop-info">
-          <div class="w-pop-cond">
-            <span class="w-pop-ico">${cond.ico}</span><br>
-            <span>${cond.txt}</span>
-          </div>
-          <span class="w-pop-temp">${max}°C / ${min}°C</span>
-        </div>
-      </div>
-    `;
+    const code = weatherCacheData.weathercode[i]; const cond = METEO_DESC[code] || {txt:'Variabile', ico:'☁️'};
+    const max = Math.round(weatherCacheData.temperature_2m_max[i]); const min = Math.round(weatherCacheData.temperature_2m_min[i]);
+    html += `<div class="w-pop-row"><span class="w-pop-day">${lbls[i]}</span><div class="w-pop-info"><div class="w-pop-cond"><span class="w-pop-ico">${cond.ico}</span><br><span>${cond.txt}</span></div><span class="w-pop-temp">${max}°C / ${min}°C</span></div></div>`;
   }
-  
   html += `<div style="text-align:center; margin-top:16px;"><button class="btn-cancel" onclick="closeModal()">Chiudi</button></div>`;
-  document.getElementById('modal-box').innerHTML = html;
-  showOv();
+  document.getElementById('modal-box').innerHTML = html; showOv();
 }
 
 /* --- GESTIONE VISTE --- */
@@ -562,7 +539,13 @@ function render(){renderFilters();renderView();}
 function renderFilters(){ document.getElementById('filters').innerHTML=MEMBERS.map(m=>`<div class="pill" onclick="toggleF('${m.id}')" style="background:${m.bg}; color:${m.txt}; ${filters.includes(m.id)?'':'opacity:0.25; border-color:var(--border-light);'}"><span class="dot8" style="background:${m.dot}"></span>${m.icon} ${m.name}</div>`).join(''); }
 function toggleF(id){ if(filters.includes(id)){if(filters.length>1)filters=filters.filter(f=>f!==id);}else filters.push(id); render(); }
 function hdrAdd(){if(view==='ricorrenze')openRicModal(null);else openModal(null);}
-function switchView(v){ view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze'].forEach(id=>document.getElementById(id).classList.remove('active')); document.getElementById('t-'+v).classList.add('active'); document.getElementById('filters').style.display=['today','week','month'].includes(v)?'flex':'none'; const fabTxt = document.getElementById('fab-text'); fabTxt.innerText = (v === 'ricorrenze') ? "Ricorrenza" : "Impegno"; renderView(); }
+
+function switchView(v){ 
+  view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze'].forEach(id=>document.getElementById(id).classList.remove('active')); 
+  document.getElementById('t-'+v).classList.add('active'); document.getElementById('filters').style.display=['today','week','month'].includes(v)?'flex':'none'; 
+  const fabTxt = document.getElementById('fab-text'); fabTxt.innerText = (v === 'ricorrenze') ? "Ricorrenza" : "Impegno"; renderView(); 
+}
+
 function renderView(){ const el=document.getElementById('view'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else el.innerHTML=ricorrenzeView(); }
 
 function todayView(){
@@ -582,7 +565,7 @@ function todayView(){
 
 function evCard(e, mContext){
   const m = mContext || M(e.members[0]); const cat=C(e.category); const tr=e.transport;
-  let tb = tr.type==='autonomous' ? `<span class="badge">✅ Autonomo</span>` : tr.type==='accompanied' ? `<span class="badge">🚗 Con ${M(tr.by).name}</span>` : `<span class="badge">📞 Aiuto: ${tr.note||''}</span>`;
+  let tb = tr.type=='autonomous' ? `<span class="badge">✅ Autonomo</span>` : tr.type=='accompanied' ? `<span class="badge">🚗 Con ${M(tr.by).name}</span>` : `<span class="badge">📞 Aiuto: ${tr.note||''}</span>`;
   const othersHtml = e.members.filter(mid=>mid!==m.id).map(mid=>`<span style="font-size:13px;margin-left:4px">${M(mid).icon}</span>`).join('');
   return `<div class="ev-card" onclick="openModal('${e.id}')" style="${ms(m)}"><div class="ev-strip" style="background:${m.dot}"></div><div class="ev-time">${e.startTime}<br>${e.endTime}</div><div class="ev-info"><div class="ev-title">${e.title}</div><div class="ev-meta"><span class="badge">${cat.icon} ${cat.label}</span>${othersHtml}${tb}</div>${e.notes?`<div class="ev-note">📝 ${e.notes}</div>`:''}</div><button class="del-btn" onclick="event.stopPropagation();delEvt('${e.id}')">✕</button></div>`;
 }
@@ -626,7 +609,7 @@ function trasportiView(){
   const nonAuto=[]; for(let i=0;i<7;i++){ const d=addDays(wkStart,i); const ds=fmtD(d); events.filter(e=>e.date===ds&&e.transport.type!=='autonomous').forEach(e=>nonAuto.push({...e,_d:d}));}
   if(!nonAuto.length) return h+`<div class="empty-state"><span class="big">🚗</span>Nessun trasporto necessario</div>`;
   const byDriver={}; MEMBERS.forEach(m=>byDriver[m.id]=[]); const exts=[];
-  nonAuto.forEach(e=>{ if(e.transport.type==='accompanied'&&byDriver[e.transport.by])byDriver[e.transport.by].push(e); else if(e.transport.type==='external')exts.push(e); });
+  nonAuto.forEach(e=>{ if(e.transport.type=='accompanied'&&byDriver[e.transport.by])byDriver[e.transport.by].push(e); else if(e.transport.type=='external')exts.push(e); });
   h+=`<div class="stat-grid">`;
   MEMBERS.filter(m=>byDriver[m.id].length>0).forEach(m=>{ h+=`<div class="stat-card" style="background:${m.bg}; color:${m.txt};"><div style="display:flex;align-items:center;gap:7px"><div class="avatar" style="${ms(m)}; width:24px; height:24px; font-size:12px">${m.icon}</div><span style="font-weight:700">${m.name}</span></div><div class="stat-num">${byDriver[m.id].length}</div></div>`; });
   h+=`</div>`;
@@ -637,7 +620,7 @@ function trasportiView(){
     h+=`<div style="margin-bottom:16px"><div class="sec-lbl" style="${ds===REAL_TODAY?'color:#378ADD;':''}">${d.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'short'})}</div>`;
     dayEvs.forEach(e=>{
       const drv=M(e.transport.by); const mainPass=M(e.members[0]);
-      let trHtml = e.transport.type==='accompanied' ? `<div style="display:flex;align-items:center;gap:6px;margin-top:6px"><div class="avatar" style="${ms(drv)};width:20px;height:22px;font-size:11px">${drv.icon}</div><span class="badge">${drv.name} guida</span></div>` : `<div style="font-size:11px; margin-top:5px; font-weight:600;">📞 Aiuto: ${e.transport.note||''}</div>`;
+      let trHtml = e.transport.type=='accompanied' ? `<div style="display:flex;align-items:center;gap:6px;margin-top:6px"><div class="avatar" style="${ms(drv)};width:20px;height:22px;font-size:11px">${drv.icon}</div><span class="badge">${drv.name} guida</span></div>` : `<div style="font-size:11px; margin-top:5px; font-weight:600;">📞 Aiuto: ${e.transport.note||''}</div>`;
       h+=`<div class="ev-card" onclick="openModal('${e.id}')" style="${ms(mainPass)}"><div class="ev-strip" style="background:${mainPass.dot}"></div><div class="ev-time">${e.startTime}</div><div class="ev-info"><div class="ev-title">${e.title}</div>${trHtml}</div></div>`;
     });
     h+=`</div>`;
@@ -651,7 +634,7 @@ function ricorrenzeView(){
   if(!sorted.length) return h+`<div class="empty-state">Nessuna ricorrenza salvata</div>`;
   sorted.forEach(r=>{
     const mb=r.member?M(r.member):null; const days=daysUntil(r.date);
-    h+=`<div class="ev-card" onclick="openRicModal('${r.id}')" style="${mb?ms(mb):'background:var(--card-bg);'}"><div class="ev-strip" style="background:${mb?mb.dot:'#EF9F27'}"></div><div style="font-size:20px; margin-right:6px;">${r.type==='anniversary'?'💍':'🎂'}</div><div class="ev-info"><div class="ev-title">${r.title}</div><div style="font-size:11px; font-weight:700;">📅 ${fmtMD(r.date)} — ${days===0?'Oggi! 🎉':days===1?'Domani':`Tra ${days} giorni`}</div></div><button class="del-btn" onclick="event.stopPropagation();deleteRic('${r.id}')">✕</button></div>`;
+    h+=`<div class="ev-card" onclick="openRicModal('${r.id}')" style="${mb?ms(mb):'background:var(--card-bg);'}"><div class="ev-strip" style="background:${mb?mb.dot:'#EF9F27'}"></div><div style="font-size:20px; margin-right:6px;">${r.type=='anniversary'?'💍':'🎂'}</div><div class="ev-info"><div class="ev-title">${r.title}</div><div style="font-size:11px; font-weight:700;">📅 ${fmtMD(r.date)} — ${days===0?'Oggi! 🎉':days===1?'Domani':`Tra ${days} giorni`}</div></div><button class="del-btn" onclick="event.stopPropagation();deleteRic('${r.id}')">✕</button></div>`;
   });
   return h;
 }
@@ -666,7 +649,7 @@ function renderEvModal(){
   const mbrBtns = MEMBERS.map(m => `<button class="tr-btn${form.members.includes(m.id)?' sel':''}" onclick="toggleMbr('${m.id}')" style="${form.members.includes(m.id)?ms(m):''}">${m.icon} ${m.name}</button>`).join('');
   const cOpts=CATS.map(c=>`<option value="${c.id}"${form.category===c.id?' selected':''}>${c.icon} ${c.label}</option>`).join('');
   const tBtns=TRANS.map(t=>`<button class="tr-btn${form.transport.type===t.id?' sel':''}" onclick="setTr('${t.id}')">${t.icon} ${t.label}</button>`).join('');
-  let trD = form.transport.type==='accompanied' ? `<select onchange="window.form.transport.by=this.value"><option value="">-- Chi guida? --</option>${MEMBERS.map(m=>`<option value="${m.id}"${form.transport.by===m.id?' selected':''}>${m.icon} ${m.name}</option>`).join('')}</select>` : form.transport.type==='external' ? `<input type="text" placeholder="Es. Nonna, Zio Mario…" value="${form.transport.note||''}" oninput="window.form.transport.note=this.value">` : '';
+  let trD = form.transport.type=='accompanied' ? `<select onchange="window.form.transport.by=this.value"><option value="">-- Chi guida? --</option>${MEMBERS.map(m=>`<option value="${m.id}"${form.transport.by===m.id?' selected':''}>${m.icon} ${m.name}</option>`).join('')}</select>` : form.transport.type=='external' ? `<input type="text" placeholder="Es. Nonna, Zio Mario…" value="${form.transport.note||''}" oninput="window.form.transport.note=this.value">` : '';
   const cm = M(form.members[0] || 'antonio');
   document.getElementById('modal-box').innerHTML=`
     <div class="modal-hdr"><div class="modal-ttl"><div class="avatar" style="background:${cm.bg}; color:${cm.txt}; width:28px; height:28px; font-size:14px">${cm.icon}</div> ${editId?'Modifica impegni':'Nuovo impegno'}</div><button class="cl-btn" onclick="closeModal()">✕</button></div>
