@@ -818,7 +818,7 @@ function bachecaWidget(){
 function todayView(){
   const evs=events.filter(e=>e.date===viewDate && e.members.some(m=>filters.includes(m))).sort((a,b)=>a.startTime.localeCompare(b.startTime));
   const byM={};MEMBERS.forEach(m=>byM[m.id]=[]); evs.forEach(e=>{e.members.forEach(mid => {if(byM[mid] && filters.includes(mid)) byM[mid].push(e);});});
-  let h=challengeWidget()+bachecaWidget()+bdayBanners(viewDate);
+  let h=bachecaWidget()+bdayBanners(viewDate);
   h+=`<div class="sec-lbl" style="display:flex;align-items:center;width:100%">📅 ${new Date(viewDate).toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'})} ${viewDate===REAL_TODAY?'':`<button onclick="viewDate=REAL_TODAY;renderView()" style="margin-left:auto;background:var(--main-bg);border:1px solid var(--border-light);padding:4px 10px;border-radius:20px;color:#378ADD;font-weight:700;font-size:11px;cursor:pointer">TORNA A OGGI</button>`}</div>`;
   let activeHtml='', freeMembers=[];
   MEMBERS.filter(m=>filters.includes(m.id)).forEach(m=>{
@@ -827,7 +827,7 @@ function todayView(){
   });
   if(!activeHtml) activeHtml=`<div class="empty-state"><span class="big">🛋️</span><div style="font-size:16px;font-weight:700;">Nessun impegno in famiglia</div></div>`;
   if(freeMembers.length>0 && activeHtml.indexOf('empty-state')===-1){ activeHtml+=`<div style="margin-top:24px;padding-top:16px;border-top:1px dashed var(--border-light);text-align:center"><div class="sec-lbl" style="text-align:center">🎉 Liberi oggi</div><div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px">${freeMembers.map(m => `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--main-bg);padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;color:var(--text-main)"><span style="font-size:14px">${getIcon(m.id)}</span>${m.name}</span>`).join('')}</div></div>`; }
-  return h+activeHtml;
+  return h+activeHtml+`<div style="margin-top:24px">`+challengeWidget()+`</div>`;
 }
 
 function evCard(e, mContext){
