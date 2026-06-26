@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Patrick+Hand&family=Indie+Flower&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
@@ -662,10 +664,9 @@ function openWeatherPopup() {
 function render(){renderFilters();renderView();}
 function renderFilters(){
   document.getElementById('filters').innerHTML=MEMBERS.map(m=>`
-    <div class="pill" style="background:${m.bg}; color:${m.txt}; ${filters.includes(m.id)?'':'opacity:0.25; border-color:var(--border-light);'} padding-right:8px;">
+    <div class="pill" onclick="toggleF('${m.id}')" style="background:${m.bg}; color:${m.txt}; ${filters.includes(m.id)?'':'opacity:0.25; border-color:var(--border-light);'} cursor:pointer;">
       <span class="dot8" style="background:${m.dot}"></span>
-      <span onclick="toggleF('${m.id}')" style="cursor:pointer">${getIcon(m.id)} ${m.name}</span>
-      <span onclick="openIconPicker('${m.id}')" style="margin-left:6px;font-size:13px;cursor:pointer;opacity:0.55" title="Cambia avatar">✏️</span>
+      <span>${getIcon(m.id)} ${m.name}</span>
     </div>`).join('');
 }
 function toggleF(id){ if(filters.includes(id)){if(filters.length>1)filters=filters.filter(f=>f!==id);}else filters.push(id); render(); }
@@ -1106,12 +1107,27 @@ let bachecaNotes = [];
 const API_BACHECA = () => `${API_EVENTS}?sheet=Bacheca`;
 const API_BACHECA_ID = (id) => `${API_EVENTS}/ID/${id}?sheet=Bacheca`;
 
+const POSTIT_COLORS = [
+  { id:'yellow',  hex:'#fef08a', label:'Giallo'  },
+  { id:'green',   hex:'#bbf7d0', label:'Menta'   },
+  { id:'pink',    hex:'#fecdd3', label:'Rosa'    },
+  { id:'blue',    hex:'#bae6fd', label:'Azzurro' },
+  { id:'orange',  hex:'#fed7aa', label:'Arancio' },
+  { id:'purple',  hex:'#e9d5ff', label:'Lilla'   },
+];
+const POSTIT_FONTS = [
+  { id:'caveat',    label:'Corsivo',    family:"'Caveat', cursive"        },
+  { id:'patrick',   label:'Handwriting',family:"'Patrick Hand', cursive"  },
+  { id:'indie',     label:'Divertente', family:"'Indie Flower', cursive"  },
+  { id:'nunito',    label:'Tondo',      family:"'Nunito', sans-serif"     },
+];
+
 async function loadBacheca(){
   try{
     const res = await fetch(API_BACHECA());
     const data = await res.json();
     bachecaNotes = (data && data.length > 0 && data[0].ID)
-      ? data.map(r=>({id:r.ID, text:r.Testo, author:r.Autore, date:r.Data}))
+      ? data.map(r=>({id:r.ID, text:r.Testo, author:r.Autore, date:r.Data, color:r.Colore||'yellow', font:r.Font||'caveat'}))
       : [];
   } catch(e){ bachecaNotes=[]; }
 }
@@ -1132,10 +1148,12 @@ function bachecaView(){
   let cards = sorted.map(n=>{
     const m = M(n.author);
     const rot = noteRotation(n.id);
-    return `<div class="postit" style="transform:rotate(${rot}deg)">
+    const col = POSTIT_COLORS.find(c=>c.id===n.color)||POSTIT_COLORS[0];
+    const fnt = POSTIT_FONTS.find(f=>f.id===n.font)||POSTIT_FONTS[0];
+    return `<div class="postit" style="transform:rotate(${rot}deg);background:${col.hex}">
       <div class="postit-pin"></div>
       <button class="postit-del" onclick="event.stopPropagation();deleteBachecaNote('${n.id}')">✕</button>
-      <div class="postit-text">${escH(n.text)}</div>
+      <div class="postit-text" style="font-family:${fnt.family}">${escH(n.text)}</div>
       <div class="postit-footer">
         <div class="postit-author"><span style="width:8px;height:8px;border-radius:50%;background:${m.dot};display:inline-block"></span>${m.name}</div>
         <span class="postit-date">${fmtDateShort(n.date)}</span>
@@ -1152,19 +1170,27 @@ function bachecaView(){
     <div class="bacheca-board"><div class="postit-grid">${cards}</div></div>`;
 }
 
-let bachecaForm = { text:'', author:'antonio' };
+let bachecaForm = { text:'', author:'antonio', color:'yellow', font:'caveat' };
 
 function openBachecaModal(){
-  bachecaForm = { text:'', author:'antonio' };
+  bachecaForm = { text:'', author:'antonio', color:'yellow', font:'caveat' };
   renderBachecaModal();
   showOv();
 }
 
 function renderBachecaModal(){
   const mbrBtns = MEMBERS.map(m=>`<button class="tr-btn${bachecaForm.author===m.id?' sel':''}" onclick="bachecaForm.author='${m.id}';renderBachecaModal()" style="${bachecaForm.author===m.id?ms(m):''}">${getIcon(m.id)} ${m.name}</button>`).join('');
+  const colorBtns = POSTIT_COLORS.map(c=>`<button onclick="bachecaForm.color='${c.id}';renderBachecaModal()" title="${c.label}" style="width:32px;height:32px;border-radius:50%;background:${c.hex};border:${bachecaForm.color===c.id?'3px solid #378ADD':'2px solid rgba(0,0,0,0.15)'};cursor:pointer;transition:transform 0.1s;${bachecaForm.color===c.id?'transform:scale(1.2)':''}"></button>`).join('');
+  const curFont = POSTIT_FONTS.find(f=>f.id===bachecaForm.font)||POSTIT_FONTS[0];
+  const curCol = POSTIT_COLORS.find(c=>c.id===bachecaForm.color)||POSTIT_COLORS[0];
+  const fontBtns = POSTIT_FONTS.map(f=>`<button class="tr-btn${bachecaForm.font===f.id?' sel':''}" onclick="bachecaForm.font='${f.id}';renderBachecaModal()" style="font-family:${f.family};${bachecaForm.font===f.id?'background:#378ADD;color:#fff;':''}">${f.label}</button>`).join('');
   document.getElementById('modal-box').innerHTML=`
     <div class="modal-hdr"><div class="modal-ttl">📌 Nuovo Post-it</div><button class="cl-btn" onclick="closeModal()">✕</button></div>
-    <div class="fgrp"><label class="flbl">Messaggio</label><textarea id="bacheca-text" rows="4" placeholder="Scrivi il tuo pensiero…" style="width:100%;resize:none" oninput="bachecaForm.text=this.value">${escH(bachecaForm.text)}</textarea></div>
+    <div class="fgrp"><label class="flbl">Messaggio</label>
+      <textarea id="bacheca-text" rows="4" placeholder="Scrivi il tuo pensiero…" style="width:100%;resize:none;background:${curCol.hex};font-family:${curFont.family};font-size:15px" oninput="bachecaForm.text=this.value">${escH(bachecaForm.text)}</textarea>
+    </div>
+    <div class="fgrp"><label class="flbl">Colore</label><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">${colorBtns}</div></div>
+    <div class="fgrp"><label class="flbl">Font</label><div class="tr-opts">${fontBtns}</div></div>
     <div class="fgrp"><label class="flbl">Firma</label><div class="tr-opts">${mbrBtns}</div></div>
     <div class="modal-actions"><span></span><div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Annulla</button><button class="btn-save" onclick="saveBachecaNote()">Aggiungi</button></div></div>
   `;
@@ -1174,9 +1200,9 @@ async function saveBachecaNote(){
   const text = document.getElementById('bacheca-text')?.value.trim() || bachecaForm.text.trim();
   if(!text){ alert('Scrivi un messaggio'); return; }
   const id = uid();
-  const entry = { id, text, author: bachecaForm.author, date: REAL_TODAY };
+  const entry = { id, text, author: bachecaForm.author, date: REAL_TODAY, color: bachecaForm.color, font: bachecaForm.font };
   bachecaNotes.push(entry);
-  fetch(API_BACHECA(), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({data:{ID:id, Testo:text, Autore:bachecaForm.author, Data:REAL_TODAY}}) });
+  fetch(API_BACHECA(), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({data:{ID:id, Testo:text, Autore:bachecaForm.author, Data:REAL_TODAY, Colore:bachecaForm.color, Font:bachecaForm.font}}) });
   closeModal(); renderView();
 }
 
