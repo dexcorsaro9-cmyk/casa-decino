@@ -739,6 +739,44 @@ function bdayBanners(d_str){
   }).join('');
 }
 
+function challengeWidget(){
+  const now = new Date();
+  const curYM = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const meseName = MONTHS_IT[now.getMonth()];
+  const approved = challengeLog.filter(l=>l.status==='approved' && l.date.startsWith(curYM));
+  const pts = {}; CHALLENGE_KIDS.forEach(k=>pts[k]=0); approved.forEach(l=>{if(pts[l.member]!==undefined)pts[l.member]+=l.points;});
+  const ranking = CHALLENGE_KIDS.map(k=>({k,pts:pts[k]})).sort((a,b)=>b.pts-a.pts);
+  const premio = challengeSettings[`premio_${curYM}`];
+  const medals = ['🥇','🥈','🥉'];
+  const hasPoints = ranking.some(r=>r.pts>0);
+
+  const podioHtml = ranking.map((item,i)=>{
+    const m = M(item.k);
+    return `<div style="text-align:center;flex:1">
+      <div style="font-size:22px;margin-bottom:2px">${getIcon(m.id)}</div>
+      <div style="font-size:11px;font-weight:800;color:#fff;margin-bottom:2px">${m.name}</div>
+      <div style="font-size:16px">${medals[i]}</div>
+      <div style="font-size:13px;font-weight:800;color:#fff;margin-top:2px">${item.pts}<span style="font-size:10px;opacity:0.8"> pt</span></div>
+    </div>`;
+  }).join('');
+
+  const premioHtml = premio ? `<div style="display:flex;align-items:center;gap:8px;margin-top:12px;padding:10px 14px;background:rgba(255,255,255,0.15);border-radius:12px;backdrop-filter:blur(4px)">
+    <span style="font-size:20px">🎁</span>
+    <div><div style="font-size:10px;font-weight:800;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.06em">Premio del mese</div><div style="font-size:14px;font-weight:700;color:#fff">${escH(premio)}</div></div>
+  </div>` : '';
+
+  const emptyHtml = `<div style="text-align:center;padding:8px;color:rgba(255,255,255,0.6);font-size:13px;font-weight:600">Nessun punto ancora questo mese 🎯</div>`;
+
+  return `<div onclick="switchView('challenge')" style="cursor:pointer;background:linear-gradient(135deg,#1D9E75,#29B8E0);border-radius:var(--radius-lg);padding:16px;margin-bottom:20px;box-shadow:0 6px 20px rgba(29,158,117,0.3)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <span style="font-size:12px;font-weight:800;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.06em">🏆 Challenge — ${meseName.charAt(0).toUpperCase()+meseName.slice(1)}</span>
+      <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.65);background:rgba(0,0,0,0.15);padding:3px 10px;border-radius:20px">Vedi →</span>
+    </div>
+    ${hasPoints ? `<div style="display:flex;gap:8px">${podioHtml}</div>` : emptyHtml}
+    ${premioHtml}
+  </div>`;
+}
+
 function bachecaWidget(){
   const recent = [...bachecaNotes].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3);
   let inner = '';
@@ -770,7 +808,7 @@ function bachecaWidget(){
 function todayView(){
   const evs=events.filter(e=>e.date===viewDate && e.members.some(m=>filters.includes(m))).sort((a,b)=>a.startTime.localeCompare(b.startTime));
   const byM={};MEMBERS.forEach(m=>byM[m.id]=[]); evs.forEach(e=>{e.members.forEach(mid => {if(byM[mid] && filters.includes(mid)) byM[mid].push(e);});});
-  let h=bachecaWidget()+bdayBanners(viewDate);
+  let h=challengeWidget()+bachecaWidget()+bdayBanners(viewDate);
   h+=`<div class="sec-lbl" style="display:flex;align-items:center;width:100%">📅 ${new Date(viewDate).toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'})} ${viewDate===REAL_TODAY?'':`<button onclick="viewDate=REAL_TODAY;renderView()" style="margin-left:auto;background:var(--main-bg);border:1px solid var(--border-light);padding:4px 10px;border-radius:20px;color:#378ADD;font-weight:700;font-size:11px;cursor:pointer">TORNA A OGGI</button>`}</div>`;
   let activeHtml='', freeMembers=[];
   MEMBERS.filter(m=>filters.includes(m.id)).forEach(m=>{
