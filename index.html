@@ -747,32 +747,42 @@ function challengeWidget(){
   const pts = {}; CHALLENGE_KIDS.forEach(k=>pts[k]=0); approved.forEach(l=>{if(pts[l.member]!==undefined)pts[l.member]+=l.points;});
   const ranking = CHALLENGE_KIDS.map(k=>({k,pts:pts[k]})).sort((a,b)=>b.pts-a.pts);
   const premio = challengeSettings[`premio_${curYM}`];
-  const medals = ['🥇','🥈','🥉'];
   const hasPoints = ranking.some(r=>r.pts>0);
 
-  const podioHtml = ranking.map((item,i)=>{
-    const m = M(item.k);
-    return `<div style="text-align:center;flex:1">
-      <div style="font-size:22px;margin-bottom:2px">${getIcon(m.id)}</div>
-      <div style="font-size:11px;font-weight:800;color:#fff;margin-bottom:2px">${m.name}</div>
-      <div style="font-size:16px">${medals[i]}</div>
-      <div style="font-size:13px;font-weight:800;color:#fff;margin-top:2px">${item.pts}<span style="font-size:10px;opacity:0.8"> pt</span></div>
-    </div>`;
-  }).join('');
+  // Podio: 2° sinistra, 1° centro, 3° destra
+  const visual = [ranking[1]||null, ranking[0]||null, ranking[2]||null];
+  const heights = [70, 100, 50];
+  const medals = ['🥈','🥇','🥉'];
 
-  const premioHtml = premio ? `<div style="display:flex;align-items:center;gap:8px;margin-top:12px;padding:10px 14px;background:rgba(255,255,255,0.15);border-radius:12px;backdrop-filter:blur(4px)">
-    <span style="font-size:20px">🎁</span>
-    <div><div style="font-size:10px;font-weight:800;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.06em">Premio del mese</div><div style="font-size:14px;font-weight:700;color:#fff">${escH(premio)}</div></div>
+  const podioHtml = `<div style="display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:8px 0 4px">
+    ${visual.map((item,i) => {
+      if(!item) return `<div style="width:80px"></div>`;
+      const m = M(item.k);
+      const isFirst = i===1;
+      return `<div style="text-align:center;width:80px">
+        <div style="font-size:${isFirst?'32px':'26px'};margin-bottom:4px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3))">${getIcon(m.id)}</div>
+        <div style="font-size:${isFirst?'20px':'16px'};margin-bottom:4px">${medals[i]}</div>
+        <div style="background:${m.dot};border-radius:8px 8px 0 0;height:${heights[i]}px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:8px;box-shadow:0 -3px 10px rgba(0,0,0,0.2)">
+          <div style="font-size:12px;font-weight:800;color:#fff">${m.name}</div>
+          <div style="font-size:14px;font-weight:900;color:#fff">${item.pts}<span style="font-size:9px;opacity:0.85"> pt</span></div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+
+  const emptyHtml = `<div style="text-align:center;padding:20px 8px;color:rgba(255,255,255,0.55);font-size:13px;font-weight:600">🎯 Nessun punto ancora questo mese<br><span style="font-size:11px;opacity:0.7">Iniziate le sfide!</span></div>`;
+
+  const premioHtml = premio ? `<div style="display:flex;align-items:center;gap:10px;margin-top:14px;padding:10px 14px;background:rgba(255,255,255,0.12);border-radius:12px;border:1px solid rgba(255,255,255,0.15)">
+    <span style="font-size:22px">🎁</span>
+    <div><div style="font-size:10px;font-weight:800;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.07em">Premio del mese</div><div style="font-size:14px;font-weight:700;color:#fff;margin-top:1px">${escH(premio)}</div></div>
   </div>` : '';
 
-  const emptyHtml = `<div style="text-align:center;padding:8px;color:rgba(255,255,255,0.6);font-size:13px;font-weight:600">Nessun punto ancora questo mese 🎯</div>`;
-
-  return `<div onclick="switchView('challenge')" style="cursor:pointer;background:linear-gradient(135deg,#1D9E75,#29B8E0);border-radius:var(--radius-lg);padding:16px;margin-bottom:20px;box-shadow:0 6px 20px rgba(29,158,117,0.3)">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <span style="font-size:12px;font-weight:800;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.06em">🏆 Challenge — ${meseName.charAt(0).toUpperCase()+meseName.slice(1)}</span>
-      <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.65);background:rgba(0,0,0,0.15);padding:3px 10px;border-radius:20px">Vedi →</span>
+  return `<div onclick="switchView('challenge')" style="cursor:pointer;background:linear-gradient(145deg,#1C2541 0%,#3730a3 100%);border-radius:var(--radius-lg);padding:18px 16px 16px;margin-bottom:20px;box-shadow:0 8px 28px rgba(28,37,65,0.35),0 2px 8px rgba(55,48,163,0.3)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <span style="font-size:12px;font-weight:800;color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.07em">🏆 Challenge — ${meseName.charAt(0).toUpperCase()+meseName.slice(1)}</span>
+      <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.1);padding:3px 10px;border-radius:20px">Vedi →</span>
     </div>
-    ${hasPoints ? `<div style="display:flex;gap:8px">${podioHtml}</div>` : emptyHtml}
+    ${hasPoints ? podioHtml : emptyHtml}
     ${premioHtml}
   </div>`;
 }
