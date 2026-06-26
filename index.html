@@ -741,12 +741,16 @@ async function loadChallenge(){
       fetch(API_CH('ChallengeLog')).then(r=>r.json()),
       fetch(API_CH('ChallengeSettings')).then(r=>r.json())
     ]);
-    challengeTasks=(rt&&rt[0]?.ID)?rt.map(r=>({id:r.ID,date:r.Data,title:r.Titolo,points:+r.Punti})):[];
+    // DataInizio = the date from which the task recurs forward
+    challengeTasks=(rt&&rt[0]?.ID)?rt.map(r=>({id:r.ID,dateStart:r.DataInizio,title:r.Titolo,points:+r.Punti})):[];
     challengeLog=(rl&&rl[0]?.ID)?rl.map(r=>({id:r.ID,date:r.Data,member:r.Membro,taskId:r.TaskID,taskTitle:r.TaskTitolo,points:+r.Punti,status:r.Stato,approvedAt:r.DataApprovazione||''})):[];
     challengeSettings={};
     if(rs&&rs[0]?.Chiave)rs.forEach(r=>{challengeSettings[r.Chiave]=r.Valore;});
   }catch(e){challengeTasks=[];challengeLog=[];challengeSettings={};}
 }
+
+// Tasks active on a given date = those whose dateStart <= date
+function activeTasksOn(dateStr){ return challengeTasks.filter(t=>t.dateStart<=dateStr); }
 
 function challengeView(){
   const subnav=`<div class="ch-subnav"><button class="ch-tab${challengeSubView==='sfide'?' active':''}" onclick="setChallengeView('sfide')">🎯 Sfide</button><button class="ch-tab${challengeSubView==='classifica'?' active':''}" onclick="setChallengeView('classifica')">🏆 Classifica</button><button class="ch-tab${challengeSubView==='admin'?' active':''}" onclick="setChallengeView('admin')">⚙️ Gestione</button></div>`;
@@ -762,14 +766,14 @@ function setChallengeView(v){
 
 /* ── SFIDE ── */
 function sfideView(){
-  const todayTasks=challengeTasks.filter(t=>t.date===viewDate);
+  const tasks=activeTasksOn(viewDate);
   let h=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px"><div class="nav-lbl">📅 ${new Date(viewDate+'T12:00').toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'})}</div><div style="display:flex;gap:6px"><button class="nav-btn" onclick="viewDate=fmtD(addDays(new Date(viewDate+'T12:00'),-1));renderView()">‹</button>${viewDate!==REAL_TODAY?`<button onclick="viewDate=REAL_TODAY;renderView()" style="background:var(--main-bg);border:1px solid var(--border-light);padding:4px 10px;border-radius:20px;color:#378ADD;font-weight:700;font-size:11px;cursor:pointer">OGGI</button>`:''}<button class="nav-btn" onclick="viewDate=fmtD(addDays(new Date(viewDate+'T12:00'),1));renderView()">›</button></div></div>`;
-  if(!todayTasks.length) return h+`<div class="empty-state"><span class="big">🎯</span><div style="font-size:16px;font-weight:700">Nessuna sfida per oggi</div><div style="font-size:13px;margin-top:6px;color:var(--text-sec)">I genitori possono aggiungere sfide dalla sezione ⚙️ Gestione</div></div>`;
+  if(!tasks.length) return h+`<div class="empty-state"><span class="big">🎯</span><div style="font-size:16px;font-weight:700">Nessuna sfida attiva</div><div style="font-size:13px;margin-top:6px;color:var(--text-sec)">I genitori possono aggiungere sfide dalla sezione ⚙️ Gestione</div></div>`;
   CHALLENGE_KIDS.forEach(kid=>{
     const m=M(kid);
     const approvedPts=challengeLog.filter(l=>l.member===kid&&l.date===viewDate&&l.status==='approved').reduce((s,l)=>s+l.points,0);
     h+=`<div class="mem-sec"><div class="mem-hdr"><div class="avatar" style="${ms(m)}">${m.icon}</div><div><div style="font-size:15px;font-weight:700">${m.name}</div><div style="font-size:11px;color:var(--text-sec)">${m.role}</div></div><span style="margin-left:auto;background:var(--main-bg);padding:4px 12px;border-radius:12px;font-size:14px;font-weight:800;color:#378ADD">⭐ ${approvedPts} pt</span></div><div class="mem-body">`;
-    todayTasks.forEach(task=>{
+    tasks.forEach(task=>{
       const log=challengeLog.find(l=>l.member===kid&&l.taskId===task.id&&l.date===viewDate);
       let btn='';
       if(!log) btn=`<button onclick="submitTask('${kid}','${task.id}','${escH(task.title)}',${task.points},'${viewDate}')" class="ch-fatto-btn">Fatto! ✋</button>`;
@@ -854,17 +858,27 @@ function renderRankTable(ranking){
 /* ── ADMIN ── */
 function adminView(){
   const pending=challengeLog.filter(l=>l.status==='pending');
-  const todayTasks=challengeTasks.filter(t=>t.date===viewDate);
+  const activeTasks=activeTasksOn(REAL_TODAY);
   const curYM=`${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
   const premio=challengeSettings[`premio_${curYM}`]||'';
   const curPin=challengeSettings['pin']||'1234';
+
   let h=`<div class="ch-admin-sec">
-    <div class="sec-lbl" style="margin-bottom:14px">➕ Aggiungi Sfida</div>
+    <div class="sec-lbl" style="margin-bottom:14px">➕ Aggiungi Sfida Ricorrente</div>
+    <div style="font-size:12px;color:var(--text-sec);font-weight:600;margin-bottom:12px">La sfida verrà mostrata ogni giorno a partire dalla data indicata.</div>
     <div class="fgrp"><label class="flbl">Titolo</label><input type="text" id="ch-task-title" placeholder="Es. Rifarsi il letto 🛏" style="width:100%"></div>
-    <div class="fgrp"><label class="flbl">Data</label><input type="date" id="ch-task-date" value="${viewDate}" style="width:100%"></div>
+    <div class="fgrp"><label class="flbl">Attiva dal</label><input type="date" id="ch-task-date" value="${REAL_TODAY}" style="width:100%"></div>
     <div class="fgrp"><label class="flbl">Punti</label><div class="tr-opts">${[1,2,3,5].map(p=>`<button class="tr-btn${selectedPoints===p?' sel':''}" onclick="selectedPoints=${p};this.closest('.tr-opts').querySelectorAll('.tr-btn').forEach(b=>b.classList.remove('sel'));this.classList.add('sel')">${p} ⭐</button>`).join('')}</div></div>
     <button class="btn-save" onclick="addChallengeTask()" style="width:100%">Aggiungi</button>
   </div>`;
+
+  h+=`<div class="ch-admin-sec"><div class="sec-lbl" style="margin-bottom:14px">📋 Sfide Attive (${activeTasks.length})</div>`;
+  if(!activeTasks.length) h+=`<div style="text-align:center;color:var(--text-sec);font-size:13px;padding:12px;font-weight:600">Nessuna sfida attiva</div>`;
+  else activeTasks.forEach(t=>{
+    h+=`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--main-bg);border-radius:10px;margin-bottom:6px;border:1px solid var(--border-light)"><div><span style="font-weight:700">${escH(t.title)}</span> <span style="color:var(--text-sec);font-size:11px;margin-left:4px">⭐ ${t.points}pt · dal ${t.dateStart}</span></div><button onclick="deleteChallengeTask('${t.id}')" style="background:none;border:none;cursor:pointer;color:#ff3b30;font-size:16px;font-weight:bold">✕</button></div>`;
+  });
+  h+=`</div>`;
+
   h+=`<div class="ch-admin-sec"><div class="sec-lbl" style="margin-bottom:14px">⏳ Approvazioni (${pending.length})</div>`;
   if(!pending.length) h+=`<div style="text-align:center;color:var(--text-sec);font-size:13px;padding:12px;font-weight:600">Tutto approvato ✅</div>`;
   else pending.forEach(item=>{
@@ -872,35 +886,33 @@ function adminView(){
     h+=`<div class="pending-row"><div class="avatar" style="${ms(m)};width:32px;height:32px;font-size:16px">${m.icon}</div><div style="flex:1"><div style="font-weight:700;font-size:13px">${m.name} — ${escH(item.taskTitle)}</div><div style="font-size:11px;color:var(--text-sec)">📅 ${item.date} · ⭐ ${item.points}pt</div></div><button onclick="approveLog('${item.id}',true)" style="background:#D4EDDA;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:16px">✅</button><button onclick="approveLog('${item.id}',false)" style="background:#F8D7DA;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:16px;margin-left:4px">❌</button></div>`;
   });
   h+=`</div>`;
-  if(todayTasks.length){
-    h+=`<div class="ch-admin-sec"><div class="sec-lbl" style="margin-bottom:14px">📋 Sfide del ${new Date(viewDate+'T12:00').toLocaleDateString('it-IT',{day:'numeric',month:'short'})}</div>`;
-    todayTasks.forEach(t=>{ h+=`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--main-bg);border-radius:10px;margin-bottom:6px;border:1px solid var(--border-light)"><div><span style="font-weight:700">${escH(t.title)}</span> <span style="color:var(--text-sec);font-size:11px;margin-left:4px">⭐ ${t.points}pt</span></div><button onclick="deleteChallengeTask('${t.id}')" style="background:none;border:none;cursor:pointer;color:#ff3b30;font-size:16px;font-weight:bold">✕</button></div>`; });
-    h+=`</div>`;
-  }
+
   h+=`<div class="ch-admin-sec">
     <div class="sec-lbl" style="margin-bottom:14px">🎁 Premio Mese Corrente (${curYM})</div>
     <div class="fgrp"><input type="text" id="ch-premio" value="${escH(premio)}" placeholder="Es. Pizza fuori, 10€, Serata Netflix…" style="width:100%"></div>
     <button class="btn-save" onclick="savePremio()" style="margin-top:4px">Salva Premio</button>
   </div>`;
+
   h+=`<div class="ch-admin-sec">
     <div class="sec-lbl" style="margin-bottom:14px">🔐 Cambia PIN (attuale: ${escH(curPin)})</div>
     <div style="display:flex;gap:8px"><input type="password" id="ch-pin-new" placeholder="Nuovo PIN (min 4 caratteri)" maxlength="6" style="flex:1"><button class="btn-save" onclick="savePin()">Salva</button></div>
   </div>`;
+
   return h;
 }
 
 async function addChallengeTask(){
   const title=document.getElementById('ch-task-title')?.value.trim();
-  const date=document.getElementById('ch-task-date')?.value;
-  if(!title||!date){alert('Inserisci titolo e data');return;}
+  const dateStart=document.getElementById('ch-task-date')?.value;
+  if(!title||!dateStart){alert('Inserisci titolo e data di inizio');return;}
   const id=uid();
-  challengeTasks.push({id,date,title,points:selectedPoints});
-  fetch(API_CH('ChallengeTasks'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:{ID:id,Data:date,Titolo:title,Punti:selectedPoints}})});
+  challengeTasks.push({id,dateStart,title,points:selectedPoints});
+  fetch(API_CH('ChallengeTasks'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:{ID:id,DataInizio:dateStart,Titolo:title,Punti:selectedPoints}})});
   renderView();
 }
 
 async function deleteChallengeTask(id){
-  if(!confirm('Eliminare questa sfida?'))return;
+  if(!confirm('Eliminare questa sfida? Sparirà da tutti i giorni.'))return;
   challengeTasks=challengeTasks.filter(t=>t.id!==id);
   fetch(API_CH_ID('ChallengeTasks',id),{method:'DELETE'});
   renderView();
