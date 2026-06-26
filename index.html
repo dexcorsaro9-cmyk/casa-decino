@@ -51,16 +51,19 @@
       color: var(--text-main);
       font-size: 14px;
       line-height: 1.4;
-      padding-bottom: 40px;
+      padding-bottom: 90px;
     }
 
     #app { position: relative; max-width: 800px; margin: 0 auto; padding: 0 12px; }
 
+    /* HEADER DESIGN CON NUOVO LOGO DI FAMIGLIA */
     .hdr {
-      background: var(--card-bg);
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-md);
-      padding: 20px 20px 10px;
+      padding: 16px 16px 10px;
       position: sticky;
       top: 12px;
       z-index: 10;
@@ -68,32 +71,104 @@
       margin-bottom: 20px;
       border: 1px solid var(--border-light);
     }
+    @media(prefers-color-scheme:dark) {
+      .hdr { background: rgba(28, 37, 65, 0.85); }
+    }
     
     .hdr-top {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 16px;
+      gap: 12px;
+      margin-bottom: 14px;
     }
     
-    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand { display: flex; align-items: center; gap: 14px; }
     
-    .brand-icon {
-      width: 44px;
-      height: 44px;
+    /* Nuovo Box Logo Unificato e Moderno */
+    .brand-logo-container {
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+    
+    .brand-icon-wrapper {
+      width: 46px;
+      height: 46px;
       border-radius: var(--radius-md);
-      background: linear-gradient(135deg, #378ADD, #29B8E0);
-      color: #fff;
+      background: linear-gradient(135deg, #378ADD, #7F77DD);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
-      box-shadow: 0 4px 12px rgba(55,138,221,0.3);
+      box-shadow: 0 6px 16px rgba(55, 138, 221, 0.3);
+      position: relative;
     }
+    .brand-icon-svg {
+      width: 22px;
+      height: 22px;
+      fill: none;
+      stroke: #FFFFFF;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    /* Cuore pulsante sopra la casa */
+    .logo-heart {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      font-size: 14px;
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    /* Avatar di famiglia sovrapposti stile iOS Group */
+    .family-avatars-group {
+      display: flex;
+      align-items: center;
+      margin-left: -8px;
+    }
+    .mini-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--card-bg);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      margin-left: -8px;
+      border: 1.5px solid var(--card-bg);
+      transition: transform 0.2s;
+    }
+    .mini-avatar:hover { transform: translateY(-4px); z-index: 20 !important; }
     
-    .brand-name { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
-    .brand-sub { font-size: 12px; color: var(--text-sec); font-weight: 500; }
+    .brand-text-container { display: flex; flex-direction: column; margin-left: 4px; }
+    .brand-name { 
+      font-size: 20px; 
+      font-weight: 800; 
+      letter-spacing: -0.03em; 
+      color: var(--text-main);
+      line-height: 1.1;
+    }
+    .brand-name span {
+      background: linear-gradient(135deg, #378ADD, #7F77DD);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .brand-sub { 
+      font-size: 10px; 
+      color: var(--text-sec); 
+      font-weight: 700; 
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-top: 3px;
+    }
     
     .weather-box {
       margin-top: 8px;
@@ -108,23 +183,28 @@
     .w-day { display: inline-block; margin-right: 10px; }
     .w-day:last-child { margin-right: 0; }
 
-    .add-btn {
+    /* Tasto Fluttuante WhatsApp Style */
+    .fab-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 999;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 10px 18px;
-      border-radius: 30px;
+      gap: 8px;
+      padding: 14px 22px;
+      border-radius: 50px;
       border: none;
       background: linear-gradient(135deg, #34C759, #28A745);
       color: #fff;
       cursor: pointer;
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 700;
-      box-shadow: 0 4px 12px rgba(52,199,89,0.3);
-      transition: all 0.2s;
-      white-space: nowrap;
+      box-shadow: 0 8px 24px rgba(52,199,89,0.4);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .add-btn:active { transform: scale(0.95); }
+    .fab-btn:active { transform: scale(0.92); box-shadow: 0 4px 12px rgba(52,199,89,0.3); }
+    .fab-icon { font-size: 18px; }
 
     .tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 4px; padding-bottom: 4px; }
     .tab {
@@ -190,9 +270,7 @@
     }
     .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: var(--shadow-sm); }
     .mem-body { padding: 12px; }
-    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-sec); font-weight: 600; }
-    .empty-state .big { font-size: 44px; margin-bottom: 10px; display: block; }
-
+    
     .ev-card {
       display: flex;
       align-items: center;
@@ -258,14 +336,29 @@
     .modal-ttl { font-size: 19px; font-weight: 800; letter-spacing: -0.01em; }
     .cl-btn { background: var(--main-bg); border: none; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 14px; color: var(--text-main); font-weight: bold; }
     
-    input, select, textarea { font-family: inherit; font-size: 14px; background: var(--main-bg); border: 1px solid var(--border-light); border-radius: 14px; padding: 12px 14px; color: var(--text-primary); margin-top: 6px; font-weight: 600; }
+    input, select, textarea { font-family: inherit; font-size: 14px; background: var(--main-bg); border: 1px solid var(--border-light); border-radius: 14px; padding: 12px 14px; color: var(--text-main); margin-top: 6px; font-weight: 600; }
     input:focus, select:focus, textarea:focus { outline: none; border-color: #378ADD; background: var(--card-bg); }
     .tr-sec { background: var(--main-bg); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; border: 1px solid var(--border-light); }
     
     .btn-save { background: linear-gradient(135deg, #34C759, #28A745); color: #fff; border: none; padding: 12px 26px; border-radius: 30px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(52,199,89,0.2); }
     .btn-cancel { background: var(--main-bg); color: var(--text-sec); border: none; padding: 12px 20px; border-radius: 30px; font-weight: 700; cursor: pointer; }
     
-    .bday-banner { background: linear-gradient(135deg, #FF9500, #FFCC00); color: #fff; border-radius: var(--radius-md); box-shadow: 0 6px 16px rgba(255,149,0,0.3); }
+    .fgrp { display: flex; flex-direction: column; margin-bottom: 16px; }
+    .flbl { font-size: 12px; color: var(--text-sec); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+    .tr-opts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; margin-bottom: 6px; }
+    .tr-btn { padding: 10px 14px; border-radius: 20px; border: 1px solid var(--border-light); background: var(--main-bg); color: var(--text-main); font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.15s; }
+    .tr-btn.sel { background: #378ADD; color: #fff; border-color: transparent; box-shadow: var(--shadow-sm); }
+    .frow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .t-row { display: flex; align-items: center; gap: 8px; }
+    .t-row input { flex: 1; }
+    .tr-lbl { font-size: 12px; font-weight: 800; color: var(--text-sec); text-transform: uppercase; display: block; margin-bottom: 4px; }
+    
+    .modal-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 24px; padding-top: 16px; border-top: 1px dashed var(--border-light); }
+    .btn-del-ev { background: none; border: none; color: #ff3b30; font-weight: 700; cursor: pointer; font-size: 13px; }
+    .btn-row { display: flex; gap: 8px; }
+
+    .bday-banner { background: linear-gradient(135deg, #FF9500, #FFCC00); color: #fff; border-radius: var(--radius-md); box-shadow: 0 6px 16px rgba(255,149,0,0.3); padding: 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 14px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin-bottom: 20px; }
     .stat-card { border-radius: var(--radius-md); padding: 16px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light); }
     .stat-num { font-size: 26px; font-weight: 800; margin-top: 4px; }
   </style>
@@ -276,14 +369,33 @@
     <div class="hdr">
       <div class="hdr-top">
         <div class="brand">
-          <div class="brand-icon">🏠</div>
-          <div>
-            <div class="brand-name">Casa Decino</div>
+          <!-- IL NUOVO LOGO COMPOSITO DI FAMIGLIA -->
+          <div class="brand-logo-container">
+            <!-- La casa vettoriale -->
+            <div class="brand-icon-wrapper">
+              <svg class="brand-icon-svg" viewBox="0 0 24 24">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+              <!-- Il cuore sopra il tetto -->
+              <span class="logo-heart">❤️</span>
+            </div>
+            <!-- I 5 membri (Uomo, Donna, 22enne, Gemello 14, Gemella 14) sovrapposti -->
+            <div class="family-avatars-group">
+              <div class="mini-avatar" style="z-index: 5;">👨</div>
+              <div class="mini-avatar" style="z-index: 4;">👩</div>
+              <div class="mini-avatar" style="z-index: 3;">⚽</div>
+              <div class="mini-avatar" style="z-index: 2;">🚴</div>
+              <div class="mini-avatar" style="z-index: 1;">💃</div>
+            </div>
+          </div>
+          
+          <div class="brand-text-container">
+            <div class="brand-name">Casa <span>Decino</span></div>
             <div class="brand-sub">Agenda di famiglia</div>
             <div id="weather-widget" class="weather-box"></div>
           </div>
         </div>
-        <button class="add-btn" id="hdr-add" onclick="hdrAdd()">＋ Aggiungi</button>
       </div>
       <div class="tabs">
         <button class="tab active" id="t-today"    onclick="viewDate=REAL_TODAY; switchView('today')">📅 Oggi</button>
@@ -296,6 +408,12 @@
     <div class="filters" id="filters"></div>
     <div class="content" id="view"></div>
   </div>
+  
+  <button class="fab-btn" id="fab-add" onclick="hdrAdd()">
+    <span class="fab-icon">📝</span>
+    <span id="fab-text">Aggiungi</span>
+  </button>
+
   <div id="modal-ov"><div class="modal" id="modal-box"></div></div>
 </div>
 
@@ -507,6 +625,14 @@ function switchView(v){
   ['t-today','t-week','t-month','t-trasporti','t-ricorrenze'].forEach(id=>document.getElementById(id).classList.remove('active'));
   document.getElementById('t-'+v).classList.add('active');
   document.getElementById('filters').style.display=['today','week','month'].includes(v)?'flex':'none';
+  
+  const fabTxt = document.getElementById('fab-text');
+  if(v === 'ricorrenze') {
+    fabTxt.innerText = "Ricorrenza";
+  } else {
+    fabTxt.innerText = "Impegno";
+  }
+  
   renderView();
 }
 function renderView(){
@@ -749,7 +875,6 @@ function ricorrenzeView(){
   const sorted=[...ricorrenze].sort((a,b)=>daysUntil(a.date)-daysUntil(b.date));
   let h=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
     <div class="sec-lbl" style="margin:0">🎂 Ricorrenze di famiglia</div>
-    <button class="add-btn" onclick="openRicModal(null)">＋ Aggiungi</button>
   </div>`;
   if(!sorted.length){h+=`<div class="empty-state"><span class="big">🎂</span><div>Nessuna ricorrenza salvata</div></div>`;return h;}
   sorted.forEach(r=>{
@@ -811,7 +936,7 @@ function renderEvModal(){
   const cm = M(form.members[0] || 'antonio');
   document.getElementById('modal-box').innerHTML=`
     <div class="modal-hdr">
-      <div class="modal-ttl"><div class="avatar" style="background:${cm.bg}; color:${cm.txt}; width:30px; height:30px; border-radius:8px; font-size:16px">${cm.icon}</div>${editId?'Modifica evento':'Nuovo evento'}</div>
+      <div class="modal-ttl"><div class="avatar" style="background:${cm.bg}; color:${cm.txt}; width:30px; height:30px; border-radius:8px; font-size:16px">${cm.icon}</div>${editId?'Modifica impegni':'Nuovo impegno'}</div>
       <button class="cl-btn" onclick="closeModal()">✕</button>
     </div>
     
@@ -826,7 +951,7 @@ function renderEvModal(){
       <label class="flbl">Orario</label>
       <div class="t-row">
         <input type="time" value="${form.startTime}" onchange="window.form.startTime=this.value">
-        <span style="color:var(--text-secondary);font-size:12px;flex-shrink:0">→</span>
+        <span style="color:var(--text-sec);font-size:12px;flex-shrink:0">→</span>
         <input type="time" value="${form.endTime}" onchange="window.form.endTime=this.value">
       </div>
     </div>
