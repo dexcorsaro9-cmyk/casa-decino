@@ -4,123 +4,287 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    :root{
-      --a-bg:#E6F1FB;--a-txt:#0C447C;--a-dot:#378ADD;
-      --p-bg:#FAECE7;--p-txt:#712B13;--p-dot:#D85A30;
-      --v-bg:#E1F5EE;--v-txt:#085041;--v-dot:#1D9E75;
-      --f-bg:#DAEEFF;--f-txt:#0B5A7A;--f-dot:#29B8E0;
-      --s-bg:#EEEDFE;--s-txt:#3C3489;--s-dot:#7F77DD;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root {
+      --a-bg: #E6F1FB; --a-txt: #0C447C; --a-dot: #378ADD;
+      --p-bg: #FAECE7; --p-txt: #712B13; --p-dot: #D85A30;
+      --v-bg: #E1F5EE; --v-txt: #085041; --v-dot: #1D9E75;
+      --f-bg: #DAEEFF; --f-txt: #0B5A7A; --f-dot: #29B8E0;
+      --s-bg: #EEEDFE; --s-txt: #3C3489; --s-dot: #7F77DD;
+      
+      /* Variabili Stile Apple-like */
+      --main-bg: #F2F2F7;
+      --card-bg: #FFFFFF;
+      --text-primary: #1C1C1E;
+      --text-secondary: #8E8E93;
+      --border-light: rgba(0, 0, 0, 0.04);
+      --soft-shadow: 0 8px 24px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.02);
+      --radius-lg: 16px;
+      --radius-md: 12px;
     }
-    @media(prefers-color-scheme:dark){:root{
-      --a-bg:#042C53;--a-txt:#B5D4F4;
-      --p-bg:#4A1B0C;--p-txt:#F5C4B3;
-      --v-bg:#04342C;--v-txt:#9FE1CB;
-      --f-bg:#041C28;--f-txt:#9DD9F0;
-      --s-bg:#26215C;--s-txt:#CECBF6;
-    }}
-    body{font-family:system-ui,-apple-system,sans-serif;background:var(--color-background-tertiary,#f5f4f0);color:var(--color-text-primary,#1a1a18);font-size:14px}
-    #app{position:relative;min-height:600px;max-width:900px;margin:0 auto}
-    .hdr{background:var(--color-background-primary,#fff);border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));padding:14px 20px 0;position:sticky;top:0;z-index:10}
-    .hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-    .brand{display:flex;align-items:center;gap:10px}
-    .brand-icon{width:36px;height:36px;border-radius:10px;background:var(--a-bg);color:var(--a-txt);display:flex;align-items:center;justify-content:center;font-size:18px}
-    .brand-name{font-size:17px;font-weight:600;letter-spacing:-.01em}
-    .brand-sub{font-size:11px;color:var(--color-text-secondary,#888);margin-top:1px;margin-bottom:4px}
-    .weather-box{font-weight:500;color:var(--color-text-secondary,#888);background:var(--color-background-secondary,#f0efeb);padding:4px 8px;border-radius:6px;display:none;font-size:10.5px;border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.08))}
-    .w-day{display:inline-block;margin-right:8px}
-    .w-day:last-child{margin-right:0}
-    .add-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.25));background:var(--color-background-primary,#fff);cursor:pointer;font-size:13px;font-weight:500;color:var(--color-text-primary,#1a1a18);transition:background .1s;white-space:nowrap}
-    .add-btn:hover{background:var(--color-background-secondary,#f0efeb)}
-    .tabs{display:flex;gap:2px;overflow-x:auto}
-    .tab{padding:8px 13px;font-size:12px;border:none;background:none;cursor:pointer;border-radius:8px 8px 0 0;color:var(--color-text-secondary,#888);font-weight:400;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:5px;flex-shrink:0}
-    .tab.active{color:var(--color-text-primary,#1a1a18);font-weight:600;background:var(--color-background-secondary,#f0efeb)}
-    .filters{background:var(--color-background-secondary,#f0efeb);padding:10px 20px;display:flex;gap:8px;flex-wrap:wrap;border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12))}
-    .pill{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid transparent;transition:opacity .15s,transform .1s;user-select:none}
-    .pill:hover{transform:scale(1.03)}
-    .pill.off{opacity:.28}
-    .dot8{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-    .content{padding:16px 20px 80px}
-    .sec-lbl{font-size:11px;color:var(--color-text-secondary,#888);letter-spacing:.06em;margin-bottom:14px;font-weight:600;text-transform:uppercase;display:flex;align-items:center;gap:6px}
-    .mem-sec{margin-bottom:22px;background:var(--color-background-primary,#fff);border-radius:12px;border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));overflow:hidden}
-    .mem-hdr{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12))}
-    .avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
-    .mem-body{padding:8px 14px 10px}
-    .no-ev{font-size:12px;color:var(--color-text-tertiary,#aaa);padding:6px 0;display:flex;align-items:center;gap:6px}
-    .ev-card{display:flex;align-items:flex-start;gap:10px;padding:9px 10px;border-radius:8px;background:var(--color-background-secondary,#f5f4f0);margin-bottom:6px;cursor:pointer;transition:background .1s;position:relative}
-    .ev-card:hover{background:var(--color-background-tertiary,#ece9e1)}
-    .ev-strip{width:3px;border-radius:2px;align-self:stretch;flex-shrink:0;min-height:36px}
-    .ev-time{font-size:11px;color:var(--color-text-secondary,#888);min-width:58px;padding-top:1px;line-height:1.7;flex-shrink:0}
-    .ev-info{flex:1;min-width:0}
-    .ev-title{font-size:13px;font-weight:600;margin-bottom:5px;line-height:1.3}
-    .ev-meta{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
-    .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;white-space:nowrap}
-    .ev-note{font-size:11px;color:var(--color-text-secondary,#888);margin-top:5px;display:flex;align-items:center;gap:5px}
-    .del-btn{background:none;border:none;cursor:pointer;color:var(--color-text-secondary,#888);padding:4px 6px;border-radius:4px;position:absolute;top:6px;right:6px;opacity:0;transition:opacity .15s;font-size:14px;line-height:1}
-    .ev-card:hover .del-btn{opacity:.45}
-    .del-btn:hover{opacity:1!important;color:#e24b4a}
-    .nav-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;background:var(--color-background-primary,#fff);padding:10px 14px;border-radius:10px;border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12))}
-    .nav-lbl{font-size:14px;font-weight:600;display:flex;align-items:center;gap:7px}
-    .nav-btn{background:none;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.25));border-radius:6px;cursor:pointer;padding:4px 12px;color:var(--color-text-primary,#1a1a18);font-size:16px;transition:background .1s;line-height:1.4}
-    .nav-btn:hover{background:var(--color-background-secondary,#f0efeb)}
-    .wk-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
-    .day-col{min-height:220px}
-    .day-hdr{text-align:center;padding:7px 4px 5px;border-radius:8px;margin-bottom:8px;background:var(--color-background-primary,#fff);border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12))}
-    .day-hdr.td{background:var(--color-background-info,#e6f1fb);border-color:var(--color-border-info,#378ADD)}
-    .d-name{font-size:10px;color:var(--color-text-secondary,#888);display:block;margin-bottom:2px;font-weight:500}
-    .d-num{font-size:16px;font-weight:700;display:block}
-    .day-hdr.td .d-num{color:var(--color-text-info,#0C447C)}
-    .wk-bday{font-size:9px;margin-top:3px;display:block;background:rgba(239,159,39,.15);color:#633806;padding:1px 4px;border-radius:3px}
-    .wk-ev{padding:5px 7px;border-radius:6px;font-size:10px;margin-bottom:3px;cursor:pointer;line-height:1.4;border:0.5px solid rgba(0,0,0,.08)}
-    .wk-ev-name{font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .wk-ev-time{display:block;opacity:.75}
-    .wk-add{width:100%;margin-top:4px;padding:5px;border-radius:6px;border:0.5px dashed var(--color-border-secondary,rgba(0,0,0,.25));background:none;cursor:pointer;color:var(--color-text-tertiary,#aaa);font-size:14px;transition:all .15s;line-height:1}
-    .wk-add:hover{background:var(--color-background-secondary,#f0efeb);color:var(--color-text-secondary,#888)}
-    .mn-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));border-radius:10px;overflow:hidden}
-    .mn-dh{text-align:center;padding:8px;font-size:10px;color:var(--color-text-secondary,#888);background:var(--color-background-secondary,#f0efeb);border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));font-weight:600}
-    .mn-day{min-height:74px;padding:5px;background:var(--color-background-primary,#fff);border-right:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));cursor:pointer;transition:background .1s}
-    .mn-day:hover{background:var(--color-background-secondary,#f0efeb)}
-    .mn-day.td{background:var(--color-background-info,#e6f1fb)}
-    .mn-day.other{opacity:.3}
-    .mn-dn{font-size:12px;font-weight:600;margin-bottom:4px;display:block}
-    .mn-day.td .mn-dn{color:var(--color-text-info,#0C447C)}
-    .dots{display:flex;flex-wrap:wrap;gap:2px}
-    .mn-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-    .mn-dot-r{width:7px;height:7px;border-radius:2px;flex-shrink:0}
-    .mn-more{font-size:9px;color:var(--color-text-secondary,#888);margin-top:3px;font-weight:500}
-    .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:20px}
-    .stat-card{border-radius:10px;padding:12px 14px;border:0.5px solid rgba(0,0,0,.08);display:flex;flex-direction:column;gap:4px}
-    .stat-num{font-size:22px;font-weight:700}
-    .stat-lbl{font-size:10px;opacity:.75}
-    .bday-banner{border-radius:10px;padding:13px 16px;margin-bottom:12px;display:flex;align-items:center;gap:12px;border:0.5px solid rgba(0,0,0,.08)}
-    .tr-day-hdr{font-size:12px;font-weight:600;margin-bottom:8px;padding-bottom:4px;border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12))}
-    .empty-state{text-align:center;padding:48px 20px;color:var(--color-text-tertiary,#aaa)}
-    .empty-state .big{font-size:40px;display:block;margin-bottom:12px}
-    #modal-ov{display:none;position:absolute;top:0;left:0;width:100%;background:rgba(0,0,0,.45);z-index:999;padding:24px 16px;align-items:flex-start;justify-content:center}
-    .modal{background:var(--color-background-primary,#fff);border-radius:14px;border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));width:100%;max-width:460px;padding:20px;box-shadow:0 8px 32px rgba(0,0,0,.18)}
-    .modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12))}
-    .modal-ttl{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
-    .cl-btn{background:none;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.25));border-radius:6px;cursor:pointer;color:var(--color-text-secondary,#888);padding:3px 10px;font-size:16px;transition:background .1s;line-height:1.5}
-    .cl-btn:hover{background:var(--color-background-secondary,#f0efeb)}
-    .fgrp{margin-bottom:12px}
-    .flbl{display:block;font-size:10px;color:var(--color-text-secondary,#888);margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
-    .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .t-row{display:flex;gap:6px;align-items:center}
-    input,select,textarea{font-family:inherit;font-size:13px;color:var(--color-text-primary,#1a1a18);background:var(--color-background-secondary,#f5f4f0);border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.25));border-radius:7px;padding:8px 10px;width:100%;transition:border .15s}
-    input:focus,select:focus,textarea:focus{outline:none;border-color:#0C447C;box-shadow:0 0 0 2px rgba(56,138,221,.15)}
-    .tr-sec{border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));border-radius:9px;padding:12px;margin-bottom:12px;background:var(--color-background-secondary,#f5f4f0)}
-    .tr-lbl{font-size:10px;color:var(--color-text-secondary,#888);font-weight:700;margin-bottom:8px;display:block;text-transform:uppercase;letter-spacing:.05em}
-    .tr-opts{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
-    .tr-btn{padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.25));background:var(--color-background-primary,#fff);color:var(--color-text-secondary,#888);font-family:inherit;transition:all .12s;display:flex;align-items:center;gap:5px;font-weight:500}
-    .tr-btn.sel{background:var(--a-bg);color:var(--a-txt);border-color:var(--a-dot);font-weight:700}
-    .modal-actions{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:14px;border-top:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12))}
-    .btn-del-ev{background:none;border:none;cursor:pointer;color:#a32d2d;font-size:12px;font-family:inherit;display:flex;align-items:center;gap:4px;padding:5px 8px;border-radius:6px;font-weight:500}
-    .btn-del-ev:hover{background:#fcebeb}
-    .btn-row{display:flex;gap:8px}
-    .btn-cancel{background:none;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.25));border-radius:7px;padding:8px 16px;cursor:pointer;font-size:13px;font-family:inherit;color:var(--color-text-secondary,#888)}
-    .btn-save{background:var(--a-bg);border:none;border-radius:7px;padding:8px 20px;cursor:pointer;font-size:13px;font-family:inherit;color:var(--a-txt);font-weight:700;transition:opacity .15s}
-    .btn-save:hover{opacity:.8}
-    .empty-week{text-align:center;padding:20px 0;color:var(--color-text-tertiary,#aaa);font-size:16px}
+
+    @media(prefers-color-scheme:dark) {
+      :root {
+        --a-bg: #042C53; --a-txt: #B5D4F4;
+        --p-bg: #4A1B0C; --p-txt: #F5C4B3;
+        --v-bg: #04342C; --v-txt: #9FE1CB;
+        --f-bg: #041C28; --f-txt: #9DD9F0;
+        --s-bg: #26215C; --s-txt: #CECBF6;
+        
+        --main-bg: #1C1C1E;
+        --card-bg: #2C2C2E;
+        --text-primary: #FFFFFF;
+        --text-secondary: #AEAEB2;
+        --border-light: rgba(255, 255, 255, 0.06);
+        --soft-shadow: 0 8px 32px rgba(0, 0, 0, 0.24);
+      }
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--main-bg);
+      color: var(--text-primary);
+      font-size: 14px;
+      line-height: 1.4;
+      padding-bottom: 40px;
+    }
+
+    #app { position: relative; max-width: 800px; margin: 0 auto; padding: 0 12px; }
+
+    /* Struttura Header Allineata ed Elegante */
+    .hdr {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--soft-shadow);
+      padding: 18px 20px 0;
+      position: sticky;
+      top: 12px;
+      z-index: 10;
+      margin-top: 12px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border-light);
+    }
+    
+    .hdr-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .brand { display: flex; align-items: center; gap: 12px; }
+    
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      background: var(--a-bg);
+      color: var(--a-txt);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    
+    .brand-name { font-size: 19px; font-weight: 700; letter-spacing: -0.02em; }
+    .brand-sub { font-size: 12px; color: var(--text-secondary); margin-top: 1px; }
+    
+    /* Widget Meteo Compatto Multilinea Integrato */
+    .weather-box {
+      margin-top: 6px;
+      display: none;
+      font-size: 11px;
+      color: var(--text-secondary);
+      background: var(--main-bg);
+      padding: 4px 8px;
+      border-radius: 8px;
+    }
+    .w-day { display: inline-block; margin-right: 8px; }
+    .w-day:last-child { margin-right: 0; }
+
+    /* Pulsante Primario Moderno */
+    .add-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 16px;
+      border-radius: var(--radius-md);
+      border: none;
+      background: var(--text-primary);
+      color: var(--card-bg);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: opacity 0.15s, transform 0.1s;
+      white-space:nowrap;
+    }
+    .add-btn:active { transform: scale(0.97); }
+
+    /* Navigation Tabs */
+    .tabs { display: flex; gap: 4px; overflow-x: auto; margin-bottom: -1px; padding-bottom: 4px; }
+    .tab {
+      padding: 8px 14px;
+      font-size: 13px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      border-radius: 8px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .tab.active {
+      color: var(--text-primary);
+      font-weight: 600;
+      background: var(--main-bg);
+    }
+
+    /* Filtri Persone */
+    .filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      padding: 4px 0;
+    }
+    .pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border-light);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .pill:active { transform: scale(0.95); }
+    .pill.off { opacity: 0.35; background: var(--card-bg) !important; color: var(--text-secondary) !important; }
+    .dot8 { width: 8px; height: 8px; border-radius: 50%; }
+
+    /* Layout delle Sezioni e Contenuti */
+    .content { padding-top: 4px; }
+    .sec-lbl {
+      font-size: 11px;
+      color: var(--text-secondary);
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    
+    .mem-sec {
+      margin-bottom: 16px;
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--soft-shadow);
+      border: 1px solid var(--border-light);
+      overflow: hidden;
+    }
+    
+    .mem-hdr {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    .mem-body { padding: 8px 12px; }
+    .no-ev { font-size: 13px; color: var(--text-secondary); padding: 12px 6px; }
+
+    /* Card Evento Ottimizzata */
+    .ev-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
+      border-radius: var(--radius-md);
+      background: var(--main-bg);
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      position: relative;
+    }
+    .ev-card:last-child { margin-bottom: 0; }
+    .ev-card:hover { filter: brightness(0.97); }
+    .ev-strip { width: 4px; border-radius: 2px; align-self: stretch; min-height: 32px; }
+    .ev-time { font-size: 12px; font-weight: 600; color: var(--text-primary); min-width: 50px; line-height: 1.4; }
+    .ev-info { flex: 1; min-width: 0; }
+    .ev-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+    .ev-note { font-size: 12px; color: var(--text-secondary); margin-top: 6px; }
+    
+    .del-btn {
+      background: none; border: none; cursor: pointer; color: var(--text-secondary);
+      padding: 4px 8px; position: absolute; top: 10px; right: 8px; opacity: 0; transition: opacity 0.15s; font-size: 14px;
+    }
+    .ev-card:hover .del-btn { opacity: 0.5; }
+    .del-btn:hover { opacity: 1 !important; color: #ff3b30; }
+
+    /* Planning Settimanale */
+    .nav-row {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+      background: var(--card-bg); padding: 12px 16px; border-radius: var(--radius-md); box-shadow: var(--soft-shadow);
+    }
+    .nav-btn { background: var(--main-bg); border: none; border-radius: 8px; cursor: pointer; padding: 6px 14px; font-size: 15px; color: var(--text-primary); font-weight: bold; }
+    .wk-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+    .day-col { min-height: 200px; }
+    .day-hdr { text-align: center; padding: 8px 4px; border-radius: 10px; margin-bottom: 8px; background: var(--card-bg); box-shadow: var(--soft-shadow); }
+    .day-hdr.td { background: var(--a-bg); border: 1px solid var(--a-dot); }
+    .d-name { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; }
+    .d-num { font-size: 15px; font-weight: 700; margin-top: 2px; }
+    .day-hdr.td .d-num { color: var(--a-txt); }
+    .wk-ev { padding: 6px; border-radius: 6px; font-size: 11px; margin-bottom: 4px; cursor: pointer; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .wk-add { width: 100%; padding: 6px; border-radius: 6px; border: 1px dashed var(--text-secondary); background: none; cursor: pointer; color: var(--text-secondary); font-size: 12px; }
+
+    /* Planning Mensile */
+    .mn-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); background: var(--card-bg); border-radius: var(--radius-lg); box-shadow: var(--soft-shadow); overflow: hidden; border: 1px solid var(--border-light); }
+    .mn-dh { text-align: center; padding: 10px 4px; font-size: 11px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; background: var(--main-bg); }
+    .mn-day { min-height: 75px; padding: 6px; background: var(--card-bg); border-right: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light); cursor: pointer; }
+    .mn-day.td { background: var(--a-bg); }
+    .mn-day.other { opacity: 0.3; }
+    .mn-dn { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+    .dots { display: flex; flex-wrap: wrap; gap: 3px; }
+    .mn-dot { width: 6px; height: 6px; border-radius: 50%; }
+    .mn-dot-r { width: 6px; height: 6px; border-radius: 2px; }
+
+    /* Altre Schermate e Banners */
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 20px; }
+    .stat-card { border-radius: var(--radius-md); padding: 14px; box-shadow: var(--soft-shadow); }
+    .stat-num { font-size: 24px; font-weight: 700; margin-top: 4px; }
+    .bday-banner { border-radius: var(--radius-md); padding: 14px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px; box-shadow: var(--soft-shadow); }
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-secondary); }
+    .empty-state .big { font-size: 36px; margin-bottom: 8px; display: block; }
+
+    /* Finestre Pop-up (Modali) */
+    #modal-ov { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); backdrop-filter: blur(8px); z-index: 999; padding: 16px; align-items: center; justify-content: center; }
+    .modal { background: var(--card-bg); border-radius: var(--radius-lg); width: 100%; max-width: 440px; padding: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); border: 1px solid var(--border-light); }
+    .modal-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-light); }
+    .modal-ttl { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .cl-btn { background: var(--main-bg); border: none; border-radius: 50%; width: 28px; height: 32px; cursor: pointer; color: var(--text-secondary); font-size: 14px; }
+    
+    .fgrp { margin-bottom: 14px; }
+    .flbl { display: block; font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 700; text-transform: uppercase; }
+    .tr-sec { background: var(--main-bg); border-radius: var(--radius-md); padding: 12px; margin-bottom: 14px; }
+    .tr-lbl { font-size: 11px; color: var(--text-secondary); font-weight: 700; margin-bottom: 8px; display: block; text-transform: uppercase; }
+    .tr-opts { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+    .tr-btn { padding: 6px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; border: 1px solid var(--border-light); background: var(--card-bg); color: var(--text-secondary); font-weight: 600; }
+    .tr-btn.sel { background: var(--a-bg); color: var(--a-txt); border-color: var(--a-dot); font-weight: 700; }
+    
+    input, select, textarea { font-family: inherit; font-size: 14px; color: var(--text-primary); background: var(--main-bg); border: 1px solid var(--border-light); border-radius: 10px; padding: 10px; width: 100%; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a-dot); }
+    
+    .modal-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--border-light); }
+    .btn-del-ev { background: none; border: none; cursor: pointer; color: #ff3b30; font-size: 13px; font-weight: 600; }
+    .btn-row { display: flex; gap: 8px; }
+    .btn-cancel { background: var(--main-bg); border: none; border-radius: 10px; padding: 10px 16px; cursor: pointer; font-size: 13px; color: var(--text-secondary); font-weight: 600; }
+    .btn-save { background: #34c759; border: none; border-radius: 10px; padding: 10px 20px; cursor: pointer; font-size: 13px; color: #fff; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -136,10 +300,9 @@
             <div id="weather-widget" class="weather-box"></div>
           </div>
         </div>
-        <button class="add-btn" id="hdr-add" onclick="hdrAdd()">＋ <span id="hdr-add-lbl">Aggiungi evento</span></button>
+        <button class="add-btn" id="hdr-add" onclick="hdrAdd()">＋ Aggiungi</button>
       </div>
       <div class="tabs">
-        <!-- Modifica al tab "Oggi": se lo premi torna veramente a oggi -->
         <button class="tab active" id="t-today"    onclick="viewDate=REAL_TODAY; switchView('today')">📅 Oggi</button>
         <button class="tab" id="t-week"       onclick="switchView('week')">🗓 Settimana</button>
         <button class="tab" id="t-month"      onclick="switchView('month')">📆 Mese</button>
@@ -156,13 +319,12 @@
 <script>
 const d_now = new Date();
 const REAL_TODAY = `${d_now.getFullYear()}-${String(d_now.getMonth() + 1).padStart(2, '0')}-${String(d_now.getDate()).padStart(2, '0')}`;
-// Variabile che dice all'app quale giorno stiamo visualizzando (di base è oggi)
 let viewDate = REAL_TODAY; 
 
 const MEMBERS=[
   {id:'antonio',name:'Antonio',role:'Papà',      dot:'#378ADD',bg:'var(--a-bg)',txt:'var(--a-txt)',icon:'👨'},
   {id:'pamela', name:'Pamela', role:'Mamma',      dot:'#D85A30',bg:'var(--p-bg)',txt:'var(--p-txt)',icon:'👩'},
-  {id:'valerio',name:'Valerio',role:'Figlio 22a', dot:'#1D9E75',bg:'var(--v-bg)',txt:'var(--v-txt)',icon:'⚽'},
+  {id:'valerio',name:'Valerio',role:'Figlio 21a', dot:'#1D9E75',bg:'var(--v-bg)',txt:'var(--v-txt)',icon:'⚽'},
   {id:'federico',name:'Federico',role:'Figlio 14a',dot:'#29B8E0',bg:'var(--f-bg)',txt:'var(--f-txt)',icon:'🚴'},
   {id:'sara',   name:'Sara',   role:'Figlia 14a', dot:'#7F77DD',bg:'var(--s-bg)',txt:'var(--s-txt)',icon:'💃'},
 ];
@@ -361,7 +523,6 @@ function switchView(v){
   view=v;
   ['today','week','month','trasporti','ricorrenze'].forEach(t=>document.getElementById('t-'+t).classList.toggle('active',t===v));
   document.getElementById('filters').style.display=['today','week','month'].includes(v)?'flex':'none';
-  document.getElementById('hdr-add-lbl').textContent=v==='ricorrenze'?'Aggiungi ricorrenza':'Aggiungi evento';
   renderView();
 }
 function renderView(){
@@ -396,7 +557,7 @@ function todayView(){
   
   let h=bdayBanners(viewDate);
   const isT = viewDate === REAL_TODAY;
-  h+=`<div class="sec-lbl" style="display:flex;align-items:center;width:100%">📅 ${lbl.charAt(0).toUpperCase()+lbl.slice(1)} ${isT?'':`<button onclick="viewDate=REAL_TODAY;renderView()" style="margin-left:auto;background:var(--color-background-secondary,#f0efeb);border:0.5px solid rgba(0,0,0,0.1);padding:4px 8px;border-radius:6px;color:var(--a-dot);font-weight:700;font-size:10px;cursor:pointer">TORNA A OGGI</button>`}</div>`;
+  h+=`<div class="sec-lbl" style="display:flex;align-items:center;width:100%">📅 ${lbl.charAt(0).toUpperCase()+lbl.slice(1)} ${isT?'':`<button onclick="viewDate=REAL_TODAY;renderView()" style="margin-left:auto;background:var(--main-bg);border:0.5px solid rgba(0,0,0,0.1);padding:4px 8px;border-radius:6px;color:var(--text-primary);font-weight:700;font-size:10px;cursor:pointer">TORNA A OGGI</button>`}</div>`;
 
   let activeHtml = '';
   let freeMembers = [];
@@ -408,8 +569,8 @@ function todayView(){
     } else {
       activeHtml+=`<div class="mem-sec"><div class="mem-hdr">
         <div class="avatar" style="${ms(m)}">${m.icon}</div>
-        <div><div style="font-size:14px;font-weight:600">${m.name}</div><div style="font-size:11px;color:var(--color-text-secondary,#888)">${m.role}</div></div>
-        <span style="margin-left:auto;font-size:12px;color:var(--color-text-secondary,#888);font-weight:600">${me.length} event${me.length>1?'i':'o'}</span>
+        <div><div style="font-size:14px;font-weight:600">${m.name}</div><div style="font-size:11px;color:var(--text-secondary)">${m.role}</div></div>
+        <span style="margin-left:auto;font-size:12px;color:var(--text-secondary);font-weight:600">${me.length} event${me.length>1?'i':'o'}</span>
       </div><div class="mem-body">`;
       me.forEach(e=>{activeHtml+=evCard(e,m);});
       activeHtml+=`</div></div>`;
@@ -417,14 +578,14 @@ function todayView(){
   });
 
   if(!activeHtml) {
-    activeHtml = `<div class="empty-state"><span class="big">🛋️</span><div style="font-size:16px;font-weight:600;color:var(--color-text-primary)">Giornata totalmente libera!</div><div style="font-size:13px;margin-top:6px;opacity:.7">Nessun impegno in famiglia in questa data</div></div>`;
+    activeHtml = `<div class="empty-state"><span class="big">🛋️</span><div style="font-size:16px;font-weight:600;color:var(--text-primary)">Giornata totalmente libera!</div><div style="font-size:13px;margin-top:6px;opacity:.7">Nessun impegno in famiglia in questa data</div></div>`;
   }
 
   let freeHtml = '';
   if(freeMembers.length > 0 && activeHtml.indexOf('empty-state') === -1){
-     const freeNames = freeMembers.map(m => `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--color-background-primary,#fff);padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12));color:var(--color-text-primary)"><span style="font-size:14px">${m.icon}</span>${m.name}</span>`).join(' ');
-     freeHtml = `<div style="margin-top:24px;padding-top:16px;border-top:0.5px dashed var(--color-border-tertiary,rgba(0,0,0,.15));text-align:center">
-       <div style="font-size:10px;color:var(--color-text-secondary,#888);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.06em;font-weight:700">🎉 Liberi da impegni</div>
+     const freeNames = freeMembers.map(m => `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--card-bg);padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--border-light);color:var(--text-primary)"><span style="font-size:14px">${m.icon}</span>${m.name}</span>`).join(' ');
+     freeHtml = `<div style="margin-top:24px;padding-top:16px;border-top:1px dashed var(--border-light);text-align:center">
+       <div style="font-size:10px;color:var(--text-secondary);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.06em;font-weight:700">🎉 Liberi da impegni</div>
        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px">${freeNames}</div>
      </div>`;
   }
@@ -519,11 +680,9 @@ function mnDay(date,other){
   const visDots = dots.slice(0, 5);
   const more = dots.length - visDots.length;
 
-  // L'intero riquadro del giorno ora fa saltare alla vista dettagliata di quella data
   let h=`<div class="mn-day${it?' td':''}${other?' other':''}" onclick="viewDate='${ds}'; switchView('today')">
     <span class="mn-dn">${date.getDate()}</span><div class="dots">`;
   
-  // I puntini ora sono solo visivi (niente click), per evitare tocchi accidentali!
   visDots.forEach(d => {
     const m = M(d.mid);
     h+=`<span class="mn-dot" style="background:${m.dot}" title="${m.name} — ${d.title}"></span>`;
@@ -564,14 +723,14 @@ function trasportiView(){
     });
     h+=`</div>`;
   }
-  if(exts.length)h+=`<div class="sec-lbl" style="color:var(--color-text-danger,#a32d2d)">📞 Aiuto esterno — ${exts.length} event${exts.length>1?'i':'o'}</div>`;
+  if(exts.length)h+=`<div class="sec-lbl" style="color:#ff3b30">📞 Aiuto esterno — ${exts.length} event${exts.length>1?'i':'o'}</div>`;
   h+=`<div class="sec-lbl">≡ Dettaglio per giorno</div>`;
   const byDay={};
   nonAuto.forEach(e=>{const ds=fmtD(e._d);if(!byDay[ds])byDay[ds]={d:e._d,evs:[]};byDay[ds].evs.push(e);});
   Object.entries(byDay).sort(([a],[b])=>a.localeCompare(b)).forEach(([ds,{d,evs:dayEvs}])=>{
     const isT=ds===REAL_TODAY;
     const lbl2=d.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
-    h+=`<div style="margin-bottom:16px"><div class="tr-day-hdr" style="${isT?'color:var(--color-text-info,#0C447C)':''}">${lbl2.charAt(0).toUpperCase()+lbl2.slice(1)}${isT?' — oggi':''}</div>`;
+    h+=`<div style="margin-bottom:16px"><div class="tr-day-hdr" style="${isT?'color:var(--a-dot)':''}">${lbl2.charAt(0).toUpperCase()+lbl2.slice(1)}${isT?' — oggi':''}</div>`;
     dayEvs.forEach(e=>{
       const passList = e.members.map(mid => M(mid));
       const mainPass = passList[0];
@@ -581,7 +740,7 @@ function trasportiView(){
         const drv=M(e.transport.by);
         trHtml=`<div style="display:flex;align-items:center;gap:6px;margin-top:6px"><div class="avatar" style="${ms(drv)};width:22px;height:22px;font-size:13px">${drv.icon}</div><span class="badge" style="${ms(drv)}">${drv.name} accompagna</span></div>`;
       } else {
-        trHtml=`<div style="font-size:11px;color:var(--color-text-secondary,#888);margin-top:5px">📞 Aiuto esterno${e.transport.note?': '+e.transport.note:''}</div>`;
+        trHtml=`<div style="font-size:11px;color:var(--text-secondary);margin-top:5px">📞 Aiuto esterno${e.transport.note?': '+e.transport.note:''}</div>`;
       }
       
       const passAvatars = passList.map(px => `<div class="avatar" style="${ms(px)};width:22px;height:22px;font-size:13px" title="${px.name}">${px.icon}</div>`).join('');
@@ -591,7 +750,7 @@ function trasportiView(){
         <div class="ev-time">${e.startTime}<br>${e.endTime}</div>
         <div class="ev-info">
           <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">${passAvatars}<span class="ev-title" style="margin:0;margin-left:4px">${e.title}</span></div>
-          <span class="badge" style="background:var(--color-background-secondary,#f0efeb);color:var(--color-text-secondary,#888)">${cat.icon} ${cat.label}</span>
+          <span class="badge" style="background:var(--main-bg);color:var(--text-secondary)">${cat.icon} ${cat.label}</span>
           ${trHtml}
         </div>
       </div>`;
@@ -614,14 +773,14 @@ function ricorrenzeView(){
     const mb=r.member?M(r.member):null;
     const days=daysUntil(r.date);
     const dayStr=days===0?'Oggi! 🎉':days===1?'Domani':`Tra ${days} giorni`;
-    const dayColor=days===0?'#a32d2d':days<=7?'#854F0B':'var(--color-text-secondary,#888)';
+    const dayColor=days===0?'#ff3b30':days<=7?'#854F0B':'var(--text-secondary)';
     h+=`<div class="ev-card" onclick="openRicModal('${r.id}')">
       <div class="ev-strip" style="background:${mb?mb.dot:'#EF9F27'}"></div>
-      <div style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--color-background-secondary,#f0efeb);flex-shrink:0;font-size:18px">${rt.icon}</div>
+      <div style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--main-bg);flex-shrink:0;font-size:18px">${rt.icon}</div>
       <div class="ev-info">
         <div class="ev-title">${r.title}</div>
         <div class="ev-meta">
-          <span class="badge" style="background:var(--color-background-secondary,#f0efeb);color:var(--color-text-secondary,#888)">📅 ${fmtMD(r.date)} (ogni anno)</span>
+          <span class="badge" style="background:var(--main-bg);color:var(--text-secondary)">📅 ${fmtMD(r.date)} (ogni anno)</span>
           <span style="font-size:11px;font-weight:700;color:${dayColor}">${dayStr}</span>
         </div>
       </div>
@@ -683,7 +842,7 @@ function renderEvModal(){
       <label class="flbl">Orario</label>
       <div class="t-row">
         <input type="time" value="${form.startTime}" onchange="window.form.startTime=this.value">
-        <span style="color:var(--color-text-secondary,#888);font-size:12px;flex-shrink:0">→</span>
+        <span style="color:var(--text-secondary);font-size:12px;flex-shrink:0">→</span>
         <input type="time" value="${form.endTime}" onchange="window.form.endTime=this.value">
       </div>
     </div>
