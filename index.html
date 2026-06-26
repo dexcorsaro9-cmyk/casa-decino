@@ -360,6 +360,23 @@
     .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin-bottom: 20px; }
     .stat-card { border-radius: var(--radius-md); padding: 16px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light); }
     .stat-num { font-size: 26px; font-weight: 800; margin-top: 4px; }
+
+    /* CHALLENGE */
+    .ch-subnav { display:flex; gap:6px; margin-bottom:20px; background:var(--card-bg); padding:8px; border-radius:var(--radius-md); box-shadow:var(--shadow-sm); border:1px solid var(--border-light); }
+    .ch-tab { flex:1; padding:10px 6px; font-size:13px; border:none; background:transparent; cursor:pointer; border-radius:10px; color:var(--text-sec); font-weight:700; transition:all 0.2s; }
+    .ch-tab.active { background:#378ADD; color:#fff; box-shadow:0 4px 10px rgba(55,138,221,0.25); }
+    .podio { display:flex; justify-content:center; align-items:flex-end; gap:16px; margin:20px 0 24px; }
+    .podio-item { text-align:center; }
+    .podio-bar { border-radius:12px 12px 0 0; width:76px; display:flex; align-items:flex-end; justify-content:center; padding-bottom:8px; }
+    .rank-row { display:flex; align-items:center; gap:12px; padding:14px 16px; background:var(--card-bg); border-radius:var(--radius-md); margin-bottom:8px; box-shadow:var(--shadow-sm); border:1px solid var(--border-light); }
+    .ch-admin-sec { background:var(--card-bg); border-radius:var(--radius-lg); padding:18px; margin-bottom:14px; box-shadow:var(--shadow-sm); border:1px solid var(--border-light); }
+    .pending-row { display:flex; align-items:center; gap:10px; padding:12px; background:var(--main-bg); border-radius:var(--radius-md); margin-bottom:8px; border:1px solid var(--border-light); }
+    .ch-task-row { display:flex; align-items:center; justify-content:space-between; padding:12px 14px; background:var(--main-bg); border-radius:var(--radius-md); margin-bottom:8px; border:1px solid var(--border-light); }
+    .ch-fatto-btn { background:var(--card-bg); border:1.5px solid var(--border-light); padding:7px 14px; border-radius:20px; font-size:12px; font-weight:700; cursor:pointer; color:var(--text-main); white-space:nowrap; transition:all 0.15s; }
+    .ch-fatto-btn:hover { background:#378ADD; color:#fff; border-color:transparent; }
+    .ch-badge-pending { background:#FFF3CD; color:#856404; padding:5px 10px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
+    .ch-badge-ok { background:#D4EDDA; color:#155724; padding:5px 10px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
+    .ch-badge-no { background:#F8D7DA; color:#721c24; padding:5px 10px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
   </style>
 </head>
 <body>
@@ -396,6 +413,7 @@
         <button class="tab" id="t-month"      onclick="switchView('month')">📆 Mese</button>
         <button class="tab" id="t-trasporti"  onclick="switchView('trasporti')">🚗 Trasporti</button>
         <button class="tab" id="t-ricorrenze" onclick="switchView('ricorrenze')">🎂 Ricorrenze</button>
+        <button class="tab" id="t-challenge"  onclick="switchView('challenge')">🏆 Challenge</button>
       </div>
     </div>
     <div class="filters" id="filters"></div>
@@ -535,13 +553,16 @@ function renderFilters(){ document.getElementById('filters').innerHTML=MEMBERS.m
 function toggleF(id){ if(filters.includes(id)){if(filters.length>1)filters=filters.filter(f=>f!==id);}else filters.push(id); render(); }
 function hdrAdd(){if(view==='ricorrenze')openRicModal(null);else openModal(null);}
 
-function switchView(v){ 
-  view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze'].forEach(id=>document.getElementById(id).classList.remove('active')); 
-  document.getElementById('t-'+v).classList.add('active'); document.getElementById('filters').style.display=['today','week','month'].includes(v)?'flex':'none'; 
-  const fabTxt = document.getElementById('fab-text'); fabTxt.innerText = (v === 'ricorrenze') ? "Ricorrenza" : "Impegno"; renderView(); 
+function switchView(v){
+  view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById('t-'+v).classList.add('active'); document.getElementById('filters').style.display=['today','week','month'].includes(v)?'flex':'none';
+  const fab=document.getElementById('fab-add'); const fabTxt=document.getElementById('fab-text');
+  if(v==='challenge'){ fab.style.display='none'; }
+  else { fab.style.display='inline-flex'; fabTxt.innerText=(v==='ricorrenze')?'Ricorrenza':'Impegno'; }
+  renderView();
 }
 
-function renderView(){ const el=document.getElementById('view'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else el.innerHTML=ricorrenzeView(); }
+function renderView(){ const el=document.getElementById('view'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else el.innerHTML=ricorrenzeView(); }
 
 /* ── VISTA OGGI COMPLETA ── */
 function bdayBanners(d_str){
@@ -703,7 +724,242 @@ async function saveRicorrenza(){
 }
 async function deleteRic(id){ if(!confirm('Eliminare la ricorrenza?'))return; ricorrenze = ricorrenze.filter(r=>r.id!==id); fetch(`${API_EVENTS}/ID/${id}?sheet=Ricorrenze`, { method: 'DELETE' }); closeModal(); renderView(); }
 
-async function init(){ await Promise.all([loadEvents(),loadRic()]); render(); loadWeather(); }
+/* =============================================
+   CHALLENGE MODULE
+   ============================================= */
+const CHALLENGE_KIDS = ['valerio','federico','sara'];
+let challengeTasks=[], challengeLog=[], challengeSettings={};
+let parentUnlocked=false, challengeSubView='sfide', selectedPoints=2;
+
+const API_CH = (sheet) => `${API_EVENTS}?sheet=${sheet}`;
+const API_CH_ID = (sheet, id) => `${API_EVENTS}/ID/${id}?sheet=${sheet}`;
+
+async function loadChallenge(){
+  try{
+    const [rt,rl,rs]=await Promise.all([
+      fetch(API_CH('ChallengeTasks')).then(r=>r.json()),
+      fetch(API_CH('ChallengeLog')).then(r=>r.json()),
+      fetch(API_CH('ChallengeSettings')).then(r=>r.json())
+    ]);
+    challengeTasks=(rt&&rt[0]?.ID)?rt.map(r=>({id:r.ID,date:r.Data,title:r.Titolo,points:+r.Punti})):[];
+    challengeLog=(rl&&rl[0]?.ID)?rl.map(r=>({id:r.ID,date:r.Data,member:r.Membro,taskId:r.TaskID,taskTitle:r.TaskTitolo,points:+r.Punti,status:r.Stato,approvedAt:r.DataApprovazione||''})):[];
+    challengeSettings={};
+    if(rs&&rs[0]?.Chiave)rs.forEach(r=>{challengeSettings[r.Chiave]=r.Valore;});
+  }catch(e){challengeTasks=[];challengeLog=[];challengeSettings={};}
+}
+
+function challengeView(){
+  const subnav=`<div class="ch-subnav"><button class="ch-tab${challengeSubView==='sfide'?' active':''}" onclick="setChallengeView('sfide')">🎯 Sfide</button><button class="ch-tab${challengeSubView==='classifica'?' active':''}" onclick="setChallengeView('classifica')">🏆 Classifica</button><button class="ch-tab${challengeSubView==='admin'?' active':''}" onclick="setChallengeView('admin')">⚙️ Gestione</button></div>`;
+  if(challengeSubView==='sfide') return subnav+sfideView();
+  if(challengeSubView==='classifica') return subnav+classificaView();
+  return subnav+adminView();
+}
+
+function setChallengeView(v){
+  if(v==='admin'&&!parentUnlocked){openPinModal(v);return;}
+  challengeSubView=v; renderView();
+}
+
+/* ── SFIDE ── */
+function sfideView(){
+  const todayTasks=challengeTasks.filter(t=>t.date===viewDate);
+  let h=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px"><div class="nav-lbl">📅 ${new Date(viewDate+'T12:00').toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'})}</div><div style="display:flex;gap:6px"><button class="nav-btn" onclick="viewDate=fmtD(addDays(new Date(viewDate+'T12:00'),-1));renderView()">‹</button>${viewDate!==REAL_TODAY?`<button onclick="viewDate=REAL_TODAY;renderView()" style="background:var(--main-bg);border:1px solid var(--border-light);padding:4px 10px;border-radius:20px;color:#378ADD;font-weight:700;font-size:11px;cursor:pointer">OGGI</button>`:''}<button class="nav-btn" onclick="viewDate=fmtD(addDays(new Date(viewDate+'T12:00'),1));renderView()">›</button></div></div>`;
+  if(!todayTasks.length) return h+`<div class="empty-state"><span class="big">🎯</span><div style="font-size:16px;font-weight:700">Nessuna sfida per oggi</div><div style="font-size:13px;margin-top:6px;color:var(--text-sec)">I genitori possono aggiungere sfide dalla sezione ⚙️ Gestione</div></div>`;
+  CHALLENGE_KIDS.forEach(kid=>{
+    const m=M(kid);
+    const approvedPts=challengeLog.filter(l=>l.member===kid&&l.date===viewDate&&l.status==='approved').reduce((s,l)=>s+l.points,0);
+    h+=`<div class="mem-sec"><div class="mem-hdr"><div class="avatar" style="${ms(m)}">${m.icon}</div><div><div style="font-size:15px;font-weight:700">${m.name}</div><div style="font-size:11px;color:var(--text-sec)">${m.role}</div></div><span style="margin-left:auto;background:var(--main-bg);padding:4px 12px;border-radius:12px;font-size:14px;font-weight:800;color:#378ADD">⭐ ${approvedPts} pt</span></div><div class="mem-body">`;
+    todayTasks.forEach(task=>{
+      const log=challengeLog.find(l=>l.member===kid&&l.taskId===task.id&&l.date===viewDate);
+      let btn='';
+      if(!log) btn=`<button onclick="submitTask('${kid}','${task.id}','${escH(task.title)}',${task.points},'${viewDate}')" class="ch-fatto-btn">Fatto! ✋</button>`;
+      else if(log.status==='pending') btn=`<span class="ch-badge-pending">⏳ In attesa</span>`;
+      else if(log.status==='approved') btn=`<span class="ch-badge-ok">✅ Approvato</span>`;
+      else btn=`<span class="ch-badge-no">❌ Rifiutato</span>`;
+      h+=`<div class="ch-task-row"><div><div style="font-size:14px;font-weight:700">${task.title}</div><div style="font-size:11px;color:var(--text-sec);font-weight:700;margin-top:2px">⭐ ${task.points} punti</div></div>${btn}</div>`;
+    });
+    h+=`</div></div>`;
+  });
+  return h;
+}
+
+function escH(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+async function submitTask(kid,taskId,taskTitle,points,date){
+  if(challengeLog.find(l=>l.member===kid&&l.taskId===taskId&&l.date===date))return;
+  const id=uid();
+  const entry={id,date,member:kid,taskId,taskTitle,points,status:'pending',approvedAt:''};
+  challengeLog.push(entry);
+  fetch(API_CH('ChallengeLog'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:{ID:id,Data:date,Membro:kid,TaskID:taskId,TaskTitolo:taskTitle,Punti:points,Stato:'pending',DataApprovazione:''}})});
+  renderView();
+}
+
+/* ── CLASSIFICA ── */
+function classificaView(){
+  const now=new Date();
+  const curYM=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const curY=String(now.getFullYear());
+  const approved=challengeLog.filter(l=>l.status==='approved');
+  const calcPts=(fn)=>{const p={};CHALLENGE_KIDS.forEach(k=>p[k]=0);approved.filter(fn).forEach(l=>{if(p[l.member]!==undefined)p[l.member]+=l.points;});return p;};
+  const monthPts=calcPts(l=>l.date.startsWith(curYM));
+  const yearPts=calcPts(l=>l.date.startsWith(curY));
+  const toRank=(pts)=>CHALLENGE_KIDS.map(k=>({k,pts:pts[k]})).sort((a,b)=>b.pts-a.pts);
+  const monthRank=toRank(monthPts), yearRank=toRank(yearPts);
+  const premio=challengeSettings[`premio_${curYM}`];
+  const meseName=MONTHS_IT[now.getMonth()];
+  let h='';
+  if(premio) h+=`<div class="bday-banner" style="background:linear-gradient(135deg,#FF9500,#FFCC00)"><span style="font-size:32px">🎁</span><div><div style="font-weight:800;font-size:14px">Premio di ${meseName.charAt(0).toUpperCase()+meseName.slice(1)}</div><div style="font-size:16px;font-weight:700;margin-top:2px">${escH(premio)}</div></div></div>`;
+  h+=`<div class="sec-lbl">🗓 Classifica di ${meseName.charAt(0).toUpperCase()+meseName.slice(1)} ${curY}</div>`;
+  h+=renderPodio(monthRank)+renderRankTable(monthRank);
+  h+=`<div class="sec-lbl" style="margin-top:24px;margin-bottom:16px">📅 Classifica Annuale ${curY}</div>`;
+  h+=renderRankTable(yearRank);
+  const pastMonths=[...new Set(approved.map(l=>l.date.slice(0,7)))].sort().reverse().filter(m=>m!==curYM).slice(0,6);
+  if(pastMonths.length){
+    h+=`<div class="sec-lbl" style="margin-top:24px;margin-bottom:16px">🏆 Storico Mesi</div>`;
+    pastMonths.forEach(ym=>{
+      const [y,mo]=ym.split('-');
+      const pts=calcPts(l=>l.date.startsWith(ym));
+      const rank=CHALLENGE_KIDS.map(k=>({k,pts:pts[k]})).sort((a,b)=>b.pts-a.pts);
+      const winner=rank[0]; const wm=M(winner.k);
+      const prevPremio=challengeSettings[`premio_${ym}`];
+      h+=`<div class="rank-row"><div class="avatar" style="${ms(wm)}">${wm.icon}</div><div style="flex:1"><div style="font-weight:800">${MONTHS_IT[+mo-1].charAt(0).toUpperCase()+MONTHS_IT[+mo-1].slice(1)} ${y}</div><div style="font-size:12px;color:var(--text-sec);font-weight:600">🥇 ${wm.name} — ${winner.pts} punti${prevPremio?` · 🎁 ${escH(prevPremio)}`:''}</div></div></div>`;
+    });
+  }
+  return h;
+}
+
+function renderPodio(ranking){
+  if(ranking.every(r=>r.pts===0)) return `<div style="text-align:center;padding:30px;color:var(--text-sec);font-weight:600;font-size:14px">🎯 Nessun punto ancora — iniziate le sfide!</div>`;
+  const visual=[ranking[1]||null, ranking[0], ranking[2]||null];
+  const heights=[100,135,80]; const medals=['🥈','🥇','🥉'];
+  let h=`<div class="podio">`;
+  visual.forEach((item,i)=>{
+    if(!item){h+=`<div class="podio-item" style="width:76px"></div>`;return;}
+    const m=M(item.k);
+    h+=`<div class="podio-item"><div style="font-size:30px;margin-bottom:4px">${m.icon}</div><div style="font-size:12px;font-weight:800;margin-bottom:4px">${m.name}</div><div style="font-size:18px;margin-bottom:6px">${medals[i]}</div><div class="podio-bar" style="background:${m.dot};height:${heights[i]}px"><span style="color:#fff;font-weight:800;font-size:13px">${item.pts}pt</span></div></div>`;
+  });
+  return h+`</div>`;
+}
+
+function renderRankTable(ranking){
+  const medals=['🥇','🥈','🥉']; const maxPts=ranking[0]?.pts||1;
+  let h='';
+  ranking.forEach((item,i)=>{
+    const m=M(item.k); const pct=maxPts>0?Math.round((item.pts/maxPts)*100):0;
+    h+=`<div class="rank-row"><span style="font-size:20px;width:28px;text-align:center">${medals[i]||`#${i+1}`}</span><div class="avatar" style="${ms(m)}">${m.icon}</div><div style="flex:1"><div style="font-weight:700">${m.name}</div><div style="margin-top:5px;background:var(--main-bg);border-radius:20px;height:6px;overflow:hidden"><div style="background:${m.dot};height:100%;width:${pct}%;border-radius:20px"></div></div></div><span style="font-size:17px;font-weight:800">${item.pts}<span style="font-size:10px;font-weight:600"> pt</span></span></div>`;
+  });
+  return h;
+}
+
+/* ── ADMIN ── */
+function adminView(){
+  const pending=challengeLog.filter(l=>l.status==='pending');
+  const todayTasks=challengeTasks.filter(t=>t.date===viewDate);
+  const curYM=`${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
+  const premio=challengeSettings[`premio_${curYM}`]||'';
+  const curPin=challengeSettings['pin']||'1234';
+  let h=`<div class="ch-admin-sec">
+    <div class="sec-lbl" style="margin-bottom:14px">➕ Aggiungi Sfida</div>
+    <div class="fgrp"><label class="flbl">Titolo</label><input type="text" id="ch-task-title" placeholder="Es. Rifarsi il letto 🛏" style="width:100%"></div>
+    <div class="fgrp"><label class="flbl">Data</label><input type="date" id="ch-task-date" value="${viewDate}" style="width:100%"></div>
+    <div class="fgrp"><label class="flbl">Punti</label><div class="tr-opts">${[1,2,3,5].map(p=>`<button class="tr-btn${selectedPoints===p?' sel':''}" onclick="selectedPoints=${p};this.closest('.tr-opts').querySelectorAll('.tr-btn').forEach(b=>b.classList.remove('sel'));this.classList.add('sel')">${p} ⭐</button>`).join('')}</div></div>
+    <button class="btn-save" onclick="addChallengeTask()" style="width:100%">Aggiungi</button>
+  </div>`;
+  h+=`<div class="ch-admin-sec"><div class="sec-lbl" style="margin-bottom:14px">⏳ Approvazioni (${pending.length})</div>`;
+  if(!pending.length) h+=`<div style="text-align:center;color:var(--text-sec);font-size:13px;padding:12px;font-weight:600">Tutto approvato ✅</div>`;
+  else pending.forEach(item=>{
+    const m=M(item.member);
+    h+=`<div class="pending-row"><div class="avatar" style="${ms(m)};width:32px;height:32px;font-size:16px">${m.icon}</div><div style="flex:1"><div style="font-weight:700;font-size:13px">${m.name} — ${escH(item.taskTitle)}</div><div style="font-size:11px;color:var(--text-sec)">📅 ${item.date} · ⭐ ${item.points}pt</div></div><button onclick="approveLog('${item.id}',true)" style="background:#D4EDDA;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:16px">✅</button><button onclick="approveLog('${item.id}',false)" style="background:#F8D7DA;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:16px;margin-left:4px">❌</button></div>`;
+  });
+  h+=`</div>`;
+  if(todayTasks.length){
+    h+=`<div class="ch-admin-sec"><div class="sec-lbl" style="margin-bottom:14px">📋 Sfide del ${new Date(viewDate+'T12:00').toLocaleDateString('it-IT',{day:'numeric',month:'short'})}</div>`;
+    todayTasks.forEach(t=>{ h+=`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--main-bg);border-radius:10px;margin-bottom:6px;border:1px solid var(--border-light)"><div><span style="font-weight:700">${escH(t.title)}</span> <span style="color:var(--text-sec);font-size:11px;margin-left:4px">⭐ ${t.points}pt</span></div><button onclick="deleteChallengeTask('${t.id}')" style="background:none;border:none;cursor:pointer;color:#ff3b30;font-size:16px;font-weight:bold">✕</button></div>`; });
+    h+=`</div>`;
+  }
+  h+=`<div class="ch-admin-sec">
+    <div class="sec-lbl" style="margin-bottom:14px">🎁 Premio Mese Corrente (${curYM})</div>
+    <div class="fgrp"><input type="text" id="ch-premio" value="${escH(premio)}" placeholder="Es. Pizza fuori, 10€, Serata Netflix…" style="width:100%"></div>
+    <button class="btn-save" onclick="savePremio()" style="margin-top:4px">Salva Premio</button>
+  </div>`;
+  h+=`<div class="ch-admin-sec">
+    <div class="sec-lbl" style="margin-bottom:14px">🔐 Cambia PIN (attuale: ${escH(curPin)})</div>
+    <div style="display:flex;gap:8px"><input type="password" id="ch-pin-new" placeholder="Nuovo PIN (min 4 caratteri)" maxlength="6" style="flex:1"><button class="btn-save" onclick="savePin()">Salva</button></div>
+  </div>`;
+  return h;
+}
+
+async function addChallengeTask(){
+  const title=document.getElementById('ch-task-title')?.value.trim();
+  const date=document.getElementById('ch-task-date')?.value;
+  if(!title||!date){alert('Inserisci titolo e data');return;}
+  const id=uid();
+  challengeTasks.push({id,date,title,points:selectedPoints});
+  fetch(API_CH('ChallengeTasks'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:{ID:id,Data:date,Titolo:title,Punti:selectedPoints}})});
+  renderView();
+}
+
+async function deleteChallengeTask(id){
+  if(!confirm('Eliminare questa sfida?'))return;
+  challengeTasks=challengeTasks.filter(t=>t.id!==id);
+  fetch(API_CH_ID('ChallengeTasks',id),{method:'DELETE'});
+  renderView();
+}
+
+async function approveLog(id,approved){
+  const i=challengeLog.findIndex(l=>l.id===id);
+  if(i<0)return;
+  const status=approved?'approved':'rejected';
+  challengeLog[i].status=status; challengeLog[i].approvedAt=REAL_TODAY;
+  fetch(API_CH_ID('ChallengeLog',id),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:{Stato:status,DataApprovazione:REAL_TODAY}})});
+  renderView();
+}
+
+async function savePremio(){
+  const val=document.getElementById('ch-premio')?.value.trim()||'';
+  const curYM=`${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
+  const key=`premio_${curYM}`;
+  const existed=challengeSettings[key]!==undefined;
+  challengeSettings[key]=val;
+  if(existed) fetch(`${API_EVENTS}/Chiave/${encodeURIComponent(key)}?sheet=ChallengeSettings`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:{Valore:val}})});
+  else fetch(API_CH('ChallengeSettings'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:{Chiave:key,Valore:val}})});
+  alert('Premio salvato! 🎁');
+}
+
+async function savePin(){
+  const val=document.getElementById('ch-pin-new')?.value.trim()||'';
+  if(val.length<4){alert('Il PIN deve essere di almeno 4 caratteri');return;}
+  const existed=challengeSettings['pin']!==undefined;
+  challengeSettings['pin']=val;
+  if(existed) fetch(`${API_EVENTS}/Chiave/pin?sheet=ChallengeSettings`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:{Valore:val}})});
+  else fetch(API_CH('ChallengeSettings'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:{Chiave:'pin',Valore:val}})});
+  alert('PIN aggiornato! 🔐');
+}
+
+function openPinModal(targetView){
+  document.getElementById('modal-box').innerHTML=`
+    <div class="modal-hdr"><div class="modal-ttl">🔐 Accesso Genitori</div><button class="cl-btn" onclick="closeModal()">✕</button></div>
+    <div style="text-align:center;padding:24px 0 16px">
+      <div style="font-size:44px;margin-bottom:16px">👨‍👩‍👧‍👦</div>
+      <div style="font-size:14px;color:var(--text-sec);font-weight:600;margin-bottom:20px">Inserisci il PIN per accedere alla gestione</div>
+      <input type="password" id="pin-input" maxlength="6" placeholder="• • • •" style="text-align:center;font-size:22px;letter-spacing:6px;width:160px" onkeydown="if(event.key==='Enter')checkPin('${targetView}')">
+      <div id="pin-err" style="color:#ff3b30;font-size:12px;font-weight:700;margin-top:10px;display:none">PIN errato, riprova</div>
+    </div>
+    <div style="display:flex;justify-content:center;gap:10px;margin-top:8px">
+      <button class="btn-cancel" onclick="closeModal()">Annulla</button>
+      <button class="btn-save" onclick="checkPin('${targetView}')">Entra</button>
+    </div>`;
+  showOv();
+}
+
+function checkPin(targetView){
+  const entered=document.getElementById('pin-input')?.value||'';
+  const correct=challengeSettings['pin']||'1234';
+  if(entered===correct){parentUnlocked=true;closeModal();challengeSubView=targetView||'admin';renderView();}
+  else{document.getElementById('pin-err').style.display='block';document.getElementById('pin-input').value='';}
+}
+
+async function init(){ await Promise.all([loadEvents(),loadRic(),loadChallenge()]); render(); loadWeather(); }
 init();
 </script>
 </body>
