@@ -2648,7 +2648,8 @@ function renderF4Board(p){
     const tm=MEMBERS.find(m=>m.id===p.turnoDi)||{name:p.turnoDi};
     html+=`<div style="text-align:center;margin-top:10px;font-size:13px;color:var(--text-sec)">Turno di <b style="color:${p.turnoDi===p.giocatore1?'#E74C3C':'#F39C12'}">${escH(tm.name)}</b></div>`;
   }
-  if(p.giocatore1===me){
+  const orfana=!MEMBERS.some(m=>m.id===p.giocatore1);
+  if(p.giocatore1===me||orfana){
     html+=`<div style="text-align:right;margin-top:8px"><button onclick="eliminaF4('${p.id}')" style="background:none;border:none;color:#ff3b30;font-size:12px;font-weight:700;cursor:pointer;padding:4px 8px">🗑 Elimina partita</button></div>`;
   }
   html+=`</div>`;
@@ -2657,7 +2658,8 @@ function renderF4Board(p){
 
 async function eliminaF4(partitaId){
   const p=f4Partite.find(x=>x.id===partitaId); if(!p) return;
-  if(p.giocatore1!==f4Me){ alert('Solo chi ha creato la partita può eliminarla'); return; }
+  const orfana=!MEMBERS.some(m=>m.id===p.giocatore1);
+  if(p.giocatore1!==f4Me&&!orfana){ alert('Solo chi ha creato la partita può eliminarla'); return; }
   if(!confirm('Eliminare questa partita?')) return;
   f4Partite=f4Partite.filter(x=>x.id!==partitaId);
   renderView();
@@ -2811,7 +2813,8 @@ function renderTrisBoard(p){
     const tm=MEMBERS.find(m=>m.id===p.turnoDi)||{name:p.turnoDi};
     html+=`<div style="text-align:center;margin-top:10px;font-size:13px;color:var(--text-sec)">Turno di <b style="color:${p.turnoDi===p.giocatore1?'#E74C3C':'#F39C12'}">${escH(tm.name)}</b></div>`;
   }
-  if(p.giocatore1===me){
+  const orfana=!MEMBERS.some(m=>m.id===p.giocatore1);
+  if(p.giocatore1===me||orfana){
     html+=`<div style="text-align:right;margin-top:8px"><button onclick="eliminaTris('${p.id}')" style="background:none;border:none;color:#ff3b30;font-size:12px;font-weight:700;cursor:pointer;padding:4px 8px">🗑 Elimina partita</button></div>`;
   }
   html+=`</div>`;
@@ -2820,7 +2823,8 @@ function renderTrisBoard(p){
 
 async function eliminaTris(partitaId){
   const p=trisPartite.find(x=>x.id===partitaId); if(!p) return;
-  if(p.giocatore1!==f4Me){ alert('Solo chi ha creato la partita può eliminarla'); return; }
+  const orfana=!MEMBERS.some(m=>m.id===p.giocatore1);
+  if(p.giocatore1!==f4Me&&!orfana){ alert('Solo chi ha creato la partita può eliminarla'); return; }
   if(!confirm('Eliminare questa partita?')) return;
   trisPartite=trisPartite.filter(x=>x.id!==partitaId);
   renderView();
