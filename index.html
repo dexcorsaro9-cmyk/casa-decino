@@ -2543,7 +2543,7 @@ async function loadForza4(){
     f4Partite=records.map(r=>({
       _recId:r.id,
       id:r.fields.ID||r.id,
-      griglia:r.fields.Griglia||'..........................................................................'.slice(0,42).replace(/\./g,'.').split('').join(''),
+      griglia:(r.fields.Griglia&&r.fields.Griglia.length===42)?r.fields.Griglia:'.'.repeat(42),
       turnoDi:r.fields.TurnoDi||'',
       giocatore1:r.fields.Giocatore1||'',
       giocatore2:r.fields.Giocatore2||'',
@@ -2554,7 +2554,7 @@ async function loadForza4(){
   }catch(e){ f4Partite=[]; }
 }
 
-function f4Cell(g,row,col){ return g[row*7+col]||'.'; }
+function f4Cell(g,row,col){ return (g&&g[row*7+col])||'.'; }
 function f4SetCell(g,row,col,v){ return g.slice(0,row*7+col)+v+g.slice(row*7+col+1); }
 
 function f4DropRow(g,col){
@@ -2648,14 +2648,17 @@ function renderF4Board(p){
     const tm=MEMBERS.find(m=>m.id===p.turnoDi)||{name:p.turnoDi};
     html+=`<div style="text-align:center;margin-top:10px;font-size:13px;color:var(--text-sec)">Turno di <b style="color:${p.turnoDi===p.giocatore1?'#E74C3C':'#F39C12'}">${escH(tm.name)}</b></div>`;
   }
-  html+=`<div style="text-align:right;margin-top:8px"><button onclick="eliminaF4('${p.id}')" style="background:none;border:none;color:#ff3b30;font-size:12px;font-weight:700;cursor:pointer;padding:4px 8px">🗑 Elimina partita</button></div>`;
+  if(p.giocatore1===me){
+    html+=`<div style="text-align:right;margin-top:8px"><button onclick="eliminaF4('${p.id}')" style="background:none;border:none;color:#ff3b30;font-size:12px;font-weight:700;cursor:pointer;padding:4px 8px">🗑 Elimina partita</button></div>`;
+  }
   html+=`</div>`;
   return html;
 }
 
 async function eliminaF4(partitaId){
-  if(!confirm('Eliminare questa partita?')) return;
   const p=f4Partite.find(x=>x.id===partitaId); if(!p) return;
+  if(p.giocatore1!==f4Me){ alert('Solo chi ha creato la partita può eliminarla'); return; }
+  if(!confirm('Eliminare questa partita?')) return;
   f4Partite=f4Partite.filter(x=>x.id!==partitaId);
   renderView();
   if(p._recId) atDelete('Forza4',p._recId);
@@ -2704,7 +2707,7 @@ async function nuovaPartitaF4(avversarioId){
     if(res.error){ alert('Errore Airtable: '+(res.error.message||JSON.stringify(res.error))); return; }
     if(!res.records?.[0]?.id){ alert('Risposta inattesa:\n'+JSON.stringify(res).slice(0,400)); return; }
     const recId=res.records[0].id;
-    f4Partite.unshift({...flds,_recId:recId});
+    f4Partite.unshift({_recId:recId,id:id,griglia:flds.Griglia,turnoDi:flds.TurnoDi,giocatore1:flds.Giocatore1,giocatore2:flds.Giocatore2,stato:flds.Stato,vincitore:'',data:flds.Data});
     switchView('giochi');
   }catch(e){ alert('Errore: '+e.message); }
 }
