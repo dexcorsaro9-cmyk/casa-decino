@@ -659,6 +659,7 @@
         <button class="tab" id="t-viaggi"     onclick="switchView('viaggi')">🌍 Viaggi</button>
         <button class="tab" id="t-film"       onclick="switchView('film')">🎬 Film</button>
         <button class="tab" id="t-sondaggi"   onclick="switchView('sondaggi')">🗳️ Sondaggi</button>
+        <button class="tab" id="t-giochi"     onclick="switchView('giochi')">🎮 Giochi</button>
       </div>
     </div>
     <div class="content" id="view"></div>
@@ -888,7 +889,7 @@ function toggleF(id){ if(filters.includes(id)){if(filters.length>1)filters=filte
 function hdrAdd(){if(view==='ricorrenze')openRicModal(null);else if(view==='bacheca')openBachecaModal();else if(view==='dispensa')openDispensaModal();else if(view==='ricordi')openFotoModal();else if(view==='viaggi')openViaggioModal();else if(view==='film')openFilmModal();else if(view==='sondaggi')openSondaggioModal();else openModal(null);}
 
 function switchView(v){
-  view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge','t-bacheca','t-dispensa','t-ricordi','t-viaggi','t-film','t-sondaggi'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
+  view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge','t-bacheca','t-dispensa','t-ricordi','t-viaggi','t-film','t-sondaggi','t-giochi'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
   const tab=document.getElementById('t-'+v); if(tab) tab.classList.add('active');
   const fab=document.getElementById('fab-add'); const fabTxt=document.getElementById('fab-text');
   if(v==='challenge'){ fab.style.display='none'; }
@@ -898,11 +899,12 @@ function switchView(v){
   else if(v==='viaggi'){ fab.style.display='inline-flex'; fabTxt.innerText='Viaggio'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='🌍'; }
   else if(v==='film'){ fab.style.display='inline-flex'; fabTxt.innerText='Film/Serie'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='🎬'; }
   else if(v==='sondaggi'){ fab.style.display='inline-flex'; fabTxt.innerText='Sondaggio'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='🗳️'; }
+  else if(v==='giochi'){ fab.style.display='none'; }
   else { fab.style.display='inline-flex'; fabTxt.innerText=(v==='ricorrenze')?'Ricorrenza':'Impegno'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='📝'; }
   renderView();
 }
 
-function renderView(){ const el=document.getElementById('view'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else if(view==='sondaggi')el.innerHTML=sondaggiView(); else el.innerHTML=ricorrenzeView(); }
+function renderView(){ const el=document.getElementById('view'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else if(view==='sondaggi')el.innerHTML=sondaggiView(); else if(view==='giochi')el.innerHTML=giochiView(); else el.innerHTML=ricorrenzeView(); }
 
 /* ── VISTA OGGI COMPLETA ── */
 function bdayBanners(d_str){
@@ -2530,13 +2532,181 @@ async function saveSondaggio(){
   const ov=document.getElementById('modal-ov'); ov.style.display='flex'; ov.style.alignItems='center';
 }
 
+/* ── FORZA 4 ── */
+let f4Partite=[];
+let f4Me=localStorage.getItem('casaDecino_f4me')||'antonio';
+function f4SetMe(id){ f4Me=id; localStorage.setItem('casaDecino_f4me',id); renderView(); }
+
+async function loadForza4(){
+  try{
+    const records=await atGetAll('Forza4');
+    f4Partite=records.map(r=>({
+      _recId:r.id,
+      id:r.fields.ID||r.id,
+      griglia:r.fields.Griglia||'..........................................................................'.slice(0,42).replace(/\./g,'.').split('').join(''),
+      turnoDi:r.fields.TurnoDi||'',
+      giocatore1:r.fields.Giocatore1||'',
+      giocatore2:r.fields.Giocatore2||'',
+      stato:r.fields.Stato||'aperta',
+      vincitore:r.fields.Vincitore||'',
+      data:r.fields.Data||''
+    }));
+  }catch(e){ f4Partite=[]; }
+}
+
+function f4Cell(g,row,col){ return g[row*7+col]||'.'; }
+function f4SetCell(g,row,col,v){ return g.slice(0,row*7+col)+v+g.slice(row*7+col+1); }
+
+function f4DropRow(g,col){
+  for(let r=5;r>=0;r--){ if(f4Cell(g,r,col)==='.') return r; }
+  return -1;
+}
+
+function f4CheckWinner(g){
+  const lines=[];
+  for(let r=0;r<6;r++) for(let c=0;c<7;c++){
+    if(c+3<7) lines.push([[r,c],[r,c+1],[r,c+2],[r,c+3]]);
+    if(r+3<6) lines.push([[r,c],[r+1,c],[r+2,c],[r+3,c]]);
+    if(r+3<6&&c+3<7) lines.push([[r,c],[r+1,c+1],[r+2,c+2],[r+3,c+3]]);
+    if(r+3<6&&c-3>=0) lines.push([[r,c],[r+1,c-1],[r+2,c-2],[r+3,c-3]]);
+  }
+  for(const line of lines){
+    const vals=line.map(([r,c])=>f4Cell(g,r,c));
+    if(vals[0]!=='.'&&vals.every(v=>v===vals[0])) return vals[0];
+  }
+  return null;
+}
+
+async function muoviF4(partitaId,col){
+  const p=f4Partite.find(x=>x.id===partitaId); if(!p||p.stato!=='aperta') return;
+  const me=f4Me;
+  const myNum=(p.giocatore1===me)?'1':(p.giocatore2===me)?'2':null;
+  if(!myNum){ alert('Non sei un giocatore di questa partita'); return; }
+  if(p.turnoDi!==me){ alert('Non è il tuo turno!'); return; }
+  const row=f4DropRow(p.griglia,col);
+  if(row===-1){ alert('Colonna piena!'); return; }
+  let newG=f4SetCell(p.griglia,row,col,myNum);
+  const winner=f4CheckWinner(newG);
+  const patta=!winner&&!newG.includes('.');
+  const nextTurno=myNum==='1'?p.giocatore2:p.giocatore1;
+  const newStato=winner?'vinta':patta?'patta':'aperta';
+  const newVinc=winner?me:'';
+  p.griglia=newG; p.turnoDi=nextTurno; p.stato=newStato; p.vincitore=newVinc;
+  renderView();
+  try{
+    await atPatch('Forza4',p._recId,{Griglia:newG,TurnoDi:nextTurno,Stato:newStato,Vincitore:newVinc});
+  }catch(e){ alert('Errore salvataggio mossa: '+e.message); }
+}
+
+function renderF4Board(p){
+  const me=f4Me;
+  const myNum=(p.giocatore1===me)?'1':(p.giocatore2===me)?'2':null;
+  const canPlay=p.stato==='aperta'&&p.turnoDi===me&&myNum;
+  const colors={'1':'#E74C3C','2':'#F39C12','.':'var(--card-bg)'};
+  const m1=MEMBERS.find(m=>m.id===p.giocatore1)||{name:p.giocatore1,dot:'#E74C3C'};
+  const m2=MEMBERS.find(m=>m.id===p.giocatore2)||{name:p.giocatore2,dot:'#F39C12'};
+  let html=`<div style="background:var(--main-bg);border-radius:16px;padding:12px;max-width:340px;margin:0 auto">`;
+  // header
+  html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <div style="display:flex;align-items:center;gap:6px">
+      <div style="width:14px;height:14px;border-radius:50%;background:#E74C3C"></div>
+      <span style="font-weight:700;font-size:13px;color:${p.turnoDi===p.giocatore1&&p.stato==='aperta'?'#E74C3C':'var(--text-sec)'}">${escH(m1.name)}</span>
+    </div>
+    <div style="font-size:11px;color:var(--text-sec);font-weight:700">VS</div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span style="font-weight:700;font-size:13px;color:${p.turnoDi===p.giocatore2&&p.stato==='aperta'?'#F39C12':'var(--text-sec)'}">${escH(m2.name)}</span>
+      <div style="width:14px;height:14px;border-radius:50%;background:#F39C12"></div>
+    </div>
+  </div>`;
+  // griglia
+  html+=`<div style="background:#1a3a6b;border-radius:12px;padding:8px;display:inline-block;width:100%;box-sizing:border-box">`;
+  // arrow buttons
+  if(canPlay){
+    html+=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px">`;
+    for(let c=0;c<7;c++){
+      const full=f4DropRow(p.griglia,c)===-1;
+      html+=`<button onclick="muoviF4('${p.id}',${c})" style="background:${full?'transparent':'rgba(255,255,255,0.15)'};border:none;border-radius:6px;padding:2px 0;cursor:${full?'default':'pointer'};font-size:14px;color:#fff">${full?'·':'▼'}</button>`;
+    }
+    html+=`</div>`;
+  }
+  for(let r=0;r<6;r++){
+    html+=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px">`;
+    for(let c=0;c<7;c++){
+      const v=f4Cell(p.griglia,r,c);
+      html+=`<div style="width:100%;aspect-ratio:1;border-radius:50%;background:${colors[v]};border:2px solid rgba(255,255,255,0.15)"></div>`;
+    }
+    html+=`</div>`;
+  }
+  html+=`</div>`;
+  // stato
+  if(p.stato==='vinta'){
+    const wm=MEMBERS.find(m=>m.id===p.vincitore)||{name:p.vincitore};
+    html+=`<div style="text-align:center;margin-top:10px;font-size:15px;font-weight:800;color:#378ADD">🏆 Ha vinto ${escH(wm.name)}!</div>`;
+  } else if(p.stato==='patta'){
+    html+=`<div style="text-align:center;margin-top:10px;font-size:15px;font-weight:800;color:var(--text-sec)">🤝 Patta!</div>`;
+  } else {
+    const tm=MEMBERS.find(m=>m.id===p.turnoDi)||{name:p.turnoDi};
+    html+=`<div style="text-align:center;margin-top:10px;font-size:13px;color:var(--text-sec)">Turno di <b style="color:${p.turnoDi===p.giocatore1?'#E74C3C':'#F39C12'}">${escH(tm.name)}</b></div>`;
+  }
+  html+=`</div>`;
+  return html;
+}
+
+function giochiView(){
+  const me=MEMBERS.find(m=>m.id===f4Me)||MEMBERS[0];
+  const mie=f4Partite.filter(p=>p.giocatore1===f4Me||p.giocatore2===f4Me);
+  const altre=f4Partite.filter(p=>p.giocatore1!==f4Me&&p.giocatore2!==f4Me);
+  const memberBtns=MEMBERS.map(m=>`<button onclick="f4SetMe('${m.id}')" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:20px;border:2px solid ${f4Me===m.id?m.dot:'var(--border-light)'};background:${f4Me===m.id?m.bg:'var(--card-bg)'};color:${f4Me===m.id?m.txt:'var(--text-sec)'};font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap"><span>${getIcon(m.id)}</span>${escH(m.name)}</button>`).join('');
+  let html=`<div class="section-wrap">
+    <div class="section-hdr"><span class="section-ttl">🎮 Giochi</span></div>
+    <div style="padding:0 16px 16px">
+      <div style="margin-bottom:14px">
+        <div style="font-size:11px;font-weight:800;color:var(--text-sec);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Chi sei?</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">${memberBtns}</div>
+      </div>
+      <button onclick="openNuovaPartitaF4()" style="width:100%;padding:14px;border-radius:14px;background:#378ADD;color:#fff;font-size:15px;font-weight:800;border:none;cursor:pointer;margin-bottom:16px">🎲 Nuova partita Forza 4</button>`;
+  if(mie.length===0&&altre.length===0){ html+=`<div style="text-align:center;color:var(--text-sec);padding:30px 0;font-size:14px">Nessuna partita ancora.<br>Sfida un familiare!</div>`; }
+  for(const p of mie){
+    html+=`<div style="margin-bottom:16px">${renderF4Board(p)}</div>`;
+  }
+  if(altre.length>0){
+    html+=`<div style="font-size:12px;color:var(--text-sec);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 8px">Altre partite</div>`;
+    for(const p of altre){ html+=`<div style="margin-bottom:16px">${renderF4Board(p)}</div>`; }
+  }
+  html+=`</div></div>`;
+  return html;
+}
+
+function openNuovaPartitaF4(){
+  const altri=MEMBERS.filter(m=>m.id!==f4Me);
+  let opts=altri.map(m=>`<button onclick="nuovaPartitaF4('${m.id}')" style="width:100%;padding:14px;border-radius:14px;border:1.5px solid var(--border-light);background:var(--card-bg);color:var(--text-main);font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;gap:12px"><span style="font-size:22px">${m.icon}</span><span>${escH(m.name)}</span></button>`).join('');
+  document.getElementById('modal-box').innerHTML=`
+    <div class="modal-hdr"><span class="modal-ttl">🎲 Sfida un familiare</span><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div style="padding:10px 0">${opts}</div>`;
+  showOv();
+}
+
+async function nuovaPartitaF4(avversarioId){
+  closeModal();
+  const id='f4'+Date.now();
+  const flds={ID:id,Griglia:'.'.repeat(42),TurnoDi:f4Me,Giocatore1:f4Me,Giocatore2:avversarioId,Stato:'aperta',Vincitore:'',Data:REAL_TODAY};
+  try{
+    const res=await atPost('Forza4',flds);
+    if(res.error){ alert('Errore Airtable: '+(res.error.message||JSON.stringify(res.error))); return; }
+    if(!res.records?.[0]?.id){ alert('Risposta inattesa:\n'+JSON.stringify(res).slice(0,400)); return; }
+    const recId=res.records[0].id;
+    f4Partite.unshift({...flds,_recId:recId});
+    switchView('giochi');
+  }catch(e){ alert('Errore: '+e.message); }
+}
+
 async function init(){
-  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi()]);
+  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4()]);
   render(); loadWeather();
   if('Notification' in window && Notification.permission==='default') Notification.requestPermission();
 }
 async function reloadAll(){
-  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi()]);
+  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4()]);
   render();
 }
 
