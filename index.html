@@ -962,7 +962,8 @@ function todayView(){
   });
   if(!activeHtml) activeHtml=`<div class="empty-state"><span class="big">🛋️</span><div style="font-size:16px;font-weight:700;">Nessun impegno in famiglia</div></div>`;
   if(freeMembers.length>0 && activeHtml.indexOf('empty-state')===-1){ activeHtml+=`<div style="margin-top:24px;padding-top:16px;border-top:1px dashed var(--border-light);text-align:center"><div class="sec-lbl" style="text-align:center">🎉 Liberi oggi</div><div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px">${freeMembers.map(m => `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--main-bg);padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;color:var(--text-main)"><span style="font-size:14px">${getIcon(m.id)}</span>${m.name}</span>`).join('')}</div></div>`; }
-  return h+activeHtml+`<div style="margin-top:24px">`+dispensaWidget()+`</div>`+`<div style="margin-top:16px">`+challengeWidget()+`</div>`+`<div style="margin-top:16px">`+ricordiWidget()+`</div>`+(viaggi.length?`<div style="margin-top:16px">`+viaggiWidget()+`</div>`:'');
+  const ricWidget=prossimeRicorrenzeWidget();
+  return h+activeHtml+`<div style="margin-top:24px">`+dispensaWidget()+`</div>`+`<div style="margin-top:16px">`+challengeWidget()+`</div>`+(ricWidget?`<div style="margin-top:16px">`+ricWidget+`</div>`:'')+`<div style="margin-top:16px">`+ricordiWidget()+`</div>`+(viaggi.length?`<div style="margin-top:16px">`+viaggiWidget()+`</div>`:'');
 }
 
 function evCard(e, mContext){
@@ -1538,6 +1539,101 @@ async function saveDispensaItem(){
   closeModal(); renderView();
 }
 
+let _ricCountdownTimer=null;
+
+function prossimeRicorrenzeWidget(){
+  if(!ricorrenze.length) return '';
+  const now=new Date();
+  const today=new Date(now); today.setHours(0,0,0,0);
+  const thisYear=today.getFullYear();
+
+  function nextOccurrence(dateStr){
+    const [mm,dd]=dateStr.split('-');
+    let d=new Date(thisYear,+mm-1,+dd);
+    if(d<today) d=new Date(thisYear+1,+mm-1,+dd);
+    return d;
+  }
+
+  const upcoming=ricorrenze
+    .filter(r=>r.date&&r.date.includes('-'))
+    .map(r=>{
+      const next=nextOccurrence(r.date);
+      const diff=Math.round((next-today)/(1000*60*60*24));
+      return {...r,next,diff};
+    })
+    .sort((a,b)=>a.diff-b.diff)
+    .slice(0,3);
+
+  if(!upcoming.length) return '';
+
+  const first=upcoming[0];
+  const rest=upcoming.slice(1);
+  const t0=RIC_TYPES.find(x=>x.id===first.type)||RIC_TYPES[0];
+  const m0=first.member?M(first.member):null;
+
+  // Countdown target: mezzanotte del giorno della ricorrenza
+  const target=new Date(first.next); target.setHours(0,0,0,0);
+
+  let _notifFired=false;
+  function tickHtml(){
+    const ms=target-new Date();
+    if(ms<=0){
+      if(!_notifFired){
+        _notifFired=true;
+        if(Notification.permission==='granted'){
+          new Notification(`${t0.icon} ${first.title}`,{body:'È arrivato il grande giorno! 🎉',icon:'/icon-192.png'});
+        }
+      }
+      return `<div style="font-size:22px;font-weight:900;color:#e05c2a;text-align:center;letter-spacing:.05em">🎉 Oggi!</div>`;
+    }
+    const totalSec=Math.floor(ms/1000);
+    const gg=Math.floor(totalSec/86400);
+    const hh=Math.floor((totalSec%86400)/3600);
+    const mm2=Math.floor((totalSec%3600)/60);
+    const ss=totalSec%60;
+    const pad=n=>String(n).padStart(2,'0');
+    const unit=(n,l)=>`<div style="text-align:center"><div style="font-size:22px;font-weight:900;color:var(--accent);line-height:1">${pad(n)}</div><div style="font-size:9px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.08em;margin-top:1px">${l}</div></div>`;
+    const sep=`<div style="font-size:20px;font-weight:900;color:var(--text-sec);align-self:flex-start;padding-top:2px">:</div>`;
+    return `<div style="display:flex;align-items:center;justify-content:center;gap:6px">${unit(gg,'giorni')}${sep}${unit(hh,'ore')}${sep}${unit(mm2,'min')}${sep}${unit(ss,'sec')}</div>`;
+  }
+
+  if(_ricCountdownTimer) clearInterval(_ricCountdownTimer);
+  _ricCountdownTimer=setInterval(()=>{
+    const el=document.getElementById('ric-countdown');
+    if(!el){ clearInterval(_ricCountdownTimer); _ricCountdownTimer=null; return; }
+    el.innerHTML=tickHtml();
+  },1000);
+
+  const restHtml=rest.map(r=>{
+    const t=RIC_TYPES.find(x=>x.id===r.type)||RIC_TYPES[0];
+    const mr=r.member?M(r.member):null;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px dashed var(--border-light)">
+      <div style="font-size:20px;width:28px;text-align:center;flex-shrink:0">${t.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(r.title)}</div>
+        ${mr?`<div style="font-size:11px;color:var(--text-sec);font-weight:600">${getIcon(mr.id)} ${mr.name}</div>`:''}
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:12px;font-weight:800;color:${r.diff<=7?'#e05c2a':'var(--accent)'}">${r.diff===0?'Oggi!':r.diff+' gg'}</div>
+        <div style="font-size:10px;color:var(--text-sec);font-weight:600">${r.next.toLocaleDateString('it-IT',{day:'numeric',month:'short'})}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `<div style="background:var(--card-bg);border-radius:var(--radius-lg);padding:14px 16px 12px;box-shadow:var(--shadow-sm);border:1px solid var(--border-light)">
+    <div class="sec-lbl" style="margin-bottom:10px">🎉 Prossima ricorrenza</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <div style="font-size:30px;flex-shrink:0">${t0.icon}</div>
+      <div>
+        <div style="font-size:15px;font-weight:800;color:var(--text-main)">${escH(first.title)}</div>
+        <div style="font-size:12px;color:var(--text-sec);font-weight:600">${first.next.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'})}${m0?' · '+getIcon(m0.id)+' '+m0.name:''}</div>
+      </div>
+    </div>
+    <div id="ric-countdown">${tickHtml()}</div>
+    ${restHtml?`<div style="margin-top:10px">${restHtml}</div>`:''}
+  </div>`;
+}
+
 function dispensaWidget(){
   const daCom=dispensaItems.filter(i=>!i.comprato);
   const shown=daCom.slice(0,6);
@@ -1962,7 +2058,11 @@ async function deleteViaggio(id){
   renderView();
 }
 
-async function init(){ await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi()]); render(); loadWeather(); }
+async function init(){
+  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi()]);
+  render(); loadWeather();
+  if('Notification' in window && Notification.permission==='default') Notification.requestPermission();
+}
 init();
 
 if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
