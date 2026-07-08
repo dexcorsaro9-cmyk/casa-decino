@@ -2681,6 +2681,7 @@ function giochiView(){
       <div style="display:flex;gap:6px;margin-bottom:16px;background:var(--main-bg);padding:6px;border-radius:14px">
         <button onclick="setGiochiTab('forza4')" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='forza4'?'#378ADD':'transparent'};color:${giochiTab==='forza4'?'#fff':'var(--text-sec)'}">🔴 Forza 4</button>
         <button onclick="setGiochiTab('tris')" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='tris'?'#378ADD':'transparent'};color:${giochiTab==='tris'?'#fff':'var(--text-sec)'}">❌ Tris</button>
+        <button onclick="setGiochiTab('impiccato')" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='impiccato'?'#378ADD':'transparent'};color:${giochiTab==='impiccato'?'#fff':'var(--text-sec)'}">🎯 Impiccato</button>
       </div>`;
   if(giochiTab==='forza4'){
     const mie=f4Partite.filter(p=>p.giocatore1===f4Me||p.giocatore2===f4Me);
@@ -2692,7 +2693,7 @@ function giochiView(){
       html+=`<div style="font-size:12px;color:var(--text-sec);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 8px">Altre partite</div>`;
       for(const p of altre){ html+=`<div style="margin-bottom:16px">${renderF4Board(p)}</div>`; }
     }
-  } else {
+  } else if(giochiTab==='tris'){
     const mie=trisPartite.filter(p=>p.giocatore1===f4Me||p.giocatore2===f4Me);
     const altre=trisPartite.filter(p=>p.giocatore1!==f4Me&&p.giocatore2!==f4Me);
     html+=`<button onclick="openNuovaPartitaTris()" style="width:100%;padding:14px;border-radius:14px;background:#378ADD;color:#fff;font-size:15px;font-weight:800;border:none;cursor:pointer;margin-bottom:16px">❌ Nuova partita Tris</button>`;
@@ -2701,6 +2702,16 @@ function giochiView(){
     if(altre.length>0){
       html+=`<div style="font-size:12px;color:var(--text-sec);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 8px">Altre partite</div>`;
       for(const p of altre){ html+=`<div style="margin-bottom:16px">${renderTrisBoard(p)}</div>`; }
+    }
+  } else {
+    const mie=impPartite.filter(p=>p.giocatore1===f4Me||p.giocatore2===f4Me);
+    const altre=impPartite.filter(p=>p.giocatore1!==f4Me&&p.giocatore2!==f4Me);
+    html+=`<button onclick="openNuovaPartitaImp()" style="width:100%;padding:14px;border-radius:14px;background:#378ADD;color:#fff;font-size:15px;font-weight:800;border:none;cursor:pointer;margin-bottom:16px">🎯 Nuova partita Impiccato</button>`;
+    if(mie.length===0&&altre.length===0){ html+=`<div style="text-align:center;color:var(--text-sec);padding:30px 0;font-size:14px">Nessuna partita ancora.<br>Sfida un familiare!</div>`; }
+    for(const p of mie){ html+=`<div style="margin-bottom:16px">${renderImpBoard(p)}</div>`; }
+    if(altre.length>0){
+      html+=`<div style="font-size:12px;color:var(--text-sec);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 8px">Altre partite</div>`;
+      for(const p of altre){ html+=`<div style="margin-bottom:16px">${renderImpBoard(p)}</div>`; }
     }
   }
   html+=`</div></div>`;
@@ -2854,13 +2865,153 @@ async function nuovaPartitaTris(avversarioId){
   }catch(e){ alert('Errore: '+e.message); }
 }
 
+/* ── IMPICCATO ── */
+let impPartite=[];
+const IMP_MAX_ERRORI=6;
+const IMP_DISEGNI=[
+  '',
+  '  +---+\n      |\n      |\n      |\n     ===',
+  '  +---+\n  O   |\n      |\n      |\n     ===',
+  '  +---+\n  O   |\n  |   |\n      |\n     ===',
+  '  +---+\n  O   |\n /|   |\n      |\n     ===',
+  '  +---+\n  O   |\n /|\\  |\n      |\n     ===',
+  '  +---+\n  O   |\n /|\\  |\n /    |\n     ===',
+  '  +---+\n  O   |\n /|\\  |\n / \\  |\n     ==='
+];
+
+async function loadImpiccato(){
+  try{
+    const records=await atGetAll('Impiccato');
+    impPartite=records.map(r=>({
+      _recId:r.id,
+      id:r.fields.ID||r.id,
+      parola:(r.fields.Parola||'').toUpperCase(),
+      lettere:r.fields.Lettere||'',
+      errori:Number(r.fields.Errori)||0,
+      giocatore1:r.fields.Giocatore1||'',
+      giocatore2:r.fields.Giocatore2||'',
+      stato:r.fields.Stato||'aperta',
+      vincitore:r.fields.Vincitore||'',
+      data:r.fields.Data||''
+    }));
+  }catch(e){ impPartite=[]; }
+}
+
+function impMask(parola,lettere){
+  return parola.split('').map(ch=>ch===' '?' ':(lettere.includes(ch)?ch:'_')).join(' ');
+}
+
+async function muoviImp(partitaId,lettera){
+  const p=impPartite.find(x=>x.id===partitaId); if(!p||p.stato!=='aperta') return;
+  if(f4Me!==p.giocatore2){ alert('Solo chi indovina può giocare!'); return; }
+  if(p.lettere.includes(lettera)) return;
+  const nuoveLettere=p.lettere+lettera;
+  const indovinato=p.parola.split('').every(ch=>ch===' '||nuoveLettere.includes(ch));
+  const errore=!p.parola.includes(lettera);
+  const nuoviErrori=errore?p.errori+1:p.errori;
+  const perso=nuoviErrori>=IMP_MAX_ERRORI;
+  const newStato=indovinato?'vinta':perso?'persa':'aperta';
+  const newVinc=indovinato?p.giocatore2:perso?p.giocatore1:'';
+  p.lettere=nuoveLettere; p.errori=nuoviErrori; p.stato=newStato; p.vincitore=newVinc;
+  renderView();
+  try{
+    await atPatch('Impiccato',p._recId,{Lettere:nuoveLettere,Errori:nuoviErrori,Stato:newStato,Vincitore:newVinc});
+  }catch(e){ alert('Errore salvataggio mossa: '+e.message); }
+}
+
+function renderImpBoard(p){
+  const me=f4Me;
+  const iSonoIndovino=me===p.giocatore2;
+  const m1=MEMBERS.find(m=>m.id===p.giocatore1)||{name:p.giocatore1};
+  const m2=MEMBERS.find(m=>m.id===p.giocatore2)||{name:p.giocatore2};
+  let html=`<div style="background:var(--main-bg);border-radius:16px;padding:12px;max-width:340px;margin:0 auto">`;
+  html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <span style="font-size:12px;color:var(--text-sec)">✍️ ${escH(m1.name)}</span>
+    <div style="font-size:11px;color:var(--text-sec);font-weight:700">VS</div>
+    <span style="font-size:12px;color:var(--text-sec)">🔍 ${escH(m2.name)}</span>
+  </div>`;
+  html+=`<div style="background:#1a3a6b;border-radius:12px;padding:14px;text-align:center">
+    <pre style="color:#fff;font-family:monospace;font-size:13px;margin:0 0 10px;white-space:pre">${IMP_DISEGNI[p.errori]}</pre>
+    <div style="font-size:22px;font-weight:900;letter-spacing:4px;color:#fff;margin-bottom:8px">${p.stato==='persa'?p.parola.split('').join(' '):impMask(p.parola,p.lettere)}</div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.6)">Errori: ${p.errori}/${IMP_MAX_ERRORI}</div>
+  </div>`;
+  if(p.stato==='aperta'&&iSonoIndovino){
+    const alfabeto='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+    html+=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:10px">`;
+    for(const l of alfabeto){
+      const usata=p.lettere.includes(l);
+      const corretta=usata&&p.parola.includes(l);
+      html+=`<button ${usata?'disabled':''} onclick="muoviImp('${p.id}','${l}')" style="padding:6px 0;border-radius:6px;border:none;font-size:12px;font-weight:700;cursor:${usata?'default':'pointer'};background:${usata?(corretta?'#16a34a':'#e5e7eb'):'var(--card-bg)'};color:${usata?(corretta?'#fff':'#9ca3af'):'var(--text-main)'}">${l}</button>`;
+    }
+    html+=`</div>`;
+  } else if(p.stato==='aperta'){
+    html+=`<div style="text-align:center;margin-top:10px;font-size:13px;color:var(--text-sec)">In attesa che <b>${escH(m2.name)}</b> indovini...</div>`;
+  }
+  if(p.stato==='vinta'){
+    html+=`<div style="text-align:center;margin-top:10px;font-size:15px;font-weight:800;color:#378ADD">🏆 ${escH(m2.name)} ha indovinato!</div>`;
+  } else if(p.stato==='persa'){
+    html+=`<div style="text-align:center;margin-top:10px;font-size:15px;font-weight:800;color:#ff3b30">💀 Impiccato! Ha vinto ${escH(m1.name)}</div>`;
+  }
+  const orfana=!MEMBERS.some(m=>m.id===p.giocatore1);
+  if(p.giocatore1===me||orfana){
+    html+=`<div style="text-align:right;margin-top:8px"><button onclick="eliminaImp('${p.id}')" style="background:none;border:none;color:#ff3b30;font-size:12px;font-weight:700;cursor:pointer;padding:4px 8px">🗑 Elimina partita</button></div>`;
+  }
+  html+=`</div>`;
+  return html;
+}
+
+async function eliminaImp(partitaId){
+  const p=impPartite.find(x=>x.id===partitaId); if(!p) return;
+  const orfana=!MEMBERS.some(m=>m.id===p.giocatore1);
+  if(p.giocatore1!==f4Me&&!orfana){ alert('Solo chi ha creato la partita può eliminarla'); return; }
+  if(!confirm('Eliminare questa partita?')) return;
+  impPartite=impPartite.filter(x=>x.id!==partitaId);
+  renderView();
+  if(p._recId) atDelete('Impiccato',p._recId);
+}
+
+let impForm={avversario:'',parola:''};
+function openNuovaPartitaImp(){
+  impForm={avversario:'',parola:''};
+  renderImpModal();
+  showOv();
+}
+function renderImpModal(){
+  const altri=MEMBERS.filter(m=>m.id!==f4Me);
+  const mbrBtns=altri.map(m=>`<button class="tr-btn${impForm.avversario===m.id?' sel':''}" onclick="impForm.avversario='${m.id}';renderImpModal()" style="${impForm.avversario===m.id?ms(m):''}">${getIcon(m.id)} ${m.name}</button>`).join('');
+  document.getElementById('modal-box').innerHTML=`
+    <div class="modal-hdr"><span class="modal-ttl">🎯 Nuova partita Impiccato</span><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="fgrp"><label class="flbl">Chi deve indovinare?</label><div class="tr-opts">${mbrBtns}</div></div>
+    <div class="fgrp"><label class="flbl">Parola o frase segreta</label><input id="imp-parola" value="${escH(impForm.parola)}" oninput="impForm.parola=this.value" placeholder="Es. PIZZA MARGHERITA" style="text-transform:uppercase"></div>
+    <div style="text-align:center;margin-top:10px">
+      <button class="btn-cancel" onclick="closeModal()">Annulla</button>
+      <button class="btn-save" onclick="nuovaPartitaImp()" style="margin-left:10px">Crea partita</button>
+    </div>`;
+}
+async function nuovaPartitaImp(){
+  if(!impForm.avversario){ alert('Seleziona chi deve indovinare'); return; }
+  const parola=impForm.parola.trim().toUpperCase();
+  if(!parola){ alert('Inserisci una parola o frase'); return; }
+  closeModal();
+  const id='imp'+Date.now();
+  const flds={ID:id,Parola:parola,Lettere:'',Errori:0,Giocatore1:f4Me,Giocatore2:impForm.avversario,Stato:'aperta',Vincitore:'',Data:REAL_TODAY};
+  try{
+    const res=await atPost('Impiccato',flds);
+    if(res.error){ alert('Errore Airtable: '+(res.error.message||JSON.stringify(res.error))); return; }
+    if(!res.records?.[0]?.id){ alert('Risposta inattesa:\n'+JSON.stringify(res).slice(0,400)); return; }
+    const recId=res.records[0].id;
+    impPartite.unshift({_recId:recId,id,parola,lettere:'',errori:0,giocatore1:f4Me,giocatore2:impForm.avversario,stato:'aperta',vincitore:'',data:REAL_TODAY});
+    switchView('giochi');
+  }catch(e){ alert('Errore: '+e.message); }
+}
+
 async function init(){
-  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris()]);
+  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato()]);
   render(); loadWeather();
   if('Notification' in window && Notification.permission==='default') Notification.requestPermission();
 }
 async function reloadAll(){
-  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris()]);
+  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato()]);
   render();
 }
 
