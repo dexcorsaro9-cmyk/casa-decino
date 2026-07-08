@@ -774,7 +774,7 @@ async function atPost(table,fields){
   return res.json();
 }
 function atPatch(table,recId,fields){
-  fetch(`${AT_BASE}/${encodeURIComponent(table)}/${recId}`,{method:'PATCH',headers:AT_H,body:JSON.stringify({fields})});
+  return fetch(`${AT_BASE}/${encodeURIComponent(table)}/${recId}`,{method:'PATCH',headers:AT_H,body:JSON.stringify({fields})});
 }
 function atDelete(table,recId){
   fetch(`${AT_BASE}/${encodeURIComponent(table)}/${recId}`,{method:'DELETE',headers:AT_HR});
