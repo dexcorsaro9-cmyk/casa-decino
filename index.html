@@ -2782,7 +2782,7 @@ async function nuovaPartitaF4(avversarioId){
     if(!res.records?.[0]?.id){ alert('Risposta inattesa:\n'+JSON.stringify(res).slice(0,400)); return; }
     const recId=res.records[0].id;
     f4Partite.unshift({_recId:recId,id:id,griglia:flds.Griglia,turnoDi:flds.TurnoDi,giocatore1:flds.Giocatore1,giocatore2:flds.Giocatore2,stato:flds.Stato,vincitore:'',data:flds.Data});
-    switchView('giochi');
+    mostraInvitoWhatsApp('Forza 4',avversarioId);
   }catch(e){ alert('Errore: '+e.message); }
 }
 
@@ -2906,7 +2906,7 @@ async function nuovaPartitaTris(avversarioId){
     if(!res.records?.[0]?.id){ alert('Risposta inattesa:\n'+JSON.stringify(res).slice(0,400)); return; }
     const recId=res.records[0].id;
     trisPartite.unshift({_recId:recId,id:id,griglia:flds.Griglia,turnoDi:flds.TurnoDi,giocatore1:flds.Giocatore1,giocatore2:flds.Giocatore2,stato:flds.Stato,vincitore:'',data:flds.Data});
-    switchView('giochi');
+    mostraInvitoWhatsApp('Tris',avversarioId);
   }catch(e){ alert('Errore: '+e.message); }
 }
 
@@ -3046,7 +3046,7 @@ async function nuovaPartitaImp(){
     if(!res.records?.[0]?.id){ alert('Risposta inattesa:\n'+JSON.stringify(res).slice(0,400)); return; }
     const recId=res.records[0].id;
     impPartite.unshift({_recId:recId,id,parola,lettere:'',errori:0,giocatore1:f4Me,giocatore2:impForm.avversario,stato:'aperta',vincitore:'',data:REAL_TODAY});
-    switchView('giochi');
+    mostraInvitoWhatsApp('Impiccato',impForm.avversario);
   }catch(e){ alert('Errore: '+e.message); }
 }
 
@@ -3172,8 +3172,26 @@ async function nuovaPartitaMorra(avversarioId){
     if(!res.records?.[0]?.id){ alert('Risposta inattesa:\n'+JSON.stringify(res).slice(0,400)); return; }
     const recId=res.records[0].id;
     morraPartite.unshift({_recId:recId,id,giocatore1:f4Me,giocatore2:avversarioId,mossa1:'',mossa2:'',punti1:0,punti2:0,obiettivo:10,ultimoEsito:'',stato:'aperta',vincitore:'',data:REAL_TODAY});
-    switchView('giochi');
+    mostraInvitoWhatsApp('Morra Cinese',avversarioId);
   }catch(e){ alert('Errore: '+e.message); }
+}
+
+function mostraInvitoWhatsApp(giocoNome,avversarioId){
+  const av=MEMBERS.find(m=>m.id===avversarioId)||{name:avversarioId};
+  const io=MEMBERS.find(m=>m.id===f4Me)||{name:f4Me};
+  const waText=encodeURIComponent(`🎮 ${io.name} ti ha sfidato a ${giocoNome} su Casa Decino!\n\nVai su Giochi per rispondere 👉 https://casa-decino.vercel.app/`);
+  document.getElementById('modal-box').innerHTML=`
+    <div class="modal-hdr"><span class="modal-ttl">🎮 Sfida creata!</span><button class="modal-close" onclick="closeModal();switchView('giochi')">✕</button></div>
+    <div style="text-align:center;padding:10px 0 6px">
+      <div style="font-size:40px;margin-bottom:8px">✅</div>
+      <div style="font-size:15px;font-weight:800;color:var(--text-main);margin-bottom:4px">Hai sfidato ${escH(av.name)} a ${escH(giocoNome)}</div>
+      <div style="font-size:13px;color:var(--text-sec);margin-bottom:20px">Avvisalo per farglielo sapere subito</div>
+      <a href="https://wa.me/?text=${waText}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:10px;background:#25D366;color:#fff;font-weight:800;font-size:15px;padding:14px;border-radius:14px;text-decoration:none;margin-bottom:10px">
+        <span style="font-size:22px">💬</span> Avvisa su WhatsApp
+      </a>
+      <button onclick="closeModal();switchView('giochi')" style="width:100%;padding:12px;border-radius:14px;border:1px solid var(--border-light);background:var(--main-bg);color:var(--text-sec);font-size:14px;font-weight:700;cursor:pointer">Vai ai giochi</button>
+    </div>`;
+  const ov=document.getElementById('modal-ov'); ov.style.display='flex'; ov.style.alignItems='center';
 }
 
 function aggiornaBottoneNotifiche(){
