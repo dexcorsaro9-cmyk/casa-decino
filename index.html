@@ -580,6 +580,25 @@
     .film-widget-card-sub { font-size:9px; color:rgba(255,255,255,0.45); text-align:center; margin-top:2px; }
     .film-widget-empty { text-align:center; padding:20px 0; color:rgba(255,255,255,0.4); font-size:13px; font-weight:600; }
 
+    /* SONDAGGI */
+    .sondaggio-card { background:var(--card-bg); border-radius:var(--radius-lg); padding:16px; margin-bottom:14px; box-shadow:var(--shadow-sm); border:1px solid var(--border-light); }
+    .sondaggio-domanda { font-size:15px; font-weight:800; color:var(--text-main); margin-bottom:4px; }
+    .sondaggio-meta { font-size:11px; color:var(--text-sec); margin-bottom:12px; }
+    .sondaggio-opzione { display:flex; align-items:center; gap:10px; margin-bottom:8px; cursor:pointer; }
+    .sondaggio-opzione-bar-wrap { flex:1; background:var(--main-bg); border-radius:20px; height:28px; overflow:hidden; position:relative; border:2px solid var(--border-light); transition:border-color 0.15s; }
+    .sondaggio-opzione-bar-wrap.voted { border-color:var(--accent); }
+    .sondaggio-opzione-bar { height:100%; border-radius:20px; transition:width 0.4s cubic-bezier(.22,1.4,.64,1); }
+    .sondaggio-opzione-label { position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:12px; font-weight:700; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:60%; }
+    .sondaggio-opzione-pct { position:absolute; right:8px; top:50%; transform:translateY(-50%); font-size:11px; font-weight:800; color:var(--text-sec); }
+    .sondaggio-opzione-avatars { display:flex; gap:2px; flex-shrink:0; min-width:60px; }
+    .sondaggio-chiuso-badge { display:inline-block; font-size:10px; font-weight:800; background:#e5e7eb; color:#6b7280; padding:2px 8px; border-radius:20px; margin-left:8px; }
+    .sondaggio-widget-banner { background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%); border-radius:var(--radius-lg); padding:14px 16px; margin-bottom:12px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; box-shadow:0 4px 14px rgba(99,102,241,0.3); }
+    .sondaggio-widget-banner-txt { font-size:13px; font-weight:800; color:#fff; }
+    .sondaggio-widget-banner-sub { font-size:11px; color:rgba(255,255,255,0.75); margin-top:2px; }
+    /* form sondaggio */
+    .sondaggio-opz-row { display:flex; gap:8px; align-items:center; margin-bottom:6px; }
+    .sondaggio-opz-row input { flex:1; }
+
     /* LIGHTBOX FOTO */
     .foto-lb-ov { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(11,19,43,0.92); z-index:2000; display:flex; align-items:center; justify-content:center; padding:24px; animation:fadeIn 0.18s ease; }
     @keyframes fadeIn { from{opacity:0} to{opacity:1} }
@@ -639,6 +658,7 @@
         <button class="tab" id="t-ricordi"    onclick="switchView('ricordi')">📸 Ricordi</button>
         <button class="tab" id="t-viaggi"     onclick="switchView('viaggi')">🌍 Viaggi</button>
         <button class="tab" id="t-film"       onclick="switchView('film')">🎬 Film</button>
+        <button class="tab" id="t-sondaggi"   onclick="switchView('sondaggi')">🗳️ Sondaggi</button>
       </div>
     </div>
     <div class="content" id="view"></div>
@@ -865,10 +885,10 @@ function inlineFilters(){
     </div>`).join('')}</div>`;
 }
 function toggleF(id){ if(filters.includes(id)){if(filters.length>1)filters=filters.filter(f=>f!==id);}else filters.push(id); render(); }
-function hdrAdd(){if(view==='ricorrenze')openRicModal(null);else if(view==='bacheca')openBachecaModal();else if(view==='dispensa')openDispensaModal();else if(view==='ricordi')openFotoModal();else if(view==='viaggi')openViaggioModal();else if(view==='film')openFilmModal();else openModal(null);}
+function hdrAdd(){if(view==='ricorrenze')openRicModal(null);else if(view==='bacheca')openBachecaModal();else if(view==='dispensa')openDispensaModal();else if(view==='ricordi')openFotoModal();else if(view==='viaggi')openViaggioModal();else if(view==='film')openFilmModal();else if(view==='sondaggi')openSondaggioModal();else openModal(null);}
 
 function switchView(v){
-  view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge','t-bacheca','t-dispensa','t-ricordi','t-viaggi','t-film'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
+  view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge','t-bacheca','t-dispensa','t-ricordi','t-viaggi','t-film','t-sondaggi'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
   const tab=document.getElementById('t-'+v); if(tab) tab.classList.add('active');
   const fab=document.getElementById('fab-add'); const fabTxt=document.getElementById('fab-text');
   if(v==='challenge'){ fab.style.display='none'; }
@@ -877,11 +897,12 @@ function switchView(v){
   else if(v==='ricordi'){ fab.style.display='inline-flex'; fabTxt.innerText='Foto'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='📸'; }
   else if(v==='viaggi'){ fab.style.display='inline-flex'; fabTxt.innerText='Viaggio'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='🌍'; }
   else if(v==='film'){ fab.style.display='inline-flex'; fabTxt.innerText='Film/Serie'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='🎬'; }
+  else if(v==='sondaggi'){ fab.style.display='inline-flex'; fabTxt.innerText='Sondaggio'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='🗳️'; }
   else { fab.style.display='inline-flex'; fabTxt.innerText=(v==='ricorrenze')?'Ricorrenza':'Impegno'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='📝'; }
   renderView();
 }
 
-function renderView(){ const el=document.getElementById('view'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else el.innerHTML=ricorrenzeView(); }
+function renderView(){ const el=document.getElementById('view'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else if(view==='sondaggi')el.innerHTML=sondaggiView(); else el.innerHTML=ricorrenzeView(); }
 
 /* ── VISTA OGGI COMPLETA ── */
 function bdayBanners(d_str){
@@ -984,7 +1005,8 @@ function todayView(){
   if(!activeHtml) activeHtml=`<div class="empty-state"><span class="big">🛋️</span><div style="font-size:16px;font-weight:700;">Nessun impegno in famiglia</div></div>`;
   if(freeMembers.length>0 && activeHtml.indexOf('empty-state')===-1){ activeHtml+=`<div style="margin-top:24px;padding-top:16px;border-top:1px dashed var(--border-light);text-align:center"><div class="sec-lbl" style="text-align:center">🎉 Liberi oggi</div><div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px">${freeMembers.map(m => `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--main-bg);padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;color:var(--text-main)"><span style="font-size:14px">${getIcon(m.id)}</span>${m.name}</span>`).join('')}</div></div>`; }
   const ricWidget=prossimeRicorrenzeWidget();
-  return h+activeHtml+`<div style="margin-top:24px">`+dispensaWidget()+`</div>`+`<div style="margin-top:16px">`+challengeWidget()+`</div>`+(ricWidget?`<div style="margin-top:16px">`+ricWidget+`</div>`:'')+`<div style="margin-top:16px">`+ricordiWidget()+`</div>`+(viaggi.length?`<div style="margin-top:16px">`+viaggiWidget()+`</div>`:'')+`<div style="margin-top:16px">`+filmWidget()+`</div>`;
+  const sondWidget=sondaggiWidget();
+  return h+activeHtml+(sondWidget?`<div style="margin-top:16px">`+sondWidget+`</div>`:'')+`<div style="margin-top:24px">`+dispensaWidget()+`</div>`+`<div style="margin-top:16px">`+challengeWidget()+`</div>`+(ricWidget?`<div style="margin-top:16px">`+ricWidget+`</div>`:'')+`<div style="margin-top:16px">`+ricordiWidget()+`</div>`+(viaggi.length?`<div style="margin-top:16px">`+viaggiWidget()+`</div>`:'')+`<div style="margin-top:16px">`+filmWidget()+`</div>`;
 }
 
 function evCard(e, mContext){
@@ -2152,7 +2174,12 @@ let filmSearchResults=[];
 async function loadFilm(){
   try{
     const records=await atGetAll('Film');
-    film=records.map(r=>({_recId:r.id,id:r.fields.ID||r.id,titolo:r.fields.Titolo||'',tipo:r.fields.Tipo||'movie',anno:r.fields.Anno||'',locandina:r.fields.Locandina||'',imdbId:r.fields.ImdbId||'',consigliatoDa:r.fields.ConsigliatoDa||'antonio',nota:r.fields.Nota||'',vistiDa:(r.fields.VistiDa||'').split(',').map(s=>s.trim()).filter(Boolean)}));
+    film=records.map(r=>{
+      const votiRaw=(r.fields.Voti||'').split(',').map(s=>s.trim()).filter(Boolean);
+      const voti={};
+      votiRaw.forEach(v=>{const[k,val]=v.split(':');if(k&&val) voti[k.trim()]=+val;});
+      return {_recId:r.id,id:r.fields.ID||r.id,titolo:r.fields.Titolo||'',tipo:r.fields.Tipo||'movie',anno:r.fields.Anno||'',locandina:r.fields.Locandina||'',imdbId:r.fields.ImdbId||'',consigliatoDa:r.fields.ConsigliatoDa||'antonio',nota:r.fields.Nota||'',vistiDa:(r.fields.VistiDa||'').split(',').map(s=>s.trim()).filter(Boolean),voti};
+    });
   } catch(e){ film=[]; }
 }
 
@@ -2226,7 +2253,7 @@ function renderFilmModal(){
 async function saveFilm(){
   if(!filmForm.titolo){ alert('Seleziona un film dalla ricerca'); return; }
   const id='fl'+Date.now();
-  const flds={ID:id,Titolo:filmForm.titolo,Tipo:filmForm.tipo,Anno:filmForm.anno,Locandina:filmForm.locandina,ImdbId:filmForm.imdbId,ConsigliatoDa:filmForm.consigliatoDa,Nota:filmForm.nota,VistiDa:''};
+  const flds={ID:id,Titolo:filmForm.titolo,Tipo:filmForm.tipo,Anno:filmForm.anno,Locandina:filmForm.locandina,ImdbId:filmForm.imdbId,ConsigliatoDa:filmForm.consigliatoDa,Nota:filmForm.nota,VistiDa:'',Voti:''};
   const rec=await atPost('Film',flds);
   film.push({...filmForm,id,vistiDa:[],_recId:rec.records?.[0]?.id});
   closeModal(); renderView();
@@ -2236,7 +2263,17 @@ async function toggleVistoFilm(filmId, memberId){
   const f=film.find(x=>x.id===filmId); if(!f) return;
   const idx=f.vistiDa.indexOf(memberId);
   if(idx>=0) f.vistiDa.splice(idx,1); else f.vistiDa.push(memberId);
-  if(f._recId) await atPatch('Film',f._recId,{VistiDa:f.vistiDa.join(',')});
+  if(idx>=0) delete f.voti[memberId];
+  const votiStr=Object.entries(f.voti).map(([k,v])=>`${k}:${v}`).join(',');
+  if(f._recId) await atPatch('Film',f._recId,{VistiDa:f.vistiDa.join(','),Voti:votiStr});
+  renderView();
+}
+
+async function setVotoFilm(filmId, memberId, voto){
+  const f=film.find(x=>x.id===filmId); if(!f) return;
+  if(f.voti[memberId]===voto) delete f.voti[memberId]; else f.voti[memberId]=voto;
+  const votiStr=Object.entries(f.voti).map(([k,v])=>`${k}:${v}`).join(',');
+  if(f._recId) await atPatch('Film',f._recId,{Voti:votiStr});
   renderView();
 }
 
@@ -2254,7 +2291,15 @@ function filmView(){
 
   function filmCard(f){
     const cons=M(f.consigliatoDa);
-    const vistiDots=MEMBERS.map(m=>`<div onclick="toggleVistoFilm('${f.id}','${m.id}')" title="${m.name}" style="width:26px;height:26px;border-radius:50%;background:${f.vistiDa.includes(m.id)?m.dot:'var(--main-bg)'};border:2px solid ${m.dot};display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;transition:all 0.15s">${f.vistiDa.includes(m.id)?getIcon(m.id):''}</div>`).join('');
+    const vistiDots=MEMBERS.map(m=>{
+      const visto=f.vistiDa.includes(m.id);
+      const voto=f.voti[m.id]||0;
+      const stars=visto?[1,2,3,4,5].map(s=>`<span onclick="setVotoFilm('${f.id}','${m.id}',${s})" style="cursor:pointer;font-size:13px;line-height:1;color:${s<=voto?'#f5a623':'var(--border-light)'};transition:color 0.1s">${s<=voto?'★':'☆'}</span>`).join(''):'';
+      return `<div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+        <div onclick="toggleVistoFilm('${f.id}','${m.id}')" title="${m.name}" style="width:26px;height:26px;border-radius:50%;background:${visto?m.dot:'var(--main-bg)'};border:2px solid ${m.dot};display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;transition:all 0.15s">${visto?getIcon(m.id):''}</div>
+        ${stars?`<div style="display:flex;gap:1px">${stars}</div>`:''}
+      </div>`;
+    }).join('');
     return `<div style="display:flex;gap:12px;align-items:flex-start;background:var(--card-bg);border-radius:var(--radius-lg);padding:12px;box-shadow:var(--shadow-sm);border:1px solid var(--border-light);margin-bottom:10px">
       ${f.locandina?`<img src="${escH(f.locandina)}" style="width:56px;border-radius:8px;flex-shrink:0;object-fit:cover;box-shadow:0 2px 8px rgba(0,0,0,0.2)">`:`<div style="width:56px;height:84px;background:var(--main-bg);border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px">${f.tipo==='series'?'📺':'🎬'}</div>`}
       <div style="flex:1;min-width:0">
@@ -2270,7 +2315,7 @@ function filmView(){
           <span style="font-size:11px;font-weight:700;color:${cons.dot}">${getIcon(cons.id)} ${cons.name}</span>
         </div>
         ${f.nota?`<div style="font-size:12px;color:var(--text-sec);margin-top:4px;font-style:italic">"${escH(f.nota)}"</div>`:''}
-        <div style="display:flex;gap:4px;margin-top:8px;flex-wrap:wrap">${vistiDots}</div>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:flex-start">${vistiDots}</div>
       </div>
     </div>`;
   }
@@ -2283,13 +2328,183 @@ function filmView(){
     ${vistiHtml?`<div class="sec-lbl" style="margin-top:20px;margin-bottom:14px">✅ Già visti (${visti.length})</div>${vistiHtml}`:''}`;
 }
 
+/* ── SONDAGGI ── */
+let sondaggi=[];
+let sondaggioForm={domanda:'',opzioni:['','']};
+
+async function loadSondaggi(){
+  try{
+    const records=await atGetAll('Sondaggi');
+    sondaggi=records.map(r=>{
+      const votiRaw=(r.fields.Voti||'').split(',').map(s=>s.trim()).filter(Boolean);
+      const voti={};
+      votiRaw.forEach(v=>{const[k,val]=v.split(':');if(k&&val) voti[k.trim()]=+val;});
+      return {_recId:r.id,id:r.fields.ID||r.id,domanda:r.fields.Domanda||'',autore:r.fields.Autore||'antonio',opzioni:(r.fields.Opzioni||'').split('|').map(s=>s.trim()).filter(Boolean),voti,stato:r.fields.Stato||'aperto',data:r.fields.Data||''};
+    });
+  } catch(e){ sondaggi=[]; }
+}
+
+function sondaggioCard(s){
+  const autore=M(s.autore);
+  const chiuso=s.stato==='chiuso';
+  const totalVoti=Object.keys(s.voti).length;
+  const colors=['#6366f1','#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6'];
+  const opzioniHtml=s.opzioni.map((op,idx)=>{
+    const votanti=Object.entries(s.voti).filter(([,v])=>v===idx).map(([k])=>k);
+    const pct=totalVoti>0?Math.round(votanti.length/totalVoti*100):0;
+    const col=colors[idx%colors.length];
+    const avatars=votanti.map(mid=>`<span title="${M(mid).name}" style="font-size:14px">${getIcon(mid)}</span>`).join('');
+    return `<div class="sondaggio-opzione" onclick="${chiuso?'':("openVotoSondaggio('"+s.id+"',"+idx+")")}">
+      <div class="sondaggio-opzione-bar-wrap">
+        <div class="sondaggio-opzione-bar" style="width:${totalVoti>0?pct:0}%;background:${col}33"></div>
+        <span class="sondaggio-opzione-label"><b>${escH(op)}</b></span>
+        ${totalVoti>0?`<span class="sondaggio-opzione-pct">${pct}%</span>`:''}
+      </div>
+      <div class="sondaggio-opzione-avatars">${avatars}</div>
+    </div>`;
+  }).join('');
+  const btnChiudi=!chiuso?`<button onclick="chiudiSondaggio('${s.id}')" style="background:none;border:1px solid var(--border-light);border-radius:20px;padding:4px 10px;font-size:11px;color:var(--text-sec);cursor:pointer;margin-top:10px">Chiudi sondaggio</button>`:'';
+  const btnElimina=`<button onclick="eliminaSondaggio('${s.id}')" style="background:none;border:none;font-size:16px;color:var(--text-sec);cursor:pointer;padding:0">🗑</button>`;
+  return `<div class="sondaggio-card">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div class="sondaggio-domanda">${escH(s.domanda)}${chiuso?'<span class="sondaggio-chiuso-badge">Chiuso</span>':''}</div>
+      ${btnElimina}
+    </div>
+    <div class="sondaggio-meta">da ${autore.icon} ${autore.name}${s.data?' · '+s.data:''} · ${totalVoti} vot${totalVoti===1?'o':'i'}</div>
+    ${opzioniHtml}
+    ${chiuso?'':btnChiudi}
+  </div>`;
+}
+
+function sondaggiView(){
+  const aperti=sondaggi.filter(s=>s.stato==='aperto');
+  const chiusi=sondaggi.filter(s=>s.stato==='chiuso');
+  return `${aperti.length?aperti.map(sondaggioCard).join(''):'<div class="empty-state"><span class="big">🗳️</span><div style="font-size:15px;font-weight:700">Nessun sondaggio aperto</div><div style="font-size:13px;color:var(--text-sec);margin-top:6px">Crea il primo!</div></div>'}
+  ${chiusi.length?`<div class="sec-lbl" style="margin-top:20px;margin-bottom:12px">Chiusi (${chiusi.length})</div>${chiusi.map(sondaggioCard).join('')}`:''}`;
+}
+
+function sondaggiWidget(){
+  const tuttiIds=MEMBERS.map(m=>m.id);
+  const daVotare=sondaggi.filter(s=>s.stato==='aperto'&&tuttiIds.some(id=>!(id in s.voti)));
+  if(!daVotare.length) return '';
+  return `<div class="sondaggio-widget-banner" onclick="switchView('sondaggi')">
+    <div>
+      <div class="sondaggio-widget-banner-txt">🗳️ ${daVotare.length} sondaggio${daVotare.length>1?'i':''} in attesa!</div>
+      <div class="sondaggio-widget-banner-sub">${daVotare.map(s=>escH(s.domanda)).join(' · ')}</div>
+    </div>
+    <span style="font-size:22px;opacity:0.9">→</span>
+  </div>`;
+}
+
+function openVotoSondaggio(sId,opIdx){
+  const s=sondaggi.find(x=>x.id===sId); if(!s||s.stato==='chiuso') return;
+  document.getElementById('modal-box').innerHTML=`
+    <div class="modal-hdr"><span class="modal-ttl">Chi vota?</span><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div style="font-size:13px;color:var(--text-sec);margin-bottom:14px">Opzione: <b>${escH(s.opzioni[opIdx])}</b></div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${MEMBERS.map(mb=>{
+        const hasVoted=mb.id in s.voti;
+        const myOp=s.voti[mb.id];
+        const sameOp=myOp===opIdx;
+        return `<button onclick="votaSondaggio('${sId}','${mb.id}',${opIdx})" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;border:2px solid ${sameOp?mb.dot:'var(--border-light)'};background:${sameOp?mb.dot+'22':'var(--card-bg)'};cursor:pointer;font-size:13px;font-weight:700;color:var(--text-main)">
+          <span style="font-size:20px">${getIcon(mb.id)}</span>
+          <span>${mb.name}</span>
+          ${hasVoted?`<span style="margin-left:auto;font-size:11px;color:var(--text-sec)">${sameOp?'✓ Già votato — rimuovi':'→ cambia'}</span>`:''}
+        </button>`;
+      }).join('')}
+    </div>`;
+  showOv();
+}
+
+async function votaSondaggio(sId,memberId,opIdx){
+  const s=sondaggi.find(x=>x.id===sId); if(!s||s.stato==='chiuso') return;
+  if(s.voti[memberId]===opIdx) delete s.voti[memberId]; else s.voti[memberId]=opIdx;
+  const votiStr=Object.entries(s.voti).map(([k,v])=>`${k}:${v}`).join(',');
+  if(s._recId) await atPatch('Sondaggi',s._recId,{Voti:votiStr});
+  closeModal();
+  renderView();
+}
+
+async function chiudiSondaggio(id){
+  const s=sondaggi.find(x=>x.id===id); if(!s) return;
+  s.stato='chiuso';
+  if(s._recId) await atPatch('Sondaggi',s._recId,{Stato:'chiuso'});
+  renderView();
+}
+
+async function eliminaSondaggio(id){
+  if(!confirm('Eliminare questo sondaggio?')) return;
+  const s=sondaggi.find(x=>x.id===id);
+  sondaggi=sondaggi.filter(x=>x.id!==id);
+  if(s?._recId) atDelete('Sondaggi',s._recId);
+  renderView();
+}
+
+function openSondaggioModal(){
+  sondaggioForm={domanda:'',opzioni:['',''],autore:'antonio'};
+  function renderForm(){
+    document.getElementById('modal-box').innerHTML=`
+      <div class="modal-hdr"><span class="modal-ttl">🗳️ Nuovo Sondaggio</span><button class="modal-close" onclick="closeModal()">✕</button></div>
+      <label class="form-lbl">Domanda</label>
+      <input class="form-inp" id="sd-domanda" value="${escH(sondaggioForm.domanda)}" placeholder="Es. Dove andiamo a Natale?">
+      <label class="form-lbl" style="margin-top:12px">Opzioni</label>
+      ${sondaggioForm.opzioni.map((op,i)=>`<div class="sondaggio-opz-row"><input class="form-inp" id="sd-op-${i}" value="${escH(op)}" placeholder="Opzione ${i+1}"><button onclick="removeOpzione(${i})" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-sec);flex-shrink:0">${sondaggioForm.opzioni.length>2?'✕':''}</button></div>`).join('')}
+      ${sondaggioForm.opzioni.length<6?`<button onclick="addOpzione()" style="background:none;border:1px dashed var(--border-light);border-radius:20px;padding:6px 14px;font-size:12px;color:var(--text-sec);cursor:pointer;margin-top:4px">+ Aggiungi opzione</button>`:''}
+      <label class="form-lbl" style="margin-top:14px">Pubblicato da</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">${MEMBERS.map(mb=>`<button id="sd-autore-${mb.id}" onclick="setSondaggioAutore('${mb.id}')" style="padding:6px 12px;border-radius:20px;border:2px solid ${mb.dot};background:${sondaggioForm.autore===mb.id?mb.dot:'transparent'};color:${sondaggioForm.autore===mb.id?'#fff':mb.dot};font-weight:700;font-size:12px;cursor:pointer">${getIcon(mb.id)} ${mb.name.split(' ')[0]}</button>`).join('')}</div>
+      <button class="btn-primary" style="width:100%;margin-top:18px" onclick="saveSondaggio()">Pubblica sondaggio</button>`;
+    showOv();
+  }
+  window.addOpzione=function(){
+    const domanda=document.getElementById('sd-domanda').value;
+    sondaggioForm.opzioni.forEach((_,i)=>{ sondaggioForm.opzioni[i]=document.getElementById('sd-op-'+i)?.value||''; });
+    sondaggioForm.domanda=domanda;
+    sondaggioForm.opzioni.push('');
+    renderForm();
+  };
+  window.removeOpzione=function(i){
+    const domanda=document.getElementById('sd-domanda').value;
+    sondaggioForm.opzioni.forEach((_,j)=>{ sondaggioForm.opzioni[j]=document.getElementById('sd-op-'+j)?.value||''; });
+    sondaggioForm.domanda=domanda;
+    if(sondaggioForm.opzioni.length>2) sondaggioForm.opzioni.splice(i,1);
+    renderForm();
+  };
+  renderForm();
+}
+
+function setSondaggioAutore(id){
+  sondaggioForm.autore=id;
+  MEMBERS.forEach(mb=>{
+    const btn=document.getElementById('sd-autore-'+mb.id); if(!btn) return;
+    btn.style.background=mb.id===id?mb.dot:'transparent';
+    btn.style.color=mb.id===id?'#fff':mb.dot;
+  });
+}
+
+async function saveSondaggio(){
+  const domanda=document.getElementById('sd-domanda').value.trim();
+  const opzioni=sondaggioForm.opzioni.map((_,i)=>document.getElementById('sd-op-'+i)?.value.trim()||'').filter(Boolean);
+  if(!domanda){ alert('Scrivi la domanda'); return; }
+  if(opzioni.length<2){ alert('Aggiungi almeno 2 opzioni'); return; }
+  const id='so'+Date.now();
+  const flds={ID:id,Domanda:domanda,Autore:sondaggioForm.autore||'antonio',Opzioni:opzioni.join('|'),Voti:'',Stato:'aperto',Data:REAL_TODAY};
+  const rec=await atPost('Sondaggi',flds);
+  sondaggi.unshift({...flds,id,opzioni,voti:{},_recId:rec.records?.[0]?.id});
+  closeModal();
+  // notifica in-app agli altri membri
+  if('Notification' in window && Notification.permission==='granted'){
+    new Notification('Casa Decino 🗳️',{body:`${M(flds.Autore).name} ha aperto un sondaggio: "${domanda}"`,icon:'/favicon.ico'});
+  }
+  switchView('sondaggi');
+}
+
 async function init(){
-  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm()]);
+  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi()]);
   render(); loadWeather();
   if('Notification' in window && Notification.permission==='default') Notification.requestPermission();
 }
 async function reloadAll(){
-  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm()]);
+  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi()]);
   render();
 }
 
