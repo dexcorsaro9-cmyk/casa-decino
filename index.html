@@ -1582,7 +1582,7 @@ async function saveDispensaItem(){
   if(btn){btn.disabled=true;btn.textContent='Salvataggio…';}
   const id='d'+Date.now();
   try{
-    const res=await atPost('Spesa',{Articolo:art,Comprato:false});
+    const res=await atPost('Spesa',{Articolo:art,Autore:dispensaForm.autore,Comprato:false});
     if(res.error){alert('Errore Airtable: '+(res.error.message||JSON.stringify(res.error)));if(btn){btn.disabled=false;btn.textContent='Aggiungi';}return;}
     if(!res.records?.[0]?.id){alert('Risposta inattesa:\n'+JSON.stringify(res).slice(0,300));if(btn){btn.disabled=false;btn.textContent='Aggiungi';}return;}
     const recId=res.records[0].id;
