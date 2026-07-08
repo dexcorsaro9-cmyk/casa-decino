@@ -3189,10 +3189,46 @@ async function attivaNotifiche(){
   aggiornaBottoneNotifiche();
 }
 
+const GIOCHI_NOMI={forza4:'Forza 4',tris:'Tris',impiccato:'Impiccato',morra:'Morra Cinese'};
+let invitiNotificati=JSON.parse(localStorage.getItem('casaDecino_invitiNotificati')||'[]');
+function segnaInvitoNotificato(id){
+  invitiNotificati.push(id);
+  if(invitiNotificati.length>200) invitiNotificati=invitiNotificati.slice(-200);
+  localStorage.setItem('casaDecino_invitiNotificati',JSON.stringify(invitiNotificati));
+}
+function controllaNuoviInviti(){
+  if(!('Notification' in window)||Notification.permission!=='granted') return;
+  const gruppi=[['forza4',f4Partite],['tris',trisPartite],['impiccato',impPartite],['morra',morraPartite]];
+  for(const[tipo,lista]of gruppi){
+    for(const p of lista){
+      if(p.giocatore2===f4Me&&p.stato==='aperta'&&!invitiNotificati.includes(p.id)){
+        segnaInvitoNotificato(p.id);
+        const sfidante=MEMBERS.find(m=>m.id===p.giocatore1)||{name:p.giocatore1};
+        new Notification(`🎮 Nuova sfida a ${GIOCHI_NOMI[tipo]}!`,{body:`${sfidante.name} ti ha sfidato. Vai su Giochi per rispondere!`,icon:'/icon-192.png'});
+      }
+    }
+  }
+}
+
+let invitiPollingId=null;
+function avviaPollingInviti(){
+  if(invitiPollingId) return;
+  invitiPollingId=setInterval(async()=>{
+    if(document.hidden) return;
+    await Promise.all([loadForza4(),loadTris(),loadImpiccato(),loadMorra()]);
+    controllaNuoviInviti();
+    if(view==='giochi') renderView(); else updateGiochiBadge();
+  },45000);
+}
+
 async function init(){
   await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra()]);
   render(); loadWeather();
   aggiornaBottoneNotifiche();
+  const primaPartite=[...f4Partite.map(p=>p.id),...trisPartite.map(p=>p.id),...impPartite.map(p=>p.id),...morraPartite.map(p=>p.id)];
+  invitiNotificati=Array.from(new Set([...invitiNotificati,...primaPartite]));
+  localStorage.setItem('casaDecino_invitiNotificati',JSON.stringify(invitiNotificati));
+  avviaPollingInviti();
 }
 async function reloadAll(){
   await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra()]);
