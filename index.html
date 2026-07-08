@@ -2664,10 +2664,10 @@ async function eliminaF4(partitaId){
   if(p._recId) atDelete('Forza4',p._recId);
 }
 
+let giochiTab='forza4';
+function setGiochiTab(t){ giochiTab=t; renderView(); }
+
 function giochiView(){
-  const me=MEMBERS.find(m=>m.id===f4Me)||MEMBERS[0];
-  const mie=f4Partite.filter(p=>p.giocatore1===f4Me||p.giocatore2===f4Me);
-  const altre=f4Partite.filter(p=>p.giocatore1!==f4Me&&p.giocatore2!==f4Me);
   const memberBtns=MEMBERS.map(m=>`<button onclick="f4SetMe('${m.id}')" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:20px;border:2px solid ${f4Me===m.id?m.dot:'var(--border-light)'};background:${f4Me===m.id?m.bg:'var(--card-bg)'};color:${f4Me===m.id?m.txt:'var(--text-sec)'};font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap"><span>${getIcon(m.id)}</span>${escH(m.name)}</button>`).join('');
   let html=`<div class="section-wrap">
     <div class="section-hdr"><span class="section-ttl">🎮 Giochi</span></div>
@@ -2676,14 +2676,30 @@ function giochiView(){
         <div style="font-size:11px;font-weight:800;color:var(--text-sec);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Chi sei?</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">${memberBtns}</div>
       </div>
-      <button onclick="openNuovaPartitaF4()" style="width:100%;padding:14px;border-radius:14px;background:#378ADD;color:#fff;font-size:15px;font-weight:800;border:none;cursor:pointer;margin-bottom:16px">🎲 Nuova partita Forza 4</button>`;
-  if(mie.length===0&&altre.length===0){ html+=`<div style="text-align:center;color:var(--text-sec);padding:30px 0;font-size:14px">Nessuna partita ancora.<br>Sfida un familiare!</div>`; }
-  for(const p of mie){
-    html+=`<div style="margin-bottom:16px">${renderF4Board(p)}</div>`;
-  }
-  if(altre.length>0){
-    html+=`<div style="font-size:12px;color:var(--text-sec);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 8px">Altre partite</div>`;
-    for(const p of altre){ html+=`<div style="margin-bottom:16px">${renderF4Board(p)}</div>`; }
+      <div style="display:flex;gap:6px;margin-bottom:16px;background:var(--main-bg);padding:6px;border-radius:14px">
+        <button onclick="setGiochiTab('forza4')" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='forza4'?'#378ADD':'transparent'};color:${giochiTab==='forza4'?'#fff':'var(--text-sec)'}">🔴 Forza 4</button>
+        <button onclick="setGiochiTab('tris')" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='tris'?'#378ADD':'transparent'};color:${giochiTab==='tris'?'#fff':'var(--text-sec)'}">❌ Tris</button>
+      </div>`;
+  if(giochiTab==='forza4'){
+    const mie=f4Partite.filter(p=>p.giocatore1===f4Me||p.giocatore2===f4Me);
+    const altre=f4Partite.filter(p=>p.giocatore1!==f4Me&&p.giocatore2!==f4Me);
+    html+=`<button onclick="openNuovaPartitaF4()" style="width:100%;padding:14px;border-radius:14px;background:#378ADD;color:#fff;font-size:15px;font-weight:800;border:none;cursor:pointer;margin-bottom:16px">🎲 Nuova partita Forza 4</button>`;
+    if(mie.length===0&&altre.length===0){ html+=`<div style="text-align:center;color:var(--text-sec);padding:30px 0;font-size:14px">Nessuna partita ancora.<br>Sfida un familiare!</div>`; }
+    for(const p of mie){ html+=`<div style="margin-bottom:16px">${renderF4Board(p)}</div>`; }
+    if(altre.length>0){
+      html+=`<div style="font-size:12px;color:var(--text-sec);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 8px">Altre partite</div>`;
+      for(const p of altre){ html+=`<div style="margin-bottom:16px">${renderF4Board(p)}</div>`; }
+    }
+  } else {
+    const mie=trisPartite.filter(p=>p.giocatore1===f4Me||p.giocatore2===f4Me);
+    const altre=trisPartite.filter(p=>p.giocatore1!==f4Me&&p.giocatore2!==f4Me);
+    html+=`<button onclick="openNuovaPartitaTris()" style="width:100%;padding:14px;border-radius:14px;background:#378ADD;color:#fff;font-size:15px;font-weight:800;border:none;cursor:pointer;margin-bottom:16px">❌ Nuova partita Tris</button>`;
+    if(mie.length===0&&altre.length===0){ html+=`<div style="text-align:center;color:var(--text-sec);padding:30px 0;font-size:14px">Nessuna partita ancora.<br>Sfida un familiare!</div>`; }
+    for(const p of mie){ html+=`<div style="margin-bottom:16px">${renderTrisBoard(p)}</div>`; }
+    if(altre.length>0){
+      html+=`<div style="font-size:12px;color:var(--text-sec);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 8px">Altre partite</div>`;
+      for(const p of altre){ html+=`<div style="margin-bottom:16px">${renderTrisBoard(p)}</div>`; }
+    }
   }
   html+=`</div></div>`;
   return html;
@@ -2712,13 +2728,135 @@ async function nuovaPartitaF4(avversarioId){
   }catch(e){ alert('Errore: '+e.message); }
 }
 
+/* ── TRIS ── */
+let trisPartite=[];
+
+async function loadTris(){
+  try{
+    const records=await atGetAll('Tris');
+    trisPartite=records.map(r=>({
+      _recId:r.id,
+      id:r.fields.ID||r.id,
+      griglia:(r.fields.Griglia&&r.fields.Griglia.length===9)?r.fields.Griglia:'.'.repeat(9),
+      turnoDi:r.fields.TurnoDi||'',
+      giocatore1:r.fields.Giocatore1||'',
+      giocatore2:r.fields.Giocatore2||'',
+      stato:r.fields.Stato||'aperta',
+      vincitore:r.fields.Vincitore||'',
+      data:r.fields.Data||''
+    }));
+  }catch(e){ trisPartite=[]; }
+}
+
+function trisCheckWinner(g){
+  const lines=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  for(const [a,b,c] of lines){
+    if(g[a]!=='.'&&g[a]===g[b]&&g[b]===g[c]) return g[a];
+  }
+  return null;
+}
+
+async function muoviTris(partitaId,idx){
+  const p=trisPartite.find(x=>x.id===partitaId); if(!p||p.stato!=='aperta') return;
+  const me=f4Me;
+  const myNum=(p.giocatore1===me)?'1':(p.giocatore2===me)?'2':null;
+  if(!myNum){ alert('Non sei un giocatore di questa partita'); return; }
+  if(p.turnoDi!==me){ alert('Non è il tuo turno!'); return; }
+  if(p.griglia[idx]!=='.') return;
+  const newG=p.griglia.slice(0,idx)+myNum+p.griglia.slice(idx+1);
+  const winner=trisCheckWinner(newG);
+  const patta=!winner&&!newG.includes('.');
+  const nextTurno=myNum==='1'?p.giocatore2:p.giocatore1;
+  const newStato=winner?'vinta':patta?'patta':'aperta';
+  const newVinc=winner?me:'';
+  p.griglia=newG; p.turnoDi=nextTurno; p.stato=newStato; p.vincitore=newVinc;
+  renderView();
+  try{
+    await atPatch('Tris',p._recId,{Griglia:newG,TurnoDi:nextTurno,Stato:newStato,Vincitore:newVinc});
+  }catch(e){ alert('Errore salvataggio mossa: '+e.message); }
+}
+
+function renderTrisBoard(p){
+  const me=f4Me;
+  const myNum=(p.giocatore1===me)?'1':(p.giocatore2===me)?'2':null;
+  const canPlay=p.stato==='aperta'&&p.turnoDi===me&&myNum;
+  const colors={'1':'#E74C3C','2':'#F39C12'};
+  const m1=MEMBERS.find(m=>m.id===p.giocatore1)||{name:p.giocatore1};
+  const m2=MEMBERS.find(m=>m.id===p.giocatore2)||{name:p.giocatore2};
+  let html=`<div style="background:var(--main-bg);border-radius:16px;padding:12px;max-width:300px;margin:0 auto">`;
+  html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <div style="display:flex;align-items:center;gap:6px">
+      <span style="font-weight:800;font-size:15px;color:#E74C3C">✕</span>
+      <span style="font-weight:700;font-size:13px;color:${p.turnoDi===p.giocatore1&&p.stato==='aperta'?'#E74C3C':'var(--text-sec)'}">${escH(m1.name)}</span>
+    </div>
+    <div style="font-size:11px;color:var(--text-sec);font-weight:700">VS</div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span style="font-weight:700;font-size:13px;color:${p.turnoDi===p.giocatore2&&p.stato==='aperta'?'#F39C12':'var(--text-sec)'}">${escH(m2.name)}</span>
+      <span style="font-weight:800;font-size:15px;color:#F39C12">○</span>
+    </div>
+  </div>`;
+  html+=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#1a3a6b;border-radius:12px;padding:8px">`;
+  for(let i=0;i<9;i++){
+    const v=p.griglia[i];
+    const clickable=canPlay&&v==='.';
+    html+=`<div onclick="${clickable?`muoviTris('${p.id}',${i})`:''}" style="aspect-ratio:1;background:rgba(255,255,255,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;cursor:${clickable?'pointer':'default'};color:${v==='1'?colors['1']:v==='2'?colors['2']:'transparent'}">${v==='1'?'✕':v==='2'?'○':''}</div>`;
+  }
+  html+=`</div>`;
+  if(p.stato==='vinta'){
+    const wm=MEMBERS.find(m=>m.id===p.vincitore)||{name:p.vincitore};
+    html+=`<div style="text-align:center;margin-top:10px;font-size:15px;font-weight:800;color:#378ADD">🏆 Ha vinto ${escH(wm.name)}!</div>`;
+  } else if(p.stato==='patta'){
+    html+=`<div style="text-align:center;margin-top:10px;font-size:15px;font-weight:800;color:var(--text-sec)">🤝 Patta!</div>`;
+  } else {
+    const tm=MEMBERS.find(m=>m.id===p.turnoDi)||{name:p.turnoDi};
+    html+=`<div style="text-align:center;margin-top:10px;font-size:13px;color:var(--text-sec)">Turno di <b style="color:${p.turnoDi===p.giocatore1?'#E74C3C':'#F39C12'}">${escH(tm.name)}</b></div>`;
+  }
+  if(p.giocatore1===me){
+    html+=`<div style="text-align:right;margin-top:8px"><button onclick="eliminaTris('${p.id}')" style="background:none;border:none;color:#ff3b30;font-size:12px;font-weight:700;cursor:pointer;padding:4px 8px">🗑 Elimina partita</button></div>`;
+  }
+  html+=`</div>`;
+  return html;
+}
+
+async function eliminaTris(partitaId){
+  const p=trisPartite.find(x=>x.id===partitaId); if(!p) return;
+  if(p.giocatore1!==f4Me){ alert('Solo chi ha creato la partita può eliminarla'); return; }
+  if(!confirm('Eliminare questa partita?')) return;
+  trisPartite=trisPartite.filter(x=>x.id!==partitaId);
+  renderView();
+  if(p._recId) atDelete('Tris',p._recId);
+}
+
+function openNuovaPartitaTris(){
+  const altri=MEMBERS.filter(m=>m.id!==f4Me);
+  let opts=altri.map(m=>`<button onclick="nuovaPartitaTris('${m.id}')" style="width:100%;padding:14px;border-radius:14px;border:1.5px solid var(--border-light);background:var(--card-bg);color:var(--text-main);font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;gap:12px"><span style="font-size:22px">${m.icon}</span><span>${escH(m.name)}</span></button>`).join('');
+  document.getElementById('modal-box').innerHTML=`
+    <div class="modal-hdr"><span class="modal-ttl">❌ Sfida un familiare</span><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div style="padding:10px 0">${opts}</div>`;
+  showOv();
+}
+
+async function nuovaPartitaTris(avversarioId){
+  closeModal();
+  const id='tr'+Date.now();
+  const flds={ID:id,Griglia:'.'.repeat(9),TurnoDi:f4Me,Giocatore1:f4Me,Giocatore2:avversarioId,Stato:'aperta',Vincitore:'',Data:REAL_TODAY};
+  try{
+    const res=await atPost('Tris',flds);
+    if(res.error){ alert('Errore Airtable: '+(res.error.message||JSON.stringify(res.error))); return; }
+    if(!res.records?.[0]?.id){ alert('Risposta inattesa:\n'+JSON.stringify(res).slice(0,400)); return; }
+    const recId=res.records[0].id;
+    trisPartite.unshift({_recId:recId,id:id,griglia:flds.Griglia,turnoDi:flds.TurnoDi,giocatore1:flds.Giocatore1,giocatore2:flds.Giocatore2,stato:flds.Stato,vincitore:'',data:flds.Data});
+    switchView('giochi');
+  }catch(e){ alert('Errore: '+e.message); }
+}
+
 async function init(){
-  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4()]);
+  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris()]);
   render(); loadWeather();
   if('Notification' in window && Notification.permission==='default') Notification.requestPermission();
 }
 async function reloadAll(){
-  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4()]);
+  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris()]);
   render();
 }
 
