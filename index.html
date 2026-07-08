@@ -821,7 +821,7 @@ async function saveEvt(){
   const fields={ID:isEdit?editId:uid(),Titolo:window.form.title,Data:window.form.date,'Ora Inizio':window.form.startTime,'Ora Fine':window.form.endTime,Membro:window.form.members.join(','),Categoria:window.form.category,'Trasporto Tipo':window.form.transport.type,'Trasporto Da':window.form.transport.by,'Trasporto Note':window.form.transport.note,Note:window.form.notes};
   if(isEdit){
     const ev=events.find(e=>e.id===editId);
-    if(ev){Object.assign(ev,{...window.form,id:editId,_recId:ev._recId});atPatch('Events',ev._recId,fields);}
+    if(ev){Object.assign(ev,{...window.form,id:editId,_recId:ev._recId});await atPatch('Events',ev._recId,fields);}
   } else {
     const res=await atPost('Events',fields);
     events.push({...window.form,id:fields.ID,_recId:res.records?.[0]?.id});
@@ -1138,7 +1138,7 @@ async function saveRicorrenza(){
   const fields={ID:isEdit?ricEditId:uid(),Titolo:ricForm.title,Data:ricForm.date,Tipo:ricForm.type,Membro:ricForm.member||''};
   if(isEdit){
     const r=ricorrenze.find(r=>r.id===ricEditId);
-    if(r){Object.assign(r,{...ricForm,id:ricEditId,_recId:r._recId});atPatch('Ricorrenze',r._recId,fields);}
+    if(r){Object.assign(r,{...ricForm,id:ricEditId,_recId:r._recId});await atPatch('Ricorrenze',r._recId,fields);}
   } else {
     const res=await atPost('Ricorrenze',fields);
     ricorrenze.push({...ricForm,id:fields.ID,_recId:res.records?.[0]?.id});
@@ -1351,7 +1351,7 @@ async function approveLog(id,approved){
   if(i<0)return;
   const status=approved?'approved':'rejected';
   challengeLog[i].status=status; challengeLog[i].approvedAt=REAL_TODAY;
-  if(challengeLog[i]._recId) atPatch('ChallengeLog',challengeLog[i]._recId,{Stato:status,DataApprovazione:REAL_TODAY});
+  if(challengeLog[i]._recId) await atPatch('ChallengeLog',challengeLog[i]._recId,{Stato:status,DataApprovazione:REAL_TODAY});
   renderView();
 }
 
@@ -1361,7 +1361,7 @@ async function savePremio(){
   const key=`premio_${curYM}`;
   const recId=challengeSettings[`_recId_${key}`];
   challengeSettings[key]=val;
-  if(recId){ atPatch('ChallengeSettings',recId,{Valore:val}); }
+  if(recId){ await atPatch('ChallengeSettings',recId,{Valore:val}); }
   else { const res=await atPost('ChallengeSettings',{Chiave:key,Valore:val}); challengeSettings[`_recId_${key}`]=res.records?.[0]?.id; }
   alert('Premio salvato! 🎁');
 }
@@ -1371,7 +1371,7 @@ async function savePin(){
   if(val.length<4){alert('Il PIN deve essere di almeno 4 caratteri');return;}
   const recId=challengeSettings['_recId_pin'];
   challengeSettings['pin']=val;
-  if(recId){ atPatch('ChallengeSettings',recId,{Valore:val}); }
+  if(recId){ await atPatch('ChallengeSettings',recId,{Valore:val}); }
   else { const res=await atPost('ChallengeSettings',{Chiave:'pin',Valore:val}); challengeSettings['_recId_pin']=res.records?.[0]?.id; }
   alert('PIN aggiornato! 🔐');
 }
@@ -1545,7 +1545,7 @@ async function loadDispensa(){
 async function toggleDispensaItem(id){
   const it=dispensaItems.find(i=>i.id===id); if(!it) return;
   it.comprato=!it.comprato;
-  if(it._recId) atPatch('Spesa',it._recId,{Comprato:it.comprato?'si':'no'});
+  if(it._recId) await atPatch('Spesa',it._recId,{Comprato:it.comprato?'si':'no'});
   renderView();
 }
 
@@ -2256,22 +2256,27 @@ async function saveFilm(){
   const id='fl'+Date.now();
   const flds={ID:id,Titolo:filmForm.titolo,Tipo:filmForm.tipo,Anno:filmForm.anno,Locandina:filmForm.locandina,ImdbId:filmForm.imdbId,ConsigliatoDa:filmForm.consigliatoDa,Nota:filmForm.nota,VistiDa:'',Voti:''};
   const rec=await atPost('Film',flds);
-  film.push({...filmForm,id,vistiDa:[],_recId:rec.records?.[0]?.id});
+  film.push({...filmForm,id,vistiDa:[],voti:{},_recId:rec.records?.[0]?.id});
   closeModal(); renderView();
 }
 
 async function toggleVistoFilm(filmId, memberId){
   const f=film.find(x=>x.id===filmId); if(!f) return;
+  if(!f.voti) f.voti={};
   const idx=f.vistiDa.indexOf(memberId);
   if(idx>=0) f.vistiDa.splice(idx,1); else f.vistiDa.push(memberId);
   if(idx>=0) delete f.voti[memberId];
   const votiStr=Object.entries(f.voti).map(([k,v])=>`${k}:${v}`).join(',');
-  if(f._recId) await atPatch('Film',f._recId,{VistiDa:f.vistiDa.join(','),Voti:votiStr});
+  if(f._recId){
+    try{ await atPatch('Film',f._recId,{VistiDa:f.vistiDa.join(','),Voti:votiStr}); }
+    catch(e){ alert('Errore salvataggio: '+e.message); }
+  } else { alert('Film non ancora salvato su Airtable, ricarica la pagina e riprova'); return; }
   renderView();
 }
 
 async function setVotoFilm(filmId, memberId, voto){
   const f=film.find(x=>x.id===filmId); if(!f) return;
+  if(!f.voti) f.voti={};
   if(f.voti[memberId]===voto) delete f.voti[memberId]; else f.voti[memberId]=voto;
   const votiStr=Object.entries(f.voti).map(([k,v])=>`${k}:${v}`).join(',');
   if(f._recId) await atPatch('Film',f._recId,{Voti:votiStr});
