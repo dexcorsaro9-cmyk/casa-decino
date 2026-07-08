@@ -904,7 +904,27 @@ function switchView(v){
   renderView();
 }
 
-function renderView(){ const el=document.getElementById('view'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else if(view==='sondaggi')el.innerHTML=sondaggiView(); else if(view==='giochi')el.innerHTML=giochiView(); else el.innerHTML=ricorrenzeView(); }
+function renderView(){ const el=document.getElementById('view'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else if(view==='sondaggi')el.innerHTML=sondaggiView(); else if(view==='giochi')el.innerHTML=giochiView(); else el.innerHTML=ricorrenzeView(); updateGiochiBadge(); }
+
+function updateGiochiBadge(){
+  const tab=document.getElementById('t-giochi'); if(!tab) return;
+  const mioTurno=p=>p.stato==='aperta'&&p.turnoDi===f4Me&&(p.giocatore1===f4Me||p.giocatore2===f4Me);
+  const mioTurnoMorra=p=>{
+    if(p.stato!=='aperta') return false;
+    const myNum=(p.giocatore1===f4Me)?1:(p.giocatore2===f4Me)?2:null;
+    if(!myNum) return false;
+    return myNum===1?!p.mossa1:!p.mossa2;
+  };
+  const mioTurnoImp=p=>p.stato==='aperta'&&p.giocatore2===f4Me;
+  const haTurno=(typeof f4Partite!=='undefined'&&f4Partite.some(mioTurno))
+    ||(typeof trisPartite!=='undefined'&&trisPartite.some(mioTurno))
+    ||(typeof impPartite!=='undefined'&&impPartite.some(mioTurnoImp))
+    ||(typeof morraPartite!=='undefined'&&morraPartite.some(mioTurnoMorra));
+  let dot=tab.querySelector('.giochi-badge-dot');
+  if(haTurno){
+    if(!dot){ dot=document.createElement('span'); dot.className='giochi-badge-dot'; dot.style.cssText='display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff3b30;margin-left:4px;vertical-align:middle'; tab.appendChild(dot); }
+  } else if(dot){ dot.remove(); }
+}
 
 /* ── VISTA OGGI COMPLETA ── */
 function bdayBanners(d_str){
@@ -3205,7 +3225,22 @@ document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==
   },{passive:true});
 })();
 
-if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').then(reg=>{
+    reg.addEventListener('updatefound',()=>{
+      const nuovo=reg.installing;
+      nuovo.addEventListener('statechange',()=>{
+        if(nuovo.state==='activated') location.reload();
+      });
+    });
+  });
+  let refreshing=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(refreshing) return;
+    refreshing=true;
+    location.reload();
+  });
+}
 </script>
 </body>
 </html>
