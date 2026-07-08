@@ -618,6 +618,7 @@
         <button class="tab" id="t-bacheca"    onclick="switchView('bacheca')">📌 Bacheca</button>
         <button class="tab" id="t-dispensa"   onclick="switchView('dispensa')">🛒 Dispensa</button>
         <button class="tab" id="t-ricordi"    onclick="switchView('ricordi')">📸 Ricordi</button>
+        <button class="tab" id="t-viaggi"     onclick="switchView('viaggi')">🌍 Viaggi</button>
       </div>
     </div>
     <div class="content" id="view"></div>
@@ -844,21 +845,22 @@ function inlineFilters(){
     </div>`).join('')}</div>`;
 }
 function toggleF(id){ if(filters.includes(id)){if(filters.length>1)filters=filters.filter(f=>f!==id);}else filters.push(id); render(); }
-function hdrAdd(){if(view==='ricorrenze')openRicModal(null);else if(view==='bacheca')openBachecaModal();else if(view==='dispensa')openDispensaModal();else if(view==='ricordi')openFotoModal();else openModal(null);}
+function hdrAdd(){if(view==='ricorrenze')openRicModal(null);else if(view==='bacheca')openBachecaModal();else if(view==='dispensa')openDispensaModal();else if(view==='ricordi')openFotoModal();else if(view==='viaggi')openViaggioModal();else openModal(null);}
 
 function switchView(v){
-  view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge','t-bacheca','t-dispensa','t-ricordi'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
+  view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge','t-bacheca','t-dispensa','t-ricordi','t-viaggi'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
   const tab=document.getElementById('t-'+v); if(tab) tab.classList.add('active');
   const fab=document.getElementById('fab-add'); const fabTxt=document.getElementById('fab-text');
   if(v==='challenge'){ fab.style.display='none'; }
   else if(v==='bacheca'){ fab.style.display='inline-flex'; fabTxt.innerText='Post-it'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='📌'; }
   else if(v==='dispensa'){ fab.style.display='inline-flex'; fabTxt.innerText='Articolo'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='🛒'; }
   else if(v==='ricordi'){ fab.style.display='inline-flex'; fabTxt.innerText='Foto'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='📸'; }
+  else if(v==='viaggi'){ fab.style.display='inline-flex'; fabTxt.innerText='Viaggio'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='🌍'; }
   else { fab.style.display='inline-flex'; fabTxt.innerText=(v==='ricorrenze')?'Ricorrenza':'Impegno'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='📝'; }
   renderView();
 }
 
-function renderView(){ const el=document.getElementById('view'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else el.innerHTML=ricorrenzeView(); }
+function renderView(){ const el=document.getElementById('view'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else el.innerHTML=ricorrenzeView(); }
 
 /* ── VISTA OGGI COMPLETA ── */
 function bdayBanners(d_str){
@@ -960,7 +962,7 @@ function todayView(){
   });
   if(!activeHtml) activeHtml=`<div class="empty-state"><span class="big">🛋️</span><div style="font-size:16px;font-weight:700;">Nessun impegno in famiglia</div></div>`;
   if(freeMembers.length>0 && activeHtml.indexOf('empty-state')===-1){ activeHtml+=`<div style="margin-top:24px;padding-top:16px;border-top:1px dashed var(--border-light);text-align:center"><div class="sec-lbl" style="text-align:center">🎉 Liberi oggi</div><div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px">${freeMembers.map(m => `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--main-bg);padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;color:var(--text-main)"><span style="font-size:14px">${getIcon(m.id)}</span>${m.name}</span>`).join('')}</div></div>`; }
-  return h+activeHtml+`<div style="margin-top:24px">`+dispensaWidget()+`</div>`+`<div style="margin-top:16px">`+challengeWidget()+`</div>`+`<div style="margin-top:16px">`+ricordiWidget()+`</div>`;
+  return h+activeHtml+`<div style="margin-top:24px">`+dispensaWidget()+`</div>`+`<div style="margin-top:16px">`+challengeWidget()+`</div>`+`<div style="margin-top:16px">`+ricordiWidget()+`</div>`+(viaggi.length?`<div style="margin-top:16px">`+viaggiWidget()+`</div>`:'');
 }
 
 function evCard(e, mContext){
@@ -1747,7 +1749,204 @@ function ricordiWidget(){
   </div>`;
 }
 
-async function init(){ await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi()]); render(); loadWeather(); }
+/* ── VIAGGI & GLOBO 3D ── */
+let viaggi = [];
+let viaggioForm = { luogo:'', nota:'', data:REAL_TODAY, membri:['antonio'], lat:null, lng:null };
+
+async function loadViaggi(){
+  try{
+    const records = await atGetAll('Viaggi');
+    viaggi = records.map(r=>({_recId:r.id, id:r.fields.ID||r.id, luogo:r.fields.Luogo||'', nota:r.fields.Nota||'', data:r.fields.Data||'', membri:(r.fields.Membri||'antonio').split(',').map(s=>s.trim()).filter(Boolean), lat:+r.fields.Lat||0, lng:+r.fields.Lng||0}));
+  } catch(e){ viaggi=[]; }
+}
+
+function viaggiWidget(){
+  const sorted=[...viaggi].sort((a,b)=>b.data.localeCompare(a.data)).slice(0,4);
+  return `<div onclick="switchView('viaggi')" style="cursor:pointer;background:linear-gradient(145deg,#081428 0%,#0d2a50 60%,#1a3a6e 100%);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:20px;box-shadow:0 8px 28px rgba(8,20,40,0.5),0 2px 8px rgba(55,138,221,0.2)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <span style="font-size:12px;font-weight:800;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.07em">🌍 I nostri viaggi — ${viaggi.length} posti</span>
+      <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.45);background:rgba(255,255,255,0.09);padding:3px 10px;border-radius:20px">Vedi globo →</span>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${sorted.map(v=>{ const m=v.membri.length?M(v.membri[0]):MEMBERS[0]; return `<div style="background:rgba(255,255,255,0.1);border-radius:20px;padding:6px 12px;font-size:12px;font-weight:700;color:#fff;display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:50%;background:${m.dot};display:inline-block"></span>${escH(v.luogo)}</div>`; }).join('')}
+      ${viaggi.length>4?`<div style="background:rgba(255,255,255,0.06);border-radius:20px;padding:6px 12px;font-size:12px;font-weight:700;color:rgba(255,255,255,0.4)">+${viaggi.length-4} altri</div>`:''}
+    </div>
+  </div>`;
+}
+
+function viaggiView(){
+  const sorted=[...viaggi].sort((a,b)=>b.data.localeCompare(a.data));
+  const listHtml = sorted.length ? sorted.map(v=>{
+    const m=v.membri.length?M(v.membri[0]):MEMBERS[0];
+    return `<div class="ev-card" style="${ms(m)}">
+      <div class="ev-strip" style="background:${m.dot}"></div>
+      <div style="font-size:22px;margin-right:2px">📍</div>
+      <div class="ev-info">
+        <div class="ev-title">${escH(v.luogo)}</div>
+        <div style="font-size:12px;margin-top:3px;font-weight:600;display:flex;align-items:center;gap:6px">${v.data?fmtDateShort(v.data):''} <span>${v.membri.map(mid=>getIcon(M(mid).id)).join('')}</span></div>
+        ${v.nota?`<div class="ev-note">📝 ${escH(v.nota)}</div>`:''}
+      </div>
+      <button class="del-btn" onclick="event.stopPropagation();deleteViaggio('${v.id}')">✕</button>
+    </div>`;
+  }).join('') : `<div class="empty-state"><span class="big">✈️</span><div style="font-size:16px;font-weight:700">Nessun viaggio ancora</div><div style="font-size:13px;margin-top:6px;color:var(--text-sec)">Aggiungi il primo posto visitato!</div></div>`;
+
+  return `<div style="margin-bottom:14px"><div class="sec-lbl">🌍 Mappa dei nostri viaggi</div></div>
+    <div id="globe-wrap" style="width:100%;height:400px;border-radius:var(--radius-lg);overflow:hidden;background:linear-gradient(180deg,#000510 0%,#050d1f 100%);box-shadow:var(--shadow-md);margin-bottom:20px;position:relative">
+      <div id="globe-container" style="width:100%;height:100%"></div>
+      <div id="globe-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.5);font-size:14px;font-weight:600">⏳ Caricamento globo…</div>
+    </div>
+    <div class="sec-lbl">📍 Tutti i posti visitati</div>
+    ${listHtml}`;
+}
+
+function loadGlobeScript(){
+  return new Promise(resolve=>{
+    if(window.Globe){resolve();return;}
+    const s=document.createElement('script');
+    s.src='https://unpkg.com/globe.gl@2';
+    s.onload=resolve;
+    s.onerror=resolve;
+    document.head.appendChild(s);
+  });
+}
+
+async function initGlobe(){
+  await loadGlobeScript();
+  const container=document.getElementById('globe-container');
+  const loading=document.getElementById('globe-loading');
+  if(!container) return;
+  if(!window.Globe){ if(loading) loading.innerHTML='⚠️ Globo non disponibile su questo browser'; return; }
+  if(loading) loading.style.display='none';
+
+  const points=viaggi.filter(v=>v.lat&&v.lng).map(v=>{
+    const m=v.membri.length?M(v.membri[0]):MEMBERS[0];
+    return {lat:v.lat, lng:v.lng, color:m.dot, label:v.luogo, id:v.id};
+  });
+
+  if(!document.getElementById('heartbeat-style')){
+    const st=document.createElement('style');
+    st.id='heartbeat-style';
+    st.textContent='@keyframes heartbeat{0%,100%{transform:scale(1)}30%{transform:scale(1.35)}60%{transform:scale(1.1)}}';
+    document.head.appendChild(st);
+  }
+
+  const htmlPoints=[
+    {lat:41.99, lng:12.72, type:'home', label:'Casa Decino'},
+    ...viaggi.filter(v=>v.lat&&v.lng).map(v=>({lat:v.lat,lng:v.lng,type:'viaggio',label:v.luogo,id:v.id}))
+  ];
+
+  const g=Globe()(container)
+    .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-night.jpg')
+    .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
+    .htmlElementsData(htmlPoints)
+    .htmlLat('lat').htmlLng('lng')
+    .htmlElement(d=>{
+      const el=document.createElement('div');
+      if(d.type==='home'){
+        el.innerHTML='🏠';
+        el.style.cssText='font-size:22px;cursor:default;filter:drop-shadow(0 0 8px rgba(255,220,100,0.9));animation:heartbeat 1.4s ease-in-out infinite';
+      } else {
+        el.innerHTML='❤️';
+        el.style.cssText='font-size:18px;cursor:pointer;filter:drop-shadow(0 0 6px rgba(255,80,80,0.8));animation:heartbeat 1.4s ease-in-out infinite';
+        el.style.animationDelay=Math.random()*0.8+'s';
+        el.title=d.label;
+        el.onclick=()=>{ const v=viaggi.find(v=>v.id===d.id); if(v) openViaggioDetail(v); };
+      }
+      return el;
+    })
+    .htmlAltitude(0.06)
+    .width(container.clientWidth).height(container.clientHeight);
+
+  g.controls().autoRotate=true;
+  g.controls().autoRotateSpeed=0.6;
+  g.controls().enableZoom=true;
+
+  // Centra sull'Europa all'avvio
+  g.pointOfView({lat:46,lng:12,altitude:2.2},1000);
+}
+
+function openViaggioDetail(v){
+  const membriHtml=v.membri.map(mid=>{ const m=M(mid); return `<span style="display:inline-flex;align-items:center;gap:4px;background:${m.bg};color:${m.txt};padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700">${getIcon(m.id)} ${m.name}</span>`; }).join('');
+  document.getElementById('modal-box').innerHTML=`
+    <div class="modal-hdr"><div class="modal-ttl">📍 ${escH(v.luogo)}</div><button class="cl-btn" onclick="closeModal()">✕</button></div>
+    <div style="padding:8px 0">
+      ${v.data?`<div style="font-size:13px;color:var(--text-sec);font-weight:600;margin-bottom:12px">📅 ${fmtDateShort(v.data)}</div>`:''}
+      ${v.nota?`<div style="background:var(--main-bg);border-radius:var(--radius-md);padding:14px;font-size:14px;font-weight:600;margin-bottom:16px;border:1px solid var(--border-light)">💬 ${escH(v.nota)}</div>`:''}
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">${membriHtml}</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px dashed var(--border-light)">
+      <button class="btn-del-ev" onclick="deleteViaggio('${v.id}');closeModal()">🗑 Elimina</button>
+      <button class="btn-cancel" onclick="closeModal()">Chiudi</button>
+    </div>`;
+  showOv();
+}
+
+function openViaggioModal(){
+  viaggioForm={luogo:'',nota:'',data:REAL_TODAY,membri:['antonio'],lat:null,lng:null};
+  renderViaggioModal(); showOv();
+}
+
+function renderViaggioModal(){
+  const mbrBtns=MEMBERS.map(m=>`<button class="tr-btn${viaggioForm.membri.includes(m.id)?' sel':''}" onclick="toggleVMbr('${m.id}')" style="${viaggioForm.membri.includes(m.id)?ms(m):''}">${getIcon(m.id)} ${m.name}</button>`).join('');
+  const geoStatus=viaggioForm.lat
+    ?`<span style="color:#16a34a;font-size:12px;font-weight:700">✅ Trovato! (${viaggioForm.lat.toFixed(3)}, ${viaggioForm.lng.toFixed(3)})</span>`
+    :`<span style="color:var(--text-sec);font-size:12px;font-weight:600">Premi 🔍 dopo aver scritto il luogo</span>`;
+  document.getElementById('modal-box').innerHTML=`
+    <div class="modal-hdr"><div class="modal-ttl">🌍 Nuovo Viaggio</div><button class="cl-btn" onclick="closeModal()">✕</button></div>
+    <div class="fgrp"><label class="flbl">Luogo</label>
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <input type="text" id="v-luogo" value="${escH(viaggioForm.luogo)}" placeholder="Es. Parigi, Barcellona, New York…" oninput="viaggioForm.luogo=this.value;viaggioForm.lat=null;viaggioForm.lng=null" style="flex:1;margin-top:0">
+        <button class="btn-save" onclick="cercaCoordinate()" style="padding:12px 14px;white-space:nowrap;margin-top:0">🔍</button>
+      </div>
+      <div style="margin-top:8px">${geoStatus}</div>
+    </div>
+    <div class="fgrp"><label class="flbl">Data</label><input type="date" value="${viaggioForm.data}" onchange="viaggioForm.data=this.value" style="width:100%"></div>
+    <div class="fgrp"><label class="flbl">Note (opzionale)</label><input type="text" id="v-nota" value="${escH(viaggioForm.nota)}" placeholder="Es. Vacanza estiva bellissima!" oninput="viaggioForm.nota=this.value" style="width:100%"></div>
+    <div class="fgrp"><label class="flbl">Chi c'era</label><div class="tr-opts">${mbrBtns}</div></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Annulla</button><button class="btn-save" onclick="saveViaggio()">Salva</button></div>`;
+}
+
+function toggleVMbr(id){ if(viaggioForm.membri.includes(id)){if(viaggioForm.membri.length>1)viaggioForm.membri=viaggioForm.membri.filter(x=>x!==id);}else viaggioForm.membri.push(id); renderViaggioModal(); }
+
+async function cercaCoordinate(){
+  const luogo=document.getElementById('v-luogo')?.value.trim();
+  if(!luogo){alert('Scrivi prima il nome del luogo');return;}
+  viaggioForm.luogo=luogo;
+  document.querySelector('#modal-box .fgrp div[style*="margin-top:8px"]').innerHTML='<span style="color:var(--text-sec);font-size:12px">⏳ Ricerca in corso…</span>';
+  try{
+    const res=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(luogo)}&format=json&limit=1&accept-language=it`);
+    const data=await res.json();
+    if(data.length>0){
+      viaggioForm.lat=parseFloat(data[0].lat);
+      viaggioForm.lng=parseFloat(data[0].lon);
+      const nome=data[0].display_name.split(',')[0];
+      if(nome && nome.length<40) viaggioForm.luogo=nome;
+    } else { alert('Posto non trovato. Prova con un nome più specifico.'); }
+  } catch(e){ alert('Errore nella ricerca. Controlla la connessione.'); }
+  renderViaggioModal();
+}
+
+async function saveViaggio(){
+  const luogo=document.getElementById('v-luogo')?.value.trim()||viaggioForm.luogo;
+  if(!luogo){alert('Inserisci un luogo');return;}
+  if(!viaggioForm.lat){alert('Premi 🔍 per trovare le coordinate del luogo');return;}
+  viaggioForm.luogo=luogo;
+  const id='v'+Date.now();
+  const fields={ID:id,Luogo:viaggioForm.luogo,Nota:viaggioForm.nota,Data:viaggioForm.data,Membri:viaggioForm.membri.join(','),Lat:viaggioForm.lat,Lng:viaggioForm.lng};
+  const res=await atPost('Viaggi',fields);
+  viaggi.push({...fields,id,membri:viaggioForm.membri,lat:viaggioForm.lat,lng:viaggioForm.lng,_recId:res.records?.[0]?.id});
+  closeModal(); renderView();
+}
+
+async function deleteViaggio(id){
+  if(!confirm('Rimuovere questo viaggio?'))return;
+  const v=viaggi.find(v=>v.id===id);
+  viaggi=viaggi.filter(v=>v.id!==id);
+  if(v?._recId) atDelete('Viaggi',v._recId);
+  renderView();
+}
+
+async function init(){ await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi()]); render(); loadWeather(); }
 init();
 
 if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
