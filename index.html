@@ -2253,11 +2253,17 @@ function renderFilmModal(){
 
 async function saveFilm(){
   if(!filmForm.titolo){ alert('Seleziona un film dalla ricerca'); return; }
+  const btn=document.querySelector('#modal-box .btn-save');
+  if(btn){ btn.disabled=true; btn.textContent='Salvataggio…'; }
   const id='fl'+Date.now();
-  const flds={ID:id,Titolo:filmForm.titolo,Tipo:filmForm.tipo,Anno:filmForm.anno,Locandina:filmForm.locandina,ImdbId:filmForm.imdbId,ConsigliatoDa:filmForm.consigliatoDa,Nota:filmForm.nota,VistiDa:'',Voti:''};
-  const rec=await atPost('Film',flds);
-  film.push({...filmForm,id,vistiDa:[],voti:{},_recId:rec.records?.[0]?.id});
-  closeModal(); renderView();
+  const flds={ID:id,Titolo:filmForm.titolo,Tipo:filmForm.tipo,Anno:String(filmForm.anno||''),Locandina:filmForm.locandina,ImdbId:filmForm.imdbId,ConsigliatoDa:filmForm.consigliatoDa,Nota:filmForm.nota};
+  try{
+    const rec=await atPost('Film',flds);
+    if(rec.error){ alert('Errore Airtable: '+(rec.error.message||JSON.stringify(rec.error))); if(btn){btn.disabled=false;btn.textContent='Salva';} return; }
+    if(!rec.records?.[0]?.id){ alert('Risposta Airtable inattesa:\n'+JSON.stringify(rec).slice(0,300)); if(btn){btn.disabled=false;btn.textContent='Salva';} return; }
+    film.push({...filmForm,id,vistiDa:[],voti:{},_recId:rec.records[0].id});
+    closeModal(); renderView();
+  } catch(e){ alert('Errore di rete: '+e.message+'\nRiprova tra qualche secondo.'); if(btn){btn.disabled=false;btn.textContent='Salva';} }
 }
 
 async function toggleVistoFilm(filmId, memberId){
