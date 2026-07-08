@@ -2648,8 +2648,17 @@ function renderF4Board(p){
     const tm=MEMBERS.find(m=>m.id===p.turnoDi)||{name:p.turnoDi};
     html+=`<div style="text-align:center;margin-top:10px;font-size:13px;color:var(--text-sec)">Turno di <b style="color:${p.turnoDi===p.giocatore1?'#E74C3C':'#F39C12'}">${escH(tm.name)}</b></div>`;
   }
+  html+=`<div style="text-align:right;margin-top:8px"><button onclick="eliminaF4('${p.id}')" style="background:none;border:none;color:#ff3b30;font-size:12px;font-weight:700;cursor:pointer;padding:4px 8px">🗑 Elimina partita</button></div>`;
   html+=`</div>`;
   return html;
+}
+
+async function eliminaF4(partitaId){
+  if(!confirm('Eliminare questa partita?')) return;
+  const p=f4Partite.find(x=>x.id===partitaId); if(!p) return;
+  f4Partite=f4Partite.filter(x=>x.id!==partitaId);
+  renderView();
+  if(p._recId) atDelete('Forza4',p._recId);
 }
 
 function giochiView(){
