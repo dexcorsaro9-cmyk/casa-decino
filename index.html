@@ -1350,6 +1350,15 @@ function adminView(){
   });
   h+=`</div>`;
 
+  const approvate=challengeLog.filter(l=>l.status==='approved').sort((a,b)=>b.date.localeCompare(a.date)).slice(0,30);
+  h+=`<div class="ch-admin-sec"><div class="sec-lbl" style="margin-bottom:14px">✅ Punti Assegnati (ultimi ${approvate.length})</div>`;
+  if(!approvate.length) h+=`<div style="text-align:center;color:var(--text-sec);font-size:13px;padding:12px;font-weight:600">Nessun punto assegnato ancora</div>`;
+  else approvate.forEach(item=>{
+    const m=M(item.member);
+    h+=`<div class="pending-row"><div class="avatar" style="${ms(m)};width:32px;height:32px;font-size:16px">${getIcon(m.id)}</div><div style="flex:1"><div style="font-weight:700;font-size:13px">${m.name} — ${escH(item.taskTitle)}</div><div style="font-size:11px;color:var(--text-sec)">📅 ${item.date} · ⭐ ${item.points}pt</div></div><button onclick="annullaApprovazione('${item.id}')" style="background:#F8D7DA;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:11px;font-weight:700;color:#721c24">↩ Annulla</button></div>`;
+  });
+  h+=`</div>`;
+
   h+=`<div class="ch-admin-sec">
     <div class="sec-lbl" style="margin-bottom:14px">🎁 Premio Mese Corrente (${curYM})</div>
     <div class="fgrp"><input type="text" id="ch-premio" value="${escH(premio)}" placeholder="Es. Pizza fuori, 10€, Serata Netflix…" style="width:100%"></div>
@@ -1389,6 +1398,11 @@ async function approveLog(id,approved){
   challengeLog[i].status=status; challengeLog[i].approvedAt=REAL_TODAY;
   if(challengeLog[i]._recId) await atPatch('ChallengeLog',challengeLog[i]._recId,{Stato:status,DataApprovazione:REAL_TODAY});
   renderView();
+}
+
+async function annullaApprovazione(id){
+  if(!confirm('Annullare i punti già assegnati per questa sfida?')) return;
+  await approveLog(id,false);
 }
 
 async function savePremio(){
@@ -2566,6 +2580,20 @@ async function saveSondaggio(){
   const ov=document.getElementById('modal-ov'); ov.style.display='flex'; ov.style.alignItems='center';
 }
 
+function puoEliminarePartita(p){
+  const orfana=!MEMBERS.some(m=>m.id===p.giocatore1);
+  return p.giocatore1===f4Me||orfana;
+}
+async function eliminaPartitaGenerica(lista,setLista,tabella,partitaId){
+  const p=lista.find(x=>x.id===partitaId); if(!p) return null;
+  if(!puoEliminarePartita(p)){ alert('Solo chi ha creato la partita può eliminarla'); return null; }
+  if(!confirm('Eliminare questa partita?')) return null;
+  setLista(lista.filter(x=>x.id!==partitaId));
+  renderView();
+  if(p._recId) atDelete(tabella,p._recId);
+  return p;
+}
+
 /* ── FORZA 4 ── */
 let f4Partite=[];
 let f4Me=localStorage.getItem('casaDecino_f4me')||'antonio';
@@ -2682,8 +2710,7 @@ function renderF4Board(p){
     const tm=MEMBERS.find(m=>m.id===p.turnoDi)||{name:p.turnoDi};
     html+=`<div style="text-align:center;margin-top:10px;font-size:13px;color:var(--text-sec)">Turno di <b style="color:${p.turnoDi===p.giocatore1?'#E74C3C':'#F39C12'}">${escH(tm.name)}</b></div>`;
   }
-  const orfana=!MEMBERS.some(m=>m.id===p.giocatore1);
-  if(p.giocatore1===me||orfana){
+  if(puoEliminarePartita(p)){
     html+=`<div style="text-align:right;margin-top:8px"><button onclick="eliminaF4('${p.id}')" style="background:none;border:none;color:#ff3b30;font-size:12px;font-weight:700;cursor:pointer;padding:4px 8px">🗑 Elimina partita</button></div>`;
   }
   html+=`</div>`;
@@ -2691,13 +2718,7 @@ function renderF4Board(p){
 }
 
 async function eliminaF4(partitaId){
-  const p=f4Partite.find(x=>x.id===partitaId); if(!p) return;
-  const orfana=!MEMBERS.some(m=>m.id===p.giocatore1);
-  if(p.giocatore1!==f4Me&&!orfana){ alert('Solo chi ha creato la partita può eliminarla'); return; }
-  if(!confirm('Eliminare questa partita?')) return;
-  f4Partite=f4Partite.filter(x=>x.id!==partitaId);
-  renderView();
-  if(p._recId) atDelete('Forza4',p._recId);
+  await eliminaPartitaGenerica(f4Partite,v=>f4Partite=v,'Forza4',partitaId);
 }
 
 let giochiTab='forza4';
@@ -2869,8 +2890,7 @@ function renderTrisBoard(p){
     const tm=MEMBERS.find(m=>m.id===p.turnoDi)||{name:p.turnoDi};
     html+=`<div style="text-align:center;margin-top:10px;font-size:13px;color:var(--text-sec)">Turno di <b style="color:${p.turnoDi===p.giocatore1?'#E74C3C':'#F39C12'}">${escH(tm.name)}</b></div>`;
   }
-  const orfana=!MEMBERS.some(m=>m.id===p.giocatore1);
-  if(p.giocatore1===me||orfana){
+  if(puoEliminarePartita(p)){
     html+=`<div style="text-align:right;margin-top:8px"><button onclick="eliminaTris('${p.id}')" style="background:none;border:none;color:#ff3b30;font-size:12px;font-weight:700;cursor:pointer;padding:4px 8px">🗑 Elimina partita</button></div>`;
   }
   html+=`</div>`;
@@ -2878,13 +2898,7 @@ function renderTrisBoard(p){
 }
 
 async function eliminaTris(partitaId){
-  const p=trisPartite.find(x=>x.id===partitaId); if(!p) return;
-  const orfana=!MEMBERS.some(m=>m.id===p.giocatore1);
-  if(p.giocatore1!==f4Me&&!orfana){ alert('Solo chi ha creato la partita può eliminarla'); return; }
-  if(!confirm('Eliminare questa partita?')) return;
-  trisPartite=trisPartite.filter(x=>x.id!==partitaId);
-  renderView();
-  if(p._recId) atDelete('Tris',p._recId);
+  await eliminaPartitaGenerica(trisPartite,v=>trisPartite=v,'Tris',partitaId);
 }
 
 function openNuovaPartitaTris(){
@@ -2997,8 +3011,7 @@ function renderImpBoard(p){
   } else if(p.stato==='persa'){
     html+=`<div style="text-align:center;margin-top:10px;font-size:15px;font-weight:800;color:#ff3b30">💀 Impiccato! Ha vinto ${escH(m1.name)}</div>`;
   }
-  const orfana=!MEMBERS.some(m=>m.id===p.giocatore1);
-  if(p.giocatore1===me||orfana){
+  if(puoEliminarePartita(p)){
     html+=`<div style="text-align:right;margin-top:8px"><button onclick="eliminaImp('${p.id}')" style="background:none;border:none;color:#ff3b30;font-size:12px;font-weight:700;cursor:pointer;padding:4px 8px">🗑 Elimina partita</button></div>`;
   }
   html+=`</div>`;
@@ -3006,13 +3019,7 @@ function renderImpBoard(p){
 }
 
 async function eliminaImp(partitaId){
-  const p=impPartite.find(x=>x.id===partitaId); if(!p) return;
-  const orfana=!MEMBERS.some(m=>m.id===p.giocatore1);
-  if(p.giocatore1!==f4Me&&!orfana){ alert('Solo chi ha creato la partita può eliminarla'); return; }
-  if(!confirm('Eliminare questa partita?')) return;
-  impPartite=impPartite.filter(x=>x.id!==partitaId);
-  renderView();
-  if(p._recId) atDelete('Impiccato',p._recId);
+  await eliminaPartitaGenerica(impPartite,v=>impPartite=v,'Impiccato',partitaId);
 }
 
 let impForm={avversario:'',parola:''};
@@ -3135,8 +3142,7 @@ function renderMorraBoard(p){
   } else if(inAttesa){
     html+=`<div style="text-align:center;font-size:13px;color:var(--text-sec);padding:10px 0">Hai giocato ${MORRA_ICONE[mieMossa]}. In attesa dell'avversario...</div>`;
   }
-  const orfana=!MEMBERS.some(m=>m.id===p.giocatore1);
-  if(p.giocatore1===me||orfana){
+  if(puoEliminarePartita(p)){
     html+=`<div style="text-align:right;margin-top:8px"><button onclick="eliminaMorra('${p.id}')" style="background:none;border:none;color:#ff3b30;font-size:12px;font-weight:700;cursor:pointer;padding:4px 8px">🗑 Elimina partita</button></div>`;
   }
   html+=`</div>`;
@@ -3144,13 +3150,7 @@ function renderMorraBoard(p){
 }
 
 async function eliminaMorra(partitaId){
-  const p=morraPartite.find(x=>x.id===partitaId); if(!p) return;
-  const orfana=!MEMBERS.some(m=>m.id===p.giocatore1);
-  if(p.giocatore1!==f4Me&&!orfana){ alert('Solo chi ha creato la partita può eliminarla'); return; }
-  if(!confirm('Eliminare questa partita?')) return;
-  morraPartite=morraPartite.filter(x=>x.id!==partitaId);
-  renderView();
-  if(p._recId) atDelete('Morra',p._recId);
+  await eliminaPartitaGenerica(morraPartite,v=>morraPartite=v,'Morra',partitaId);
 }
 
 function openNuovaPartitaMorra(){
