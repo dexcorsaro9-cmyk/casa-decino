@@ -1582,10 +1582,11 @@ async function saveDispensaItem(){
   if(btn){btn.disabled=true;btn.textContent='Salvataggio…';}
   const id='d'+Date.now();
   try{
-    const res=await atPost('Spesa',{ID:id,Articolo:art,Autore:dispensaForm.autore,Data:REAL_TODAY,Comprato:false});
+    const res=await atPost('Spesa',{Articolo:art,Autore:dispensaForm.autore,Data:REAL_TODAY,Comprato:false});
     if(res.error){alert('Errore Airtable: '+(res.error.message||JSON.stringify(res.error)));if(btn){btn.disabled=false;btn.textContent='Aggiungi';}return;}
     if(!res.records?.[0]?.id){alert('Risposta inattesa:\n'+JSON.stringify(res).slice(0,300));if(btn){btn.disabled=false;btn.textContent='Aggiungi';}return;}
-    dispensaItems.push({id,articolo:art,autore:dispensaForm.autore,data:REAL_TODAY,comprato:false,_recId:res.records[0].id});
+    const recId=res.records[0].id;
+    dispensaItems.push({id:recId,articolo:art,autore:dispensaForm.autore,data:REAL_TODAY,comprato:false,_recId:recId});
     closeModal(); renderView();
   }catch(e){alert('Errore di rete: '+e.message);if(btn){btn.disabled=false;btn.textContent='Aggiungi';}}
 }
