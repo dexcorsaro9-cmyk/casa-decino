@@ -1624,7 +1624,7 @@ function fotoFont(id){ return FOTO_FONTS.find(f=>f.id===id)||FOTO_FONTS[0]; }
 async function loadFotoRicordi(){
   try{
     const records = await atGetAll('FotoRicordi');
-    fotoRicordi = records.map(r=>({_recId:r.id, id:r.fields.ID||r.id, url:r.fields.URL||'', autore:r.fields.Autore||'antonio', data:r.fields.Data||'', didascalia:r.fields.Didascalia||'', cornice:r.fields.Cornice||'cream', fontDidascalia:r.fields.FontDidascalia||'caveat'}));
+    fotoRicordi = records.map(r=>({_recId:r.id, id:r.fields.ID||r.id, url:r.fields.URL||'', autore:r.fields.Autore||'antonio', data:r.fields.Data||'', didascalia:r.fields.Didascalia||'', cornice:r.fields.Cornice||'cream', fontDidascalia:r.fields.FontDidascalia||'caveat', viaggioId:r.fields.ViaggioID||''}));
   } catch(e){ fotoRicordi=[]; }
 }
 
@@ -1655,9 +1655,9 @@ function ricordiView(){
     <div class="filo-wrapper"><div class="filo-line"></div><div class="foto-grid">${cards}</div></div>`;
 }
 
-let fotoForm={autore:'antonio',didascalia:'',cornice:'cream',fontDidascalia:'caveat'};
-function openFotoModal(){
-  fotoForm={autore:'antonio',didascalia:'',cornice:'cream',fontDidascalia:'caveat'};
+let fotoForm={autore:'antonio',didascalia:'',cornice:'cream',fontDidascalia:'caveat',viaggioId:''};
+function openFotoModal(preViaggioId=''){
+  fotoForm={autore:'antonio',didascalia:'',cornice:'cream',fontDidascalia:'caveat',viaggioId:preViaggioId};
   renderFotoModal(); showOv();
 }
 
@@ -1678,6 +1678,11 @@ function renderFotoModal(){
     <div class="fgrp"><label class="flbl">Colore cornice</label><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:8px">${corniceBtns}<span style="font-size:12px;font-weight:600;color:var(--text-sec);margin-left:4px">${previewCornice.label}</span></div></div>
     <div class="fgrp"><label class="flbl">Font didascalia</label><div class="tr-opts">${fontBtns}</div></div>
     <div class="fgrp"><label class="flbl">Caricato da</label><div class="tr-opts">${mbrBtns}</div></div>
+    ${viaggi.length?`<div class="fgrp"><label class="flbl">Associa a un viaggio (opzionale)</label>
+      <select onchange="fotoForm.viaggioId=this.value" style="width:100%;padding:10px;border:1px solid var(--border-light);border-radius:10px;background:var(--main-bg);font-size:14px;font-weight:600">
+        <option value="">— Nessun viaggio —</option>
+        ${[...viaggi].sort((a,b)=>b.data.localeCompare(a.data)).map(v=>`<option value="${v.id}"${fotoForm.viaggioId===v.id?' selected':''}>${escH(v.luogo)}${v.data?' ('+fmtDateShort(v.data)+')':''}</option>`).join('')}
+      </select></div>`:''}
     <div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Annulla</button><button class="btn-save" onclick="uploadFoto()">Carica foto</button></div>`;
 }
 
@@ -1694,8 +1699,10 @@ async function uploadFoto(){
     const data=await res.json();
     if(!data.secure_url) throw new Error('Upload fallito');
     const id='fr'+Date.now();
-    const rec=await atPost('FotoRicordi',{ID:id,URL:data.secure_url,Autore:fotoForm.autore,Data:REAL_TODAY,Didascalia:did,Cornice:fotoForm.cornice,FontDidascalia:fotoForm.fontDidascalia});
-    fotoRicordi.push({id,url:data.secure_url,autore:fotoForm.autore,data:REAL_TODAY,didascalia:did,cornice:fotoForm.cornice,fontDidascalia:fotoForm.fontDidascalia,_recId:rec.records?.[0]?.id});
+    const flds={ID:id,URL:data.secure_url,Autore:fotoForm.autore,Data:REAL_TODAY,Didascalia:did,Cornice:fotoForm.cornice,FontDidascalia:fotoForm.fontDidascalia};
+    if(fotoForm.viaggioId) flds.ViaggioID=fotoForm.viaggioId;
+    const rec=await atPost('FotoRicordi',flds);
+    fotoRicordi.push({id,url:data.secure_url,autore:fotoForm.autore,data:REAL_TODAY,didascalia:did,cornice:fotoForm.cornice,fontDidascalia:fotoForm.fontDidascalia,viaggioId:fotoForm.viaggioId||'',_recId:rec.records?.[0]?.id});
     closeModal(); renderView();
   } catch(e){ alert('Errore nel caricamento. Riprova.'); closeModal(); }
 }
@@ -1823,38 +1830,31 @@ async function initGlobe(){
     return {lat:v.lat, lng:v.lng, color:m.dot, label:v.luogo, id:v.id};
   });
 
-  if(!document.getElementById('heartbeat-style')){
-    const st=document.createElement('style');
-    st.id='heartbeat-style';
-    st.textContent='@keyframes heartbeat{0%,100%{transform:scale(1)}30%{transform:scale(1.35)}60%{transform:scale(1.1)}}';
-    document.head.appendChild(st);
+  function makeFlagEl(color, label, onclickFn){
+    const el=document.createElement('div');
+    el.style.cssText='cursor:pointer;transform:translate(-50%,-100%);pointer-events:all;filter:drop-shadow(0 2px 5px rgba(0,0,0,0.6))';
+    el.innerHTML=`<svg width="18" height="26" viewBox="0 0 18 26" style="overflow:visible">
+      <line x1="2" y1="2" x2="2" y2="26" stroke="rgba(255,255,255,0.95)" stroke-width="1.8" stroke-linecap="round"/>
+      <rect x="3" y="2" width="13" height="9" rx="1" fill="${color}" stroke="rgba(0,0,0,0.25)" stroke-width="0.5"/>
+      <circle cx="2" cy="26" r="2.2" fill="${color}" opacity="0.7"/>
+    </svg>`;
+    if(label) el.title=label;
+    if(onclickFn) el.onclick=onclickFn;
+    return el;
   }
 
-  const htmlPoints=[
-    {lat:41.99, lng:12.72, type:'home', label:'Casa Decino'},
-    ...viaggi.filter(v=>v.lat&&v.lng).map(v=>({lat:v.lat,lng:v.lng,type:'viaggio',label:v.luogo,id:v.id}))
+  const htmlMarkers=[
+    {lat:41.99, lng:12.72, color:'#FFD700', label:'Casa Decino', id:null},
+    ...viaggi.filter(v=>v.lat&&v.lng).map(v=>{ const m=v.membri.length?M(v.membri[0]):MEMBERS[0]; return {lat:v.lat,lng:v.lng,color:m.dot,label:v.luogo,id:v.id}; })
   ];
 
   const g=Globe()(container)
     .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-night.jpg')
     .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
-    .htmlElementsData(htmlPoints)
+    .htmlElementsData(htmlMarkers)
     .htmlLat('lat').htmlLng('lng')
-    .htmlElement(d=>{
-      const el=document.createElement('div');
-      if(d.type==='home'){
-        el.innerHTML='🏠';
-        el.style.cssText='font-size:22px;cursor:default;filter:drop-shadow(0 0 8px rgba(255,220,100,0.9));animation:heartbeat 1.4s ease-in-out infinite';
-      } else {
-        el.innerHTML='❤️';
-        el.style.cssText='font-size:18px;cursor:pointer;filter:drop-shadow(0 0 6px rgba(255,80,80,0.8));animation:heartbeat 1.4s ease-in-out infinite';
-        el.style.animationDelay=Math.random()*0.8+'s';
-        el.title=d.label;
-        el.onclick=()=>{ const v=viaggi.find(v=>v.id===d.id); if(v) openViaggioDetail(v); };
-      }
-      return el;
-    })
-    .htmlAltitude(0.06)
+    .htmlAltitude(0.02)
+    .htmlElement(d=>makeFlagEl(d.color, d.label, d.id?()=>{const v=viaggi.find(v=>v.id===d.id);if(v)openViaggioDetail(v);}:null))
     .width(container.clientWidth).height(container.clientHeight);
 
   g.controls().autoRotate=true;
@@ -1867,16 +1867,32 @@ async function initGlobe(){
 
 function openViaggioDetail(v){
   const membriHtml=v.membri.map(mid=>{ const m=M(mid); return `<span style="display:inline-flex;align-items:center;gap:4px;background:${m.bg};color:${m.txt};padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700">${getIcon(m.id)} ${m.name}</span>`; }).join('');
+  const fotoDiViaggio=fotoRicordi.filter(f=>f.viaggioId===v.id);
+  const fotoHtml=fotoDiViaggio.length?`
+    <div style="margin-bottom:16px">
+      <div style="font-size:12px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">📸 Foto (${fotoDiViaggio.length})</div>
+      <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none">
+        ${fotoDiViaggio.map(f=>{const cor=fotoCornice(f.cornice);const fnt=fotoFont(f.fontDidascalia);return `<div onclick="closeModal();setTimeout(()=>openFotoLightbox('${f.id}'),120)" style="flex-shrink:0;width:80px;background:${cor.hex};padding:5px 5px 28px;border-radius:2px;box-shadow:2px 3px 8px rgba(0,0,0,0.22);cursor:pointer;position:relative">
+          <img src="${f.url}" style="width:100%;aspect-ratio:1;object-fit:cover;display:block;border-radius:1px">
+          ${f.didascalia?`<div style="position:absolute;bottom:5px;left:4px;right:4px;font-size:9px;font-weight:600;color:#5a3e28;text-align:center;font-family:${fnt.family};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(f.didascalia)}</div>`:''}
+        </div>`}).join('')}
+      </div>
+    </div>`:''
+  ;
   document.getElementById('modal-box').innerHTML=`
     <div class="modal-hdr"><div class="modal-ttl">📍 ${escH(v.luogo)}</div><button class="cl-btn" onclick="closeModal()">✕</button></div>
     <div style="padding:8px 0">
       ${v.data?`<div style="font-size:13px;color:var(--text-sec);font-weight:600;margin-bottom:12px">📅 ${fmtDateShort(v.data)}</div>`:''}
       ${v.nota?`<div style="background:var(--main-bg);border-radius:var(--radius-md);padding:14px;font-size:14px;font-weight:600;margin-bottom:16px;border:1px solid var(--border-light)">💬 ${escH(v.nota)}</div>`:''}
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">${membriHtml}</div>
+      ${fotoHtml}
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px dashed var(--border-light)">
       <button class="btn-del-ev" onclick="deleteViaggio('${v.id}');closeModal()">🗑 Elimina</button>
-      <button class="btn-cancel" onclick="closeModal()">Chiudi</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn-save" style="font-size:13px;padding:8px 12px" onclick="closeModal();openFotoModal('${v.id}')">📸 Aggiungi foto</button>
+        <button class="btn-cancel" onclick="closeModal()">Chiudi</button>
+      </div>
     </div>`;
   showOv();
 }
