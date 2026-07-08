@@ -1538,14 +1538,14 @@ let dispensaItems = [];
 async function loadDispensa(){
   try{
     const records = await atGetAll('Spesa');
-    dispensaItems = records.map(r=>({_recId:r.id, id:r.fields.ID||r.id, articolo:r.fields.Articolo||'', autore:r.fields.Autore||'antonio', data:r.fields.Data||'', comprato:r.fields.Comprato==='si'}));
+    dispensaItems = records.map(r=>({_recId:r.id, id:r.fields.ID||r.id, articolo:r.fields.Articolo||'', autore:r.fields.Autore||'antonio', data:r.fields.Data||'', comprato:r.fields.Comprato===true||r.fields.Comprato==='si'}));
   } catch(e){ dispensaItems=[]; }
 }
 
 async function toggleDispensaItem(id){
   const it=dispensaItems.find(i=>i.id===id); if(!it) return;
   it.comprato=!it.comprato;
-  if(it._recId) await atPatch('Spesa',it._recId,{Comprato:it.comprato?'si':'no'});
+  if(it._recId) await atPatch('Spesa',it._recId,{Comprato:it.comprato});
   renderView();
 }
 
@@ -1578,10 +1578,16 @@ function renderDispensaModal(){
 }
 async function saveDispensaItem(){
   const art=dispensaForm.articolo.trim(); if(!art) return;
+  const btn=document.querySelector('#modal-box .btn-save');
+  if(btn){btn.disabled=true;btn.textContent='Salvataggio…';}
   const id='d'+Date.now();
-  const res=await atPost('Spesa',{ID:id,Articolo:art,Autore:dispensaForm.autore,Data:REAL_TODAY,Comprato:'no'});
-  dispensaItems.push({id,articolo:art,autore:dispensaForm.autore,data:REAL_TODAY,comprato:false,_recId:res.records?.[0]?.id});
-  closeModal(); renderView();
+  try{
+    const res=await atPost('Spesa',{ID:id,Articolo:art,Autore:dispensaForm.autore,Data:REAL_TODAY,Comprato:false});
+    if(res.error){alert('Errore Airtable: '+(res.error.message||JSON.stringify(res.error)));if(btn){btn.disabled=false;btn.textContent='Aggiungi';}return;}
+    if(!res.records?.[0]?.id){alert('Risposta inattesa:\n'+JSON.stringify(res).slice(0,300));if(btn){btn.disabled=false;btn.textContent='Aggiungi';}return;}
+    dispensaItems.push({id,articolo:art,autore:dispensaForm.autore,data:REAL_TODAY,comprato:false,_recId:res.records[0].id});
+    closeModal(); renderView();
+  }catch(e){alert('Errore di rete: '+e.message);if(btn){btn.disabled=false;btn.textContent='Aggiungi';}}
 }
 
 let _ricCountdownTimer=null;
