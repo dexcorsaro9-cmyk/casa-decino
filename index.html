@@ -645,6 +645,7 @@
             <div id="weather-widget" class="weather-box" onclick="openWeatherPopup()"></div>
           </div>
         </div>
+        <button id="notif-btn" onclick="attivaNotifiche()" style="display:none;background:#378ADD;color:#fff;border:none;padding:8px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">🔔 Attiva notifiche</button>
       </div>
       <div class="tabs">
         <button class="tab active" id="t-today"    onclick="viewDate=REAL_TODAY; switchView('today')">📅 Oggi</button>
@@ -3175,10 +3176,23 @@ async function nuovaPartitaMorra(avversarioId){
   }catch(e){ alert('Errore: '+e.message); }
 }
 
+function aggiornaBottoneNotifiche(){
+  const btn=document.getElementById('notif-btn'); if(!btn) return;
+  if('Notification' in window && Notification.permission==='default'){ btn.style.display='inline-block'; }
+  else { btn.style.display='none'; }
+}
+async function attivaNotifiche(){
+  if(!('Notification' in window)){ alert('Il tuo browser non supporta le notifiche.'); return; }
+  const perm=await Notification.requestPermission();
+  if(perm==='granted'){ alert('Notifiche attivate! 🔔'); }
+  else if(perm==='denied'){ alert('Notifiche bloccate. Per riattivarle dovrai andare nelle impostazioni del telefono/browser.'); }
+  aggiornaBottoneNotifiche();
+}
+
 async function init(){
   await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra()]);
   render(); loadWeather();
-  if('Notification' in window && Notification.permission==='default') Notification.requestPermission();
+  aggiornaBottoneNotifiche();
 }
 async function reloadAll(){
   await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra()]);
