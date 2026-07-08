@@ -518,6 +518,26 @@
     }
     .postit:hover .postit-del { opacity: 1; }
     @media (hover: none) { .postit-del { opacity: 1; } }
+    /* ── FOTO RICORDI ── */
+    .filo-wrapper { position:relative; padding:40px 0 20px; }
+    .filo-line { position:absolute; top:18px; left:0; right:0; height:3px; background:linear-gradient(to right,#8B6914,#C8A84B,#8B6914); border-radius:2px; box-shadow:0 2px 4px rgba(0,0,0,0.3); }
+    .foto-grid { display:flex; flex-wrap:wrap; gap:24px 16px; padding:10px 4px 16px; }
+    .foto-card { position:relative; flex:0 0 calc(50% - 8px); max-width:calc(50% - 8px); }
+    .molletta { position:absolute; top:-22px; left:50%; transform:translateX(-50%); width:14px; height:26px; z-index:2; }
+    .molletta::before { content:''; position:absolute; top:0; left:2px; width:4px; height:18px; background:linear-gradient(to bottom,#e0e0e0,#b0b0b0); border-radius:2px; box-shadow:1px 0 2px rgba(0,0,0,0.2); }
+    .molletta::after { content:''; position:absolute; top:0; right:2px; width:4px; height:18px; background:linear-gradient(to bottom,#e0e0e0,#b0b0b0); border-radius:2px; }
+    .molletta-spring { position:absolute; top:14px; left:0; right:0; height:4px; background:#aaa; border-radius:2px; }
+    .foto-inner { background:#fff; padding:8px 8px 28px; box-shadow:3px 4px 12px rgba(0,0,0,0.22); border-radius:2px; }
+    .foto-img { width:100%; aspect-ratio:1; object-fit:cover; display:block; border-radius:1px; }
+    .foto-caption { position:absolute; bottom:8px; left:8px; right:8px; font-size:10px; font-weight:700; color:#555; text-align:center; font-family:'Caveat',cursive; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .foto-author-dot { position:absolute; top:14px; right:14px; width:10px; height:10px; border-radius:50%; border:1.5px solid #fff; box-shadow:0 1px 3px rgba(0,0,0,0.3); }
+    .foto-del { position:absolute; top:6px; left:6px; background:rgba(0,0,0,0.45); border:none; color:#fff; border-radius:50%; width:22px; height:22px; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.15s; }
+    .foto-card:hover .foto-del { opacity:1; }
+    @media (hover:none) { .foto-del { opacity:1; } }
+    .foto-add-btn { flex:0 0 calc(50% - 8px); max-width:calc(50% - 8px); min-height:140px; background:rgba(255,255,255,0.7); border:2px dashed rgba(0,0,0,0.15); border-radius:4px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; cursor:pointer; color:rgba(0,0,0,0.35); font-weight:700; font-size:12px; margin-top:22px; }
+    .foto-add-btn:hover { background:rgba(255,255,255,0.9); }
+    .foto-upload-progress { text-align:center; padding:20px; color:var(--text-sec); font-weight:600; }
+
     .bacheca-add-btn {
       background: rgba(255,255,255,0.85); border: 2px dashed rgba(0,0,0,0.2);
       border-radius: 3px 3px 3px 12px; min-height: 150px;
@@ -565,6 +585,7 @@
         <button class="tab" id="t-challenge"  onclick="switchView('challenge')">🏆 Challenge</button>
         <button class="tab" id="t-bacheca"    onclick="switchView('bacheca')">📌 Bacheca</button>
         <button class="tab" id="t-dispensa"   onclick="switchView('dispensa')">🛒 Dispensa</button>
+        <button class="tab" id="t-ricordi"    onclick="switchView('ricordi')">📸 Ricordi</button>
       </div>
     </div>
     <div class="content" id="view"></div>
@@ -791,20 +812,21 @@ function inlineFilters(){
     </div>`).join('')}</div>`;
 }
 function toggleF(id){ if(filters.includes(id)){if(filters.length>1)filters=filters.filter(f=>f!==id);}else filters.push(id); render(); }
-function hdrAdd(){if(view==='ricorrenze')openRicModal(null);else if(view==='bacheca')openBachecaModal();else if(view==='dispensa')openDispensaModal();else openModal(null);}
+function hdrAdd(){if(view==='ricorrenze')openRicModal(null);else if(view==='bacheca')openBachecaModal();else if(view==='dispensa')openDispensaModal();else if(view==='ricordi')openFotoModal();else openModal(null);}
 
 function switchView(v){
-  view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge','t-bacheca','t-dispensa'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
+  view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge','t-bacheca','t-dispensa','t-ricordi'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
   const tab=document.getElementById('t-'+v); if(tab) tab.classList.add('active');
   const fab=document.getElementById('fab-add'); const fabTxt=document.getElementById('fab-text');
   if(v==='challenge'){ fab.style.display='none'; }
   else if(v==='bacheca'){ fab.style.display='inline-flex'; fabTxt.innerText='Post-it'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='📌'; }
   else if(v==='dispensa'){ fab.style.display='inline-flex'; fabTxt.innerText='Articolo'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='🛒'; }
+  else if(v==='ricordi'){ fab.style.display='inline-flex'; fabTxt.innerText='Foto'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='📸'; }
   else { fab.style.display='inline-flex'; fabTxt.innerText=(v==='ricorrenze')?'Ricorrenza':'Impegno'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='📝'; }
   renderView();
 }
 
-function renderView(){ const el=document.getElementById('view'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else el.innerHTML=ricorrenzeView(); }
+function renderView(){ const el=document.getElementById('view'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else el.innerHTML=ricorrenzeView(); }
 
 /* ── VISTA OGGI COMPLETA ── */
 function bdayBanners(d_str){
@@ -1543,7 +1565,91 @@ function dispensaView(){
   return h;
 }
 
-async function init(){ await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa()]); render(); loadWeather(); }
+/* ── FOTO RICORDI ── */
+const CL_CLOUD = 'ax1sguds';
+const CL_PRESET = 'casa-decino';
+let fotoRicordi = [];
+
+async function loadFotoRicordi(){
+  try{
+    const records = await atGetAll('FotoRicordi');
+    fotoRicordi = records.map(r=>({_recId:r.id, id:r.fields.ID||r.id, url:r.fields.URL||'', autore:r.fields.Autore||'antonio', data:r.fields.Data||'', didascalia:r.fields.Didascalia||''}));
+  } catch(e){ fotoRicordi=[]; }
+}
+
+function photoRotation(id){
+  let h=0; for(let i=0;i<id.length;i++) h=(h*31+id.charCodeAt(i))&0xffff;
+  return (((h%7)-3)*1.8).toFixed(1);
+}
+
+function ricordiView(){
+  const sorted=[...fotoRicordi].sort((a,b)=>b.data.localeCompare(a.data));
+  let cards=sorted.map(f=>{
+    const m=M(f.autore);
+    const rot=photoRotation(f.id);
+    return `<div class="foto-card" style="transform:rotate(${rot}deg)">
+      <div class="molletta"><div class="molletta-spring"></div></div>
+      <div class="foto-inner">
+        <img class="foto-img" src="${escH(f.url)}" loading="lazy" onerror="this.style.background='#eee'">
+        <div class="foto-author-dot" style="background:${m.dot}"></div>
+        <button class="foto-del" onclick="event.stopPropagation();deleteFotoRicordo('${f.id}')">✕</button>
+        <div class="foto-caption">${escH(f.didascalia||m.name)}</div>
+      </div>
+    </div>`;
+  }).join('');
+  cards+=`<div class="foto-add-btn" onclick="openFotoModal()"><span style="font-size:28px">📸</span><span>Aggiungi foto</span></div>`;
+  return `<div style="margin-bottom:14px"><div class="sec-lbl">📸 Ricordi di famiglia</div></div>
+    <div class="filo-wrapper"><div class="filo-line"></div><div class="foto-grid">${cards}</div></div>`;
+}
+
+let fotoForm={autore:'antonio',didascalia:''};
+function openFotoModal(){
+  fotoForm={autore:'antonio',didascalia:''};
+  renderFotoModal(); showOv();
+}
+
+function renderFotoModal(){
+  const mbrBtns=MEMBERS.map(m=>`<button class="tr-btn${fotoForm.autore===m.id?' sel':''}" onclick="fotoForm.autore='${m.id}';renderFotoModal()" style="${fotoForm.autore===m.id?ms(m):''}">${getIcon(m.id)} ${m.name}</button>`).join('');
+  document.getElementById('modal-box').innerHTML=`
+    <div class="modal-hdr"><div class="modal-ttl">📸 Nuovo Ricordo</div><button class="cl-btn" onclick="closeModal()">✕</button></div>
+    <div class="fgrp"><label class="flbl">Foto</label>
+      <input type="file" id="foto-file" accept="image/*" style="width:100%;padding:10px;border:1px solid var(--border-light);border-radius:10px;background:var(--main-bg)">
+    </div>
+    <div class="fgrp"><label class="flbl">Didascalia (opzionale)</label>
+      <input type="text" id="foto-did" placeholder="Es. Estate 2025…" value="${escH(fotoForm.didascalia)}" oninput="fotoForm.didascalia=this.value" style="width:100%">
+    </div>
+    <div class="fgrp"><label class="flbl">Caricato da</label><div class="tr-opts">${mbrBtns}</div></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Annulla</button><button class="btn-save" onclick="uploadFoto()">Carica foto</button></div>`;
+}
+
+async function uploadFoto(){
+  const fileInput=document.getElementById('foto-file');
+  const did=document.getElementById('foto-did')?.value.trim()||fotoForm.didascalia;
+  if(!fileInput?.files?.[0]){ alert('Seleziona una foto'); return; }
+  document.getElementById('modal-box').innerHTML=`<div class="foto-upload-progress">⏳ Caricamento in corso…</div>`;
+  const formData=new FormData();
+  formData.append('file', fileInput.files[0]);
+  formData.append('upload_preset', CL_PRESET);
+  try{
+    const res=await fetch(`https://api.cloudinary.com/v1_1/${CL_CLOUD}/image/upload`,{method:'POST',body:formData});
+    const data=await res.json();
+    if(!data.secure_url) throw new Error('Upload fallito');
+    const id='fr'+Date.now();
+    const rec=await atPost('FotoRicordi',{ID:id,URL:data.secure_url,Autore:fotoForm.autore,Data:REAL_TODAY,Didascalia:did});
+    fotoRicordi.push({id,url:data.secure_url,autore:fotoForm.autore,data:REAL_TODAY,didascalia:did,_recId:rec.records?.[0]?.id});
+    closeModal(); renderView();
+  } catch(e){ alert('Errore nel caricamento. Riprova.'); closeModal(); }
+}
+
+async function deleteFotoRicordo(id){
+  if(!confirm('Rimuovere questo ricordo?')) return;
+  const f=fotoRicordi.find(f=>f.id===id);
+  fotoRicordi=fotoRicordi.filter(f=>f.id!==id);
+  if(f?._recId) atDelete('FotoRicordi',f._recId);
+  renderView();
+}
+
+async function init(){ await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi()]); render(); loadWeather(); }
 init();
 
 if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
