@@ -518,25 +518,57 @@
     }
     .postit:hover .postit-del { opacity: 1; }
     @media (hover: none) { .postit-del { opacity: 1; } }
-    /* ── FOTO RICORDI ── */
-    .filo-wrapper { position:relative; padding:40px 0 20px; }
-    .filo-line { position:absolute; top:18px; left:0; right:0; height:3px; background:linear-gradient(to right,#8B6914,#C8A84B,#8B6914); border-radius:2px; box-shadow:0 2px 4px rgba(0,0,0,0.3); }
-    .foto-grid { display:flex; flex-wrap:wrap; gap:24px 16px; padding:10px 4px 16px; }
-    .foto-card { position:relative; flex:0 0 calc(50% - 8px); max-width:calc(50% - 8px); }
-    .molletta { position:absolute; top:-22px; left:50%; transform:translateX(-50%); width:14px; height:26px; z-index:2; }
-    .molletta::before { content:''; position:absolute; top:0; left:2px; width:4px; height:18px; background:linear-gradient(to bottom,#e0e0e0,#b0b0b0); border-radius:2px; box-shadow:1px 0 2px rgba(0,0,0,0.2); }
-    .molletta::after { content:''; position:absolute; top:0; right:2px; width:4px; height:18px; background:linear-gradient(to bottom,#e0e0e0,#b0b0b0); border-radius:2px; }
-    .molletta-spring { position:absolute; top:14px; left:0; right:0; height:4px; background:#aaa; border-radius:2px; }
-    .foto-inner { background:#fff; padding:8px 8px 28px; box-shadow:3px 4px 12px rgba(0,0,0,0.22); border-radius:2px; }
-    .foto-img { width:100%; aspect-ratio:1; object-fit:cover; display:block; border-radius:1px; }
-    .foto-caption { position:absolute; bottom:8px; left:8px; right:8px; font-size:10px; font-weight:700; color:#555; text-align:center; font-family:'Caveat',cursive; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .foto-author-dot { position:absolute; top:14px; right:14px; width:10px; height:10px; border-radius:50%; border:1.5px solid #fff; box-shadow:0 1px 3px rgba(0,0,0,0.3); }
-    .foto-del { position:absolute; top:6px; left:6px; background:rgba(0,0,0,0.45); border:none; color:#fff; border-radius:50%; width:22px; height:22px; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.15s; }
+    /* ── FOTO RICORDI (polaroid) ── */
+    .ricordi-sfondo { background:linear-gradient(160deg,#f5efe6 0%,#ede3d6 100%); border-radius:var(--radius-lg); padding:28px 16px 24px; margin-bottom:8px; }
+    .filo-wrapper { position:relative; padding:36px 0 16px; }
+    .filo-line { position:absolute; top:14px; left:-4px; right:-4px; height:4px; background:linear-gradient(to right,#7B4F1A,#C9924A,#E8C07A,#C9924A,#7B4F1A); border-radius:2px; box-shadow:0 3px 6px rgba(0,0,0,0.25); }
+    .foto-grid { display:flex; flex-wrap:wrap; gap:28px 14px; padding:8px 2px 12px; }
+    .foto-card { position:relative; flex:0 0 calc(50% - 7px); max-width:calc(50% - 7px); filter:drop-shadow(3px 5px 10px rgba(0,0,0,0.25)); }
+    /* Molletta in legno */
+    .molletta { position:absolute; top:-20px; left:50%; transform:translateX(-50%); width:16px; height:28px; z-index:3; }
+    .molletta::before { content:''; position:absolute; top:0; left:1px; width:6px; height:20px; background:linear-gradient(to right,#8B5E3C,#C49A6C,#8B5E3C); border-radius:3px 3px 1px 1px; box-shadow:1px 1px 2px rgba(0,0,0,0.3); }
+    .molletta::after { content:''; position:absolute; top:0; right:1px; width:6px; height:20px; background:linear-gradient(to right,#8B5E3C,#C49A6C,#8B5E3C); border-radius:3px 3px 1px 1px; box-shadow:-1px 1px 2px rgba(0,0,0,0.3); }
+    .molletta-spring { position:absolute; top:16px; left:0; right:0; height:5px; background:linear-gradient(to bottom,#6B4423,#A0714A); border-radius:3px; box-shadow:0 1px 2px rgba(0,0,0,0.25); }
+    /* Polaroid */
+    .foto-inner { padding:8px 8px 36px; border-radius:2px; }
+    .foto-img { width:100%; aspect-ratio:1; object-fit:cover; display:block; }
+    .foto-caption { position:absolute; bottom:10px; left:8px; right:8px; font-size:15px; font-weight:600; color:#5a3e28; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .foto-author-dot { position:absolute; top:12px; right:12px; width:10px; height:10px; border-radius:50%; border:2px solid #fdf8f0; box-shadow:0 1px 3px rgba(0,0,0,0.3); }
+    .foto-del { position:absolute; top:6px; left:6px; background:rgba(90,62,40,0.55); border:none; color:#fff; border-radius:50%; width:22px; height:22px; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.15s; }
     .foto-card:hover .foto-del { opacity:1; }
     @media (hover:none) { .foto-del { opacity:1; } }
-    .foto-add-btn { flex:0 0 calc(50% - 8px); max-width:calc(50% - 8px); min-height:140px; background:rgba(255,255,255,0.7); border:2px dashed rgba(0,0,0,0.15); border-radius:4px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; cursor:pointer; color:rgba(0,0,0,0.35); font-weight:700; font-size:12px; margin-top:22px; }
-    .foto-add-btn:hover { background:rgba(255,255,255,0.9); }
+    .foto-add-btn { flex:0 0 calc(50% - 7px); max-width:calc(50% - 7px); min-height:150px; background:rgba(255,255,255,0.5); border:2px dashed rgba(139,94,60,0.25); border-radius:4px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; cursor:pointer; color:rgba(139,94,60,0.5); font-weight:700; font-size:12px; margin-top:22px; font-family:'Caveat',cursive; font-size:15px; }
+    .foto-add-btn:hover { background:rgba(255,255,255,0.75); }
     .foto-upload-progress { text-align:center; padding:20px; color:var(--text-sec); font-weight:600; }
+
+    /* RICORDI WIDGET HOME */
+    .ricordi-widget { background:linear-gradient(160deg,#f5efe6 0%,#ede3d6 100%); border-radius:var(--radius-lg); padding:14px 16px 16px; margin-bottom:20px; }
+    .ricordi-widget-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+    .ricordi-widget-title { font-size:12px; font-weight:800; color:#7B4F1A; text-transform:uppercase; letter-spacing:0.06em; }
+    .ricordi-widget-link { font-size:12px; font-weight:700; color:#8B5E3C; cursor:pointer; background:rgba(139,94,60,0.12); padding:4px 10px; border-radius:20px; border:none; }
+    .mini-foto-filo { position:relative; padding-top:22px; }
+    .mini-foto-filo-line { position:absolute; top:10px; left:-4px; right:-4px; height:3px; background:linear-gradient(to right,#7B4F1A,#C9924A,#E8C07A,#C9924A,#7B4F1A); border-radius:2px; box-shadow:0 2px 5px rgba(0,0,0,0.2); }
+    .mini-foto-strip { display:flex; gap:14px; overflow-x:auto; padding:4px 2px 8px; scrollbar-width:none; }
+    .mini-foto-strip::-webkit-scrollbar { display:none; }
+    .mini-foto-card { position:relative; flex-shrink:0; width:88px; filter:drop-shadow(2px 3px 8px rgba(0,0,0,0.25)); cursor:pointer; transition:transform 0.18s; }
+    .mini-foto-card:hover { transform:scale(1.08) translateY(-3px); }
+    .mini-molletta { position:absolute; top:-15px; left:50%; transform:translateX(-50%); width:13px; height:22px; z-index:3; }
+    .mini-molletta::before { content:''; position:absolute; top:0; left:0; width:5px; height:16px; background:linear-gradient(to right,#8B5E3C,#C49A6C,#8B5E3C); border-radius:2px 2px 1px 1px; box-shadow:1px 1px 2px rgba(0,0,0,0.25); }
+    .mini-molletta::after { content:''; position:absolute; top:0; right:0; width:5px; height:16px; background:linear-gradient(to right,#8B5E3C,#C49A6C,#8B5E3C); border-radius:2px 2px 1px 1px; box-shadow:-1px 1px 2px rgba(0,0,0,0.25); }
+    .mini-molletta-spring { position:absolute; top:13px; left:0; right:0; height:4px; background:linear-gradient(to bottom,#6B4423,#A0714A); border-radius:2px; }
+    .mini-foto-inner { padding:5px 5px 24px; border-radius:1px; }
+    .mini-foto-img { width:78px; height:78px; object-fit:cover; display:block; }
+    .mini-foto-caption { position:absolute; bottom:5px; left:4px; right:4px; font-size:11px; font-weight:600; color:#5a3e28; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .ricordi-widget-empty { text-align:center; padding:20px 0; color:#8B5E3C; font-size:13px; font-weight:600; opacity:0.6; }
+
+    /* LIGHTBOX FOTO */
+    .foto-lb-ov { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(11,19,43,0.92); z-index:2000; display:flex; align-items:center; justify-content:center; padding:24px; animation:fadeIn 0.18s ease; }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    .foto-lb-card { position:relative; background:#fdf8f0; padding:10px 10px 56px; border-radius:2px; max-width:340px; width:100%; box-shadow:0 24px 64px rgba(0,0,0,0.55); }
+    .foto-lb-img { width:100%; max-height:58vh; object-fit:contain; display:block; }
+    .foto-lb-caption { position:absolute; bottom:16px; left:10px; right:10px; font-family:'Caveat',cursive; font-size:19px; font-weight:600; color:#5a3e28; text-align:center; }
+    .foto-lb-meta { position:absolute; bottom:6px; left:10px; right:10px; font-size:10px; font-weight:700; color:#8B5E3C; text-align:center; opacity:0.65; }
+    .foto-lb-close { position:absolute; top:-16px; right:-16px; width:36px; height:36px; border-radius:50%; background:#fff; border:none; font-size:15px; cursor:pointer; font-weight:bold; box-shadow:0 4px 12px rgba(0,0,0,0.35); color:#333; display:flex; align-items:center; justify-content:center; }
 
     .bacheca-add-btn {
       background: rgba(255,255,255,0.85); border: 2px dashed rgba(0,0,0,0.2);
@@ -928,7 +960,7 @@ function todayView(){
   });
   if(!activeHtml) activeHtml=`<div class="empty-state"><span class="big">🛋️</span><div style="font-size:16px;font-weight:700;">Nessun impegno in famiglia</div></div>`;
   if(freeMembers.length>0 && activeHtml.indexOf('empty-state')===-1){ activeHtml+=`<div style="margin-top:24px;padding-top:16px;border-top:1px dashed var(--border-light);text-align:center"><div class="sec-lbl" style="text-align:center">🎉 Liberi oggi</div><div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px">${freeMembers.map(m => `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--main-bg);padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;color:var(--text-main)"><span style="font-size:14px">${getIcon(m.id)}</span>${m.name}</span>`).join('')}</div></div>`; }
-  return h+activeHtml+`<div style="margin-top:24px">`+dispensaWidget()+`</div>`+`<div style="margin-top:16px">`+challengeWidget()+`</div>`;
+  return h+activeHtml+`<div style="margin-top:24px">`+dispensaWidget()+`</div>`+`<div style="margin-top:16px">`+challengeWidget()+`</div>`+`<div style="margin-top:16px">`+ricordiWidget()+`</div>`;
 }
 
 function evCard(e, mContext){
@@ -1570,10 +1602,27 @@ const CL_CLOUD = 'ax1sguds';
 const CL_PRESET = 'casa-decino';
 let fotoRicordi = [];
 
+const FOTO_CORNICI = [
+  { id:'cream',    hex:'#fdf8f0', label:'Crema'   },
+  { id:'white',    hex:'#ffffff', label:'Bianca'  },
+  { id:'sage',     hex:'#eef4ef', label:'Salvia'  },
+  { id:'lavender', hex:'#f2f0fb', label:'Lavanda' },
+  { id:'blush',    hex:'#fdf0f2', label:'Rosa'    },
+  { id:'sky',      hex:'#eff5fd', label:'Cielo'   },
+];
+const FOTO_FONTS = [
+  { id:'caveat',  label:'Corsivo',    family:"'Caveat', cursive"       },
+  { id:'patrick', label:'Handwriting',family:"'Patrick Hand', cursive" },
+  { id:'indie',   label:'Divertente', family:"'Indie Flower', cursive" },
+  { id:'nunito',  label:'Tondo',      family:"'Nunito', sans-serif"    },
+];
+function fotoCornice(id){ return FOTO_CORNICI.find(c=>c.id===id)||FOTO_CORNICI[0]; }
+function fotoFont(id){ return FOTO_FONTS.find(f=>f.id===id)||FOTO_FONTS[0]; }
+
 async function loadFotoRicordi(){
   try{
     const records = await atGetAll('FotoRicordi');
-    fotoRicordi = records.map(r=>({_recId:r.id, id:r.fields.ID||r.id, url:r.fields.URL||'', autore:r.fields.Autore||'antonio', data:r.fields.Data||'', didascalia:r.fields.Didascalia||''}));
+    fotoRicordi = records.map(r=>({_recId:r.id, id:r.fields.ID||r.id, url:r.fields.URL||'', autore:r.fields.Autore||'antonio', data:r.fields.Data||'', didascalia:r.fields.Didascalia||'', cornice:r.fields.Cornice||'cream', fontDidascalia:r.fields.FontDidascalia||'caveat'}));
   } catch(e){ fotoRicordi=[]; }
 }
 
@@ -1587,13 +1636,15 @@ function ricordiView(){
   let cards=sorted.map(f=>{
     const m=M(f.autore);
     const rot=photoRotation(f.id);
-    return `<div class="foto-card" style="transform:rotate(${rot}deg)">
+    const cor=fotoCornice(f.cornice);
+    const fnt=fotoFont(f.fontDidascalia);
+    return `<div class="foto-card" style="transform:rotate(${rot}deg)" onclick="openFotoLightbox('${f.id}')">
       <div class="molletta"><div class="molletta-spring"></div></div>
-      <div class="foto-inner">
+      <div class="foto-inner" style="background:${cor.hex}">
         <img class="foto-img" src="${escH(f.url)}" loading="lazy" onerror="this.style.background='#eee'">
         <div class="foto-author-dot" style="background:${m.dot}"></div>
         <button class="foto-del" onclick="event.stopPropagation();deleteFotoRicordo('${f.id}')">✕</button>
-        <div class="foto-caption">${escH(f.didascalia||m.name)}</div>
+        <div class="foto-caption" style="font-family:${fnt.family}">${escH(f.didascalia||m.name)}</div>
       </div>
     </div>`;
   }).join('');
@@ -1602,22 +1653,28 @@ function ricordiView(){
     <div class="filo-wrapper"><div class="filo-line"></div><div class="foto-grid">${cards}</div></div>`;
 }
 
-let fotoForm={autore:'antonio',didascalia:''};
+let fotoForm={autore:'antonio',didascalia:'',cornice:'cream',fontDidascalia:'caveat'};
 function openFotoModal(){
-  fotoForm={autore:'antonio',didascalia:''};
+  fotoForm={autore:'antonio',didascalia:'',cornice:'cream',fontDidascalia:'caveat'};
   renderFotoModal(); showOv();
 }
 
 function renderFotoModal(){
   const mbrBtns=MEMBERS.map(m=>`<button class="tr-btn${fotoForm.autore===m.id?' sel':''}" onclick="fotoForm.autore='${m.id}';renderFotoModal()" style="${fotoForm.autore===m.id?ms(m):''}">${getIcon(m.id)} ${m.name}</button>`).join('');
+  const corniceBtns=FOTO_CORNICI.map(c=>`<button onclick="fotoForm.cornice='${c.id}';renderFotoModal()" title="${c.label}" style="width:30px;height:30px;border-radius:50%;background:${c.hex};border:${fotoForm.cornice===c.id?'3px solid #8B5E3C':'2px solid rgba(0,0,0,0.15)'};cursor:pointer;box-shadow:1px 1px 4px rgba(0,0,0,0.15);transition:transform 0.1s;${fotoForm.cornice===c.id?'transform:scale(1.25)':''}"></button>`).join('');
+  const fontBtns=FOTO_FONTS.map(f=>`<button class="tr-btn${fotoForm.fontDidascalia===f.id?' sel':''}" onclick="fotoForm.fontDidascalia='${f.id}';renderFotoModal()" style="font-family:${f.family};${fotoForm.fontDidascalia===f.id?'background:#8B5E3C;color:#fff;':''}">${f.label}</button>`).join('');
+  const previewFont=fotoFont(fotoForm.fontDidascalia);
+  const previewCornice=fotoCornice(fotoForm.cornice);
   document.getElementById('modal-box').innerHTML=`
     <div class="modal-hdr"><div class="modal-ttl">📸 Nuovo Ricordo</div><button class="cl-btn" onclick="closeModal()">✕</button></div>
     <div class="fgrp"><label class="flbl">Foto</label>
       <input type="file" id="foto-file" accept="image/*" style="width:100%;padding:10px;border:1px solid var(--border-light);border-radius:10px;background:var(--main-bg)">
     </div>
     <div class="fgrp"><label class="flbl">Didascalia (opzionale)</label>
-      <input type="text" id="foto-did" placeholder="Es. Estate 2025…" value="${escH(fotoForm.didascalia)}" oninput="fotoForm.didascalia=this.value" style="width:100%">
+      <input type="text" id="foto-did" placeholder="Es. Estate 2025…" value="${escH(fotoForm.didascalia)}" oninput="fotoForm.didascalia=this.value" style="width:100%;font-family:${previewFont.family}">
     </div>
+    <div class="fgrp"><label class="flbl">Colore cornice</label><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:8px">${corniceBtns}<span style="font-size:12px;font-weight:600;color:var(--text-sec);margin-left:4px">${previewCornice.label}</span></div></div>
+    <div class="fgrp"><label class="flbl">Font didascalia</label><div class="tr-opts">${fontBtns}</div></div>
     <div class="fgrp"><label class="flbl">Caricato da</label><div class="tr-opts">${mbrBtns}</div></div>
     <div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Annulla</button><button class="btn-save" onclick="uploadFoto()">Carica foto</button></div>`;
 }
@@ -1635,8 +1692,8 @@ async function uploadFoto(){
     const data=await res.json();
     if(!data.secure_url) throw new Error('Upload fallito');
     const id='fr'+Date.now();
-    const rec=await atPost('FotoRicordi',{ID:id,URL:data.secure_url,Autore:fotoForm.autore,Data:REAL_TODAY,Didascalia:did});
-    fotoRicordi.push({id,url:data.secure_url,autore:fotoForm.autore,data:REAL_TODAY,didascalia:did,_recId:rec.records?.[0]?.id});
+    const rec=await atPost('FotoRicordi',{ID:id,URL:data.secure_url,Autore:fotoForm.autore,Data:REAL_TODAY,Didascalia:did,Cornice:fotoForm.cornice,FontDidascalia:fotoForm.fontDidascalia});
+    fotoRicordi.push({id,url:data.secure_url,autore:fotoForm.autore,data:REAL_TODAY,didascalia:did,cornice:fotoForm.cornice,fontDidascalia:fotoForm.fontDidascalia,_recId:rec.records?.[0]?.id});
     closeModal(); renderView();
   } catch(e){ alert('Errore nel caricamento. Riprova.'); closeModal(); }
 }
@@ -1647,6 +1704,47 @@ async function deleteFotoRicordo(id){
   fotoRicordi=fotoRicordi.filter(f=>f.id!==id);
   if(f?._recId) atDelete('FotoRicordi',f._recId);
   renderView();
+}
+
+function openFotoLightbox(id){
+  const f=fotoRicordi.find(f=>f.id===id); if(!f) return;
+  const m=M(f.autore);
+  const cor=fotoCornice(f.cornice);
+  const fnt=fotoFont(f.fontDidascalia);
+  const lb=document.createElement('div');
+  lb.className='foto-lb-ov';
+  lb.onclick=(e)=>{ if(e.target===lb) lb.remove(); };
+  lb.innerHTML=`<div class="foto-lb-card" style="background:${cor.hex}">
+    <button class="foto-lb-close" onclick="this.closest('.foto-lb-ov').remove()">✕</button>
+    <img class="foto-lb-img" src="${escH(f.url)}" onerror="this.style.background='#eee'">
+    <div class="foto-lb-caption" style="font-family:${fnt.family}">${escH(f.didascalia||m.name)}</div>
+    <div class="foto-lb-meta"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${m.dot};margin-right:4px;vertical-align:middle"></span>${m.name} · ${fmtDateShort(f.data)}</div>
+  </div>`;
+  document.body.appendChild(lb);
+}
+
+function ricordiWidget(){
+  const sorted=[...fotoRicordi].sort((a,b)=>b.data.localeCompare(a.data)).slice(0,5);
+  if(!sorted.length) return `<div class="ricordi-widget">
+    <div class="ricordi-widget-hdr"><span class="ricordi-widget-title">📸 Ricordi</span><button class="ricordi-widget-link" onclick="switchView('ricordi')">Aggiungi →</button></div>
+    <div class="ricordi-widget-empty">Nessun ricordo ancora… iniziate a scattare! 📷</div>
+  </div>`;
+  const cards=sorted.map(f=>{
+    const rot=photoRotation(f.id);
+    const cor=fotoCornice(f.cornice);
+    const fnt=fotoFont(f.fontDidascalia);
+    return `<div class="mini-foto-card" style="transform:rotate(${rot}deg)" onclick="openFotoLightbox('${f.id}')">
+      <div class="mini-molletta"><div class="mini-molletta-spring"></div></div>
+      <div class="mini-foto-inner" style="background:${cor.hex}">
+        <img class="mini-foto-img" src="${escH(f.url)}" loading="lazy" onerror="this.style.background='#ddd'">
+      </div>
+      <div class="mini-foto-caption" style="font-family:${fnt.family}">${escH(f.didascalia||M(f.autore).name)}</div>
+    </div>`;
+  }).join('');
+  return `<div class="ricordi-widget">
+    <div class="ricordi-widget-hdr"><span class="ricordi-widget-title">📸 Ultimi Ricordi</span><button class="ricordi-widget-link" onclick="switchView('ricordi')">Vedi tutti →</button></div>
+    <div class="mini-foto-filo"><div class="mini-foto-filo-line"></div><div class="mini-foto-strip">${cards}</div></div>
+  </div>`;
 }
 
 async function init(){ await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi()]); render(); loadWeather(); }
