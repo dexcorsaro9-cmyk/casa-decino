@@ -2490,12 +2490,20 @@ async function saveSondaggio(){
   const flds={ID:id,Domanda:domanda,Autore:sondaggioForm.autore||'antonio',Opzioni:opzioni.join('|'),Voti:'',Stato:'aperto',Data:REAL_TODAY};
   const rec=await atPost('Sondaggi',flds);
   sondaggi.unshift({...flds,id,opzioni,voti:{},_recId:rec.records?.[0]?.id});
-  closeModal();
-  // notifica in-app agli altri membri
-  if('Notification' in window && Notification.permission==='granted'){
-    new Notification('Casa Decino 🗳️',{body:`${M(flds.Autore).name} ha aperto un sondaggio: "${domanda}"`,icon:'/favicon.ico'});
-  }
-  switchView('sondaggi');
+  // mostra popup con bottone WhatsApp
+  const waText=encodeURIComponent(`🗳️ Nuovo sondaggio su Casa Decino!\n\n"${domanda}"\n\nOpzioni: ${opzioni.join(', ')}\n\nVota qui 👉 https://casa-decino.vercel.app/`);
+  document.getElementById('modal-box').innerHTML=`
+    <div class="modal-hdr"><span class="modal-ttl">🗳️ Sondaggio creato!</span><button class="modal-close" onclick="closeModal();switchView('sondaggi')">✕</button></div>
+    <div style="text-align:center;padding:10px 0 6px">
+      <div style="font-size:40px;margin-bottom:8px">✅</div>
+      <div style="font-size:15px;font-weight:800;color:var(--text-main);margin-bottom:4px">${escH(domanda)}</div>
+      <div style="font-size:13px;color:var(--text-sec);margin-bottom:20px">Sondaggio pubblicato con successo</div>
+      <a href="https://wa.me/?text=${waText}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:10px;background:#25D366;color:#fff;font-weight:800;font-size:15px;padding:14px;border-radius:14px;text-decoration:none;margin-bottom:10px">
+        <span style="font-size:22px">💬</span> Avvisa su WhatsApp
+      </a>
+      <button onclick="closeModal();switchView('sondaggi')" style="width:100%;padding:12px;border-radius:14px;border:1px solid var(--border-light);background:var(--main-bg);color:var(--text-sec);font-size:14px;font-weight:700;cursor:pointer">Vai ai sondaggi</button>
+    </div>`;
+  showOv();
 }
 
 async function init(){
