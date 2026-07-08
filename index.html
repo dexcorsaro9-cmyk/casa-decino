@@ -2488,8 +2488,13 @@ async function saveSondaggio(){
   if(opzioni.length<2){ alert('Aggiungi almeno 2 opzioni'); return; }
   const id='so'+Date.now();
   const flds={ID:id,Domanda:domanda,Autore:sondaggioForm.autore||'antonio',Opzioni:opzioni.join('|'),Voti:'',Stato:'aperto',Data:REAL_TODAY};
-  const rec=await atPost('Sondaggi',flds);
-  sondaggi.unshift({...flds,id,opzioni,voti:{},_recId:rec.records?.[0]?.id});
+  let recId=null;
+  try{
+    const rec=await atPost('Sondaggi',flds);
+    if(rec.error){ alert('Errore Airtable: '+rec.error.message); return; }
+    recId=rec.records?.[0]?.id;
+  } catch(e){ alert('Errore di rete: '+e.message); return; }
+  sondaggi.unshift({...flds,id,opzioni,voti:{},_recId:recId});
   // mostra popup con bottone WhatsApp
   const waText=encodeURIComponent(`🗳️ Nuovo sondaggio su Casa Decino!\n\n"${domanda}"\n\nOpzioni: ${opzioni.join(', ')}\n\nVota qui 👉 https://casa-decino.vercel.app/`);
   document.getElementById('modal-box').innerHTML=`
@@ -2503,7 +2508,7 @@ async function saveSondaggio(){
       </a>
       <button onclick="closeModal();switchView('sondaggi')" style="width:100%;padding:12px;border-radius:14px;border:1px solid var(--border-light);background:var(--main-bg);color:var(--text-sec);font-size:14px;font-weight:700;cursor:pointer">Vai ai sondaggi</button>
     </div>`;
-  showOv();
+  const ov=document.getElementById('modal-ov'); ov.style.display='flex'; ov.style.alignItems='center';
 }
 
 async function init(){
