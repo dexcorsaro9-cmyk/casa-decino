@@ -902,6 +902,19 @@ function switchView(v){
   else if(v==='giochi'){ fab.style.display='none'; }
   else { fab.style.display='inline-flex'; fabTxt.innerText=(v==='ricorrenze')?'Ricorrenza':'Impegno'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='📝'; }
   renderView();
+  gestisciPollingGiochi();
+}
+
+let giochiPollingId=null;
+function gestisciPollingGiochi(){
+  if(giochiPollingId){ clearInterval(giochiPollingId); giochiPollingId=null; }
+  if(view==='giochi'){
+    giochiPollingId=setInterval(async()=>{
+      if(document.hidden||view!=='giochi') return;
+      await Promise.all([loadForza4(),loadTris(),loadImpiccato(),loadMorra()]);
+      renderView();
+    },5000);
+  }
 }
 
 function renderView(){ const el=document.getElementById('view'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else if(view==='sondaggi')el.innerHTML=sondaggiView(); else if(view==='giochi')el.innerHTML=giochiView(); else el.innerHTML=ricorrenzeView(); updateGiochiBadge(); }
