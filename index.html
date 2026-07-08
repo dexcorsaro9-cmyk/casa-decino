@@ -2238,7 +2238,8 @@ function renderFilmModal(){
         <input type="text" id="film-search-input" placeholder="Cerca film o serie…" onkeydown="if(event.key==='Enter')cercaFilm()" style="flex:1;margin-top:0;padding:11px 14px">
         <button class="btn-save" onclick="cercaFilm()" style="padding:11px 14px;white-space:nowrap;margin-top:0">🔍</button>
       </div>
-      <div id="film-search-results" style="margin-top:10px"></div>
+      <div style="font-size:11px;color:var(--text-sec);margin-top:6px;text-align:center">👆 Cerca e poi <b>tocca un risultato</b> per selezionarlo</div>
+      <div id="film-search-results" style="margin-top:8px"></div>
     </div>`;
   document.getElementById('modal-box').innerHTML=`
     <div class="modal-hdr"><div class="modal-ttl">🎬 Aggiungi Film/Serie</div><button class="cl-btn" onclick="closeModal()">✕</button></div>
