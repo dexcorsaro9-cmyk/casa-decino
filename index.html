@@ -1017,7 +1017,7 @@ async function saveEvt(){
 }
 
 async function delEvt(id){
-  if(!confirm('Eliminare questo impegno?'))return;
+  if(!(await confermaCustom('Eliminare questo impegno?')))return;
   const ev=events.find(e=>e.id===id);
   events=events.filter(e=>e.id!==id);
   if(ev?._recId) atDelete('Events',ev._recId);
@@ -1115,7 +1115,37 @@ function tornaIndietro(){
   },{passive:true});
 })();
 
+function vibra(pattern){
+  if(navigator.vibrate){ try{ navigator.vibrate(pattern); }catch(e){} }
+}
+
+function confermaCustom(msg,titolo){
+  return new Promise(resolve=>{
+    let box=document.getElementById('conferma-custom-box');
+    if(!box){
+      box=document.createElement('div');
+      box.id='conferma-custom-box';
+      box.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:3000;display:flex;align-items:center;justify-content:center;padding:20px';
+      document.body.appendChild(box);
+    }
+    box.innerHTML=`<div style="background:var(--card-bg,#fff);border-radius:18px;padding:22px 20px;max-width:320px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,0.35)">
+      <div style="font-size:16px;font-weight:800;margin-bottom:8px">${escH(titolo||'Conferma')}</div>
+      <div style="font-size:14px;color:var(--text-sec);line-height:1.4;margin-bottom:18px">${escH(msg)}</div>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button id="conferma-no" style="background:rgba(0,0,0,0.06);border:none;padding:9px 16px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer">Annulla</button>
+        <button id="conferma-si" style="background:#e0422a;color:#fff;border:none;padding:9px 16px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer">Conferma</button>
+      </div>
+    </div>`;
+    box.style.display='flex';
+    vibra(15);
+    document.getElementById('conferma-no').onclick=()=>{ box.style.display='none'; resolve(false); };
+    document.getElementById('conferma-si').onclick=()=>{ box.style.display='none'; vibra(20); resolve(true); };
+    box.onclick=(e)=>{ if(e.target===box){ box.style.display='none'; resolve(false); } };
+  });
+}
+
 function mostraToast(msg){
+  vibra(12);
   let t=document.getElementById('app-toast');
   if(!t){
     t=document.createElement('div');
@@ -1474,7 +1504,7 @@ async function saveRicorrenza(){
   mostraToast('Salvato ✓');
 }
 async function deleteRic(id){
-  if(!confirm('Eliminare la ricorrenza?'))return;
+  if(!(await confermaCustom('Eliminare la ricorrenza?')))return;
   const r=ricorrenze.find(r=>r.id===id);
   ricorrenze=ricorrenze.filter(r=>r.id!==id);
   if(r?._recId) atDelete('Ricorrenze',r._recId);
@@ -1676,7 +1706,7 @@ async function addChallengeTask(){
 }
 
 async function deleteChallengeTask(id){
-  if(!confirm('Eliminare questa sfida? Sparirà da tutti i giorni.'))return;
+  if(!(await confermaCustom('Eliminare questa sfida? Sparirà da tutti i giorni.')))return;
   const t=challengeTasks.find(t=>t.id===id);
   challengeTasks=challengeTasks.filter(t=>t.id!==id);
   if(t?._recId) atDelete('ChallengeTasks',t._recId);
@@ -1693,7 +1723,7 @@ async function approveLog(id,approved){
 }
 
 async function annullaApprovazione(id){
-  if(!confirm('Annullare i punti già assegnati per questa sfida?')) return;
+  if(!(await confermaCustom('Annullare i punti già assegnati per questa sfida?'))) return;
   await approveLog(id,false);
 }
 
@@ -1868,7 +1898,7 @@ async function saveBachecaNote(){
 }
 
 async function deleteBachecaNote(id){
-  if(!confirm('Rimuovere questo post-it?')) return;
+  if(!(await confermaCustom('Rimuovere questo post-it?'))) return;
   const n=bachecaNotes.find(n=>n.id===id);
   bachecaNotes=bachecaNotes.filter(n=>n.id!==id);
   if(n?._recId) atDelete('Bacheca',n._recId);
@@ -2242,7 +2272,7 @@ async function uploadFoto(){
 }
 
 async function deleteFotoRicordo(id){
-  if(!confirm('Rimuovere questo ricordo?')) return;
+  if(!(await confermaCustom('Rimuovere questo ricordo?'))) return;
   const f=fotoRicordi.find(f=>f.id===id);
   fotoRicordi=fotoRicordi.filter(f=>f.id!==id);
   if(f?._recId) atDelete('FotoRicordi',f._recId);
@@ -2516,7 +2546,7 @@ async function saveViaggio(){
 }
 
 async function deleteViaggio(id){
-  if(!confirm('Rimuovere questo viaggio?'))return;
+  if(!(await confermaCustom('Rimuovere questo viaggio?')))return;
   const v=viaggi.find(v=>v.id===id);
   viaggi=viaggi.filter(v=>v.id!==id);
   if(v?._recId) atDelete('Viaggi',v._recId);
@@ -2651,7 +2681,7 @@ async function setVotoFilm(filmId, memberId, voto){
 }
 
 async function deleteFilm(id){
-  if(!confirm('Rimuovere questo titolo?')) return;
+  if(!(await confermaCustom('Rimuovere questo titolo?'))) return;
   const f=film.find(x=>x.id===id);
   film=film.filter(x=>x.id!==id);
   if(f?._recId) atDelete('Film',f._recId);
@@ -2806,7 +2836,7 @@ async function chiudiSondaggio(id){
 }
 
 async function eliminaSondaggio(id){
-  if(!confirm('Eliminare questo sondaggio?')) return;
+  if(!(await confermaCustom('Eliminare questo sondaggio?'))) return;
   const s=sondaggi.find(x=>x.id===id);
   sondaggi=sondaggi.filter(x=>x.id!==id);
   if(s?._recId) atDelete('Sondaggi',s._recId);
@@ -2896,7 +2926,7 @@ function puoEliminarePartita(p){
 async function eliminaPartitaGenerica(lista,setLista,tabella,partitaId){
   const p=lista.find(x=>x.id===partitaId); if(!p) return null;
   if(!puoEliminarePartita(p)){ alert('Solo chi ha creato la partita può eliminarla'); return null; }
-  if(!confirm('Eliminare questa partita?')) return null;
+  if(!(await confermaCustom('Eliminare questa partita?'))) return null;
   setLista(lista.filter(x=>x.id!==partitaId));
   renderView();
   if(p._recId) atDelete(tabella,p._recId);
@@ -3837,7 +3867,7 @@ function faiDomandaIC(partitaId,domandaIdx){
 async function tentaRispostaIC(partitaId,charId){
   const p=icPartite.find(x=>x.id===partitaId); if(!p||p.stato!=='aperta'||p.giocatore2!==f4Me) return;
   const personaggio=icChar(charId);
-  if(!confirm(`Confermi di voler indovinare ${personaggio.nome}?`)) return;
+  if(!(await confermaCustom(`Confermi di voler indovinare ${personaggio.nome}?`))) return;
   if(charId===p.personaggioSegreto){
     p.stato='vinta'; p.vincitore=f4Me;
     renderView();
@@ -4216,7 +4246,7 @@ async function inviaSegreteria(){
 }
 
 async function eliminaSegreteria(id){
-  if(!confirm('Eliminare questo messaggio vocale?')) return;
+  if(!(await confermaCustom('Eliminare questo messaggio vocale?'))) return;
   const m=segreteriaMsgs.find(x=>x.id===id);
   segreteriaMsgs=segreteriaMsgs.filter(x=>x.id!==id);
   renderView();
@@ -4390,7 +4420,7 @@ async function saveCanzone(){
 }
 
 async function deleteCanzone(id){
-  if(!confirm('Rimuovere questa canzone dalla playlist?')) return;
+  if(!(await confermaCustom('Rimuovere questa canzone dalla playlist?'))) return;
   const brano=jukebox.find(b=>b.id===id);
   jukebox=jukebox.filter(b=>b.id!==id);
   renderView();
