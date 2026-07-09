@@ -2587,6 +2587,11 @@ async function saveSondaggio(){
   const ov=document.getElementById('modal-ov'); ov.style.display='flex'; ov.style.alignItems='center';
 }
 
+async function caricaTabellaGiochi(tabella,mapFn){
+  try{ const records=await atGetAll(tabella); return records.map(mapFn); }
+  catch(e){ return []; }
+}
+
 function puoEliminarePartita(p){
   const orfana=!MEMBERS.some(m=>m.id===p.giocatore1);
   return p.giocatore1===f4Me||orfana;
@@ -2607,20 +2612,17 @@ let f4Me=localStorage.getItem('casaDecino_f4me')||'antonio';
 function f4SetMe(id){ f4Me=id; localStorage.setItem('casaDecino_f4me',id); renderView(); if(typeof inviaHeartbeat==='function') inviaHeartbeat(); }
 
 async function loadForza4(){
-  try{
-    const records=await atGetAll('Forza4');
-    f4Partite=records.map(r=>({
-      _recId:r.id,
-      id:r.fields.ID||r.id,
-      griglia:(r.fields.Griglia&&r.fields.Griglia.length===42)?r.fields.Griglia:'.'.repeat(42),
-      turnoDi:r.fields.TurnoDi||'',
-      giocatore1:r.fields.Giocatore1||'',
-      giocatore2:r.fields.Giocatore2||'',
-      stato:r.fields.Stato||'aperta',
-      vincitore:r.fields.Vincitore||'',
-      data:r.fields.Data||''
-    }));
-  }catch(e){ f4Partite=[]; }
+  f4Partite=await caricaTabellaGiochi('Forza4',r=>({
+    _recId:r.id,
+    id:r.fields.ID||r.id,
+    griglia:(r.fields.Griglia&&r.fields.Griglia.length===42)?r.fields.Griglia:'.'.repeat(42),
+    turnoDi:r.fields.TurnoDi||'',
+    giocatore1:r.fields.Giocatore1||'',
+    giocatore2:r.fields.Giocatore2||'',
+    stato:r.fields.Stato||'aperta',
+    vincitore:r.fields.Vincitore||'',
+    data:r.fields.Data||''
+  }));
 }
 
 function f4Cell(g,row,col){ return (g&&g[row*7+col])||'.'; }
@@ -2740,13 +2742,13 @@ function giochiView(){
         <div style="font-size:11px;font-weight:800;color:var(--text-sec);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Chi sei?</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">${memberBtns}</div>
       </div>
-      <div style="display:flex;gap:6px;margin-bottom:16px;background:var(--main-bg);padding:6px;border-radius:14px">
-        <button onclick="setGiochiTab('forza4')" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='forza4'?'#378ADD':'transparent'};color:${giochiTab==='forza4'?'#fff':'var(--text-sec)'}">🔴 Forza 4</button>
-        <button onclick="setGiochiTab('tris')" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='tris'?'#378ADD':'transparent'};color:${giochiTab==='tris'?'#fff':'var(--text-sec)'}">❌ Tris</button>
-        <button onclick="setGiochiTab('impiccato')" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='impiccato'?'#378ADD':'transparent'};color:${giochiTab==='impiccato'?'#fff':'var(--text-sec)'}">🎯 Impiccato</button>
-        <button onclick="setGiochiTab('morra')" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='morra'?'#378ADD':'transparent'};color:${giochiTab==='morra'?'#fff':'var(--text-sec)'}">✂️ Morra</button>
-        <button onclick="setGiochiTab('indovinachi')" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='indovinachi'?'#378ADD':'transparent'};color:${giochiTab==='indovinachi'?'#fff':'var(--text-sec)'}">🕵️ Indovina Chi</button>
-        <button onclick="setGiochiTab('wordle')" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='wordle'?'#378ADD':'transparent'};color:${giochiTab==='wordle'?'#fff':'var(--text-sec)'}">🟩 Wordle</button>
+      <div style="display:flex;gap:6px;margin-bottom:16px;background:var(--main-bg);padding:6px;border-radius:14px;overflow-x:auto;-webkit-overflow-scrolling:touch">
+        <button onclick="setGiochiTab('forza4')" style="flex:0 0 auto;white-space:nowrap;padding:10px 14px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='forza4'?'#378ADD':'transparent'};color:${giochiTab==='forza4'?'#fff':'var(--text-sec)'}">🔴 Forza 4</button>
+        <button onclick="setGiochiTab('tris')" style="flex:0 0 auto;white-space:nowrap;padding:10px 14px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='tris'?'#378ADD':'transparent'};color:${giochiTab==='tris'?'#fff':'var(--text-sec)'}">❌ Tris</button>
+        <button onclick="setGiochiTab('impiccato')" style="flex:0 0 auto;white-space:nowrap;padding:10px 14px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='impiccato'?'#378ADD':'transparent'};color:${giochiTab==='impiccato'?'#fff':'var(--text-sec)'}">🎯 Impiccato</button>
+        <button onclick="setGiochiTab('morra')" style="flex:0 0 auto;white-space:nowrap;padding:10px 14px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='morra'?'#378ADD':'transparent'};color:${giochiTab==='morra'?'#fff':'var(--text-sec)'}">✂️ Morra</button>
+        <button onclick="setGiochiTab('indovinachi')" style="flex:0 0 auto;white-space:nowrap;padding:10px 14px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='indovinachi'?'#378ADD':'transparent'};color:${giochiTab==='indovinachi'?'#fff':'var(--text-sec)'}">🕵️ Indovina Chi</button>
+        <button onclick="setGiochiTab('wordle')" style="flex:0 0 auto;white-space:nowrap;padding:10px 14px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='wordle'?'#378ADD':'transparent'};color:${giochiTab==='wordle'?'#fff':'var(--text-sec)'}">🟩 Wordle</button>
       </div>`;
   if(giochiTab==='forza4'){
     const mie=f4Partite.filter(p=>p.giocatore1===f4Me||p.giocatore2===f4Me);
@@ -2840,20 +2842,17 @@ async function nuovaPartitaF4(avversarioId){
 let trisPartite=[];
 
 async function loadTris(){
-  try{
-    const records=await atGetAll('Tris');
-    trisPartite=records.map(r=>({
-      _recId:r.id,
-      id:r.fields.ID||r.id,
-      griglia:(r.fields.Griglia&&r.fields.Griglia.length===9)?r.fields.Griglia:'.'.repeat(9),
-      turnoDi:r.fields.TurnoDi||'',
-      giocatore1:r.fields.Giocatore1||'',
-      giocatore2:r.fields.Giocatore2||'',
-      stato:r.fields.Stato||'aperta',
-      vincitore:r.fields.Vincitore||'',
-      data:r.fields.Data||''
-    }));
-  }catch(e){ trisPartite=[]; }
+  trisPartite=await caricaTabellaGiochi('Tris',r=>({
+    _recId:r.id,
+    id:r.fields.ID||r.id,
+    griglia:(r.fields.Griglia&&r.fields.Griglia.length===9)?r.fields.Griglia:'.'.repeat(9),
+    turnoDi:r.fields.TurnoDi||'',
+    giocatore1:r.fields.Giocatore1||'',
+    giocatore2:r.fields.Giocatore2||'',
+    stato:r.fields.Stato||'aperta',
+    vincitore:r.fields.Vincitore||'',
+    data:r.fields.Data||''
+  }));
 }
 
 function trisCheckWinner(g){
@@ -2968,21 +2967,18 @@ const IMP_DISEGNI=[
 ];
 
 async function loadImpiccato(){
-  try{
-    const records=await atGetAll('Impiccato');
-    impPartite=records.map(r=>({
-      _recId:r.id,
-      id:r.fields.ID||r.id,
-      parola:(r.fields.Parola||'').toUpperCase(),
-      lettere:r.fields.Lettere||'',
-      errori:Number(r.fields.Errori)||0,
-      giocatore1:r.fields.Giocatore1||'',
-      giocatore2:r.fields.Giocatore2||'',
-      stato:r.fields.Stato||'aperta',
-      vincitore:r.fields.Vincitore||'',
-      data:r.fields.Data||''
-    }));
-  }catch(e){ impPartite=[]; }
+  impPartite=await caricaTabellaGiochi('Impiccato',r=>({
+    _recId:r.id,
+    id:r.fields.ID||r.id,
+    parola:(r.fields.Parola||'').toUpperCase(),
+    lettere:r.fields.Lettere||'',
+    errori:Number(r.fields.Errori)||0,
+    giocatore1:r.fields.Giocatore1||'',
+    giocatore2:r.fields.Giocatore2||'',
+    stato:r.fields.Stato||'aperta',
+    vincitore:r.fields.Vincitore||'',
+    data:r.fields.Data||''
+  }));
 }
 
 function impMask(parola,lettere){
@@ -3092,24 +3088,21 @@ const MORRA_ICONE={sasso:'🪨',carta:'📄',forbici:'✂️'};
 const MORRA_LABEL={sasso:'Sasso',carta:'Carta',forbici:'Forbici'};
 
 async function loadMorra(){
-  try{
-    const records=await atGetAll('Morra');
-    morraPartite=records.map(r=>({
-      _recId:r.id,
-      id:r.fields.ID||r.id,
-      giocatore1:r.fields.Giocatore1||'',
-      giocatore2:r.fields.Giocatore2||'',
-      mossa1:r.fields.Mossa1||'',
-      mossa2:r.fields.Mossa2||'',
-      punti1:Number(r.fields.Punti1)||0,
-      punti2:Number(r.fields.Punti2)||0,
-      obiettivo:Number(r.fields.Obiettivo)||10,
-      ultimoEsito:r.fields.UltimoEsito||'',
-      stato:r.fields.Stato||'aperta',
-      vincitore:r.fields.Vincitore||'',
-      data:r.fields.Data||''
-    }));
-  }catch(e){ morraPartite=[]; }
+  morraPartite=await caricaTabellaGiochi('Morra',r=>({
+    _recId:r.id,
+    id:r.fields.ID||r.id,
+    giocatore1:r.fields.Giocatore1||'',
+    giocatore2:r.fields.Giocatore2||'',
+    mossa1:r.fields.Mossa1||'',
+    mossa2:r.fields.Mossa2||'',
+    punti1:Number(r.fields.Punti1)||0,
+    punti2:Number(r.fields.Punti2)||0,
+    obiettivo:Number(r.fields.Obiettivo)||10,
+    ultimoEsito:r.fields.UltimoEsito||'',
+    stato:r.fields.Stato||'aperta',
+    vincitore:r.fields.Vincitore||'',
+    data:r.fields.Data||''
+  }));
 }
 
 function morraBattitore(a,b){
@@ -3405,30 +3398,21 @@ function icChar(id){ return IC_ROSTER.find(c=>c.id===id); }
 
 let icPartite=[];
 async function loadIndovinaChi(){
-  try{
-    const records=await atGetAll('IndovinaChi');
-    icPartite=records.map(r=>({
-      _recId:r.id,
-      id:r.fields.ID||r.id,
-      giocatore1:r.fields.Giocatore1||'',
-      giocatore2:r.fields.Giocatore2||'',
-      personaggioSegreto:r.fields.PersonaggioSegreto||'',
-      eliminati:(r.fields.Eliminati||'').split(',').filter(Boolean),
-      stato:r.fields.Stato||'aperta',
-      vincitore:r.fields.Vincitore||'',
-      data:r.fields.Data||''
-    }));
-  }catch(e){ icPartite=[]; }
+  icPartite=await caricaTabellaGiochi('IndovinaChi',r=>({
+    _recId:r.id,
+    id:r.fields.ID||r.id,
+    giocatore1:r.fields.Giocatore1||'',
+    giocatore2:r.fields.Giocatore2||'',
+    personaggioSegreto:r.fields.PersonaggioSegreto||'',
+    eliminati:(r.fields.Eliminati||'').split(',').filter(Boolean),
+    stato:r.fields.Stato||'aperta',
+    vincitore:r.fields.Vincitore||'',
+    data:r.fields.Data||''
+  }));
 }
 
 async function eliminaIC(partitaId){
-  const p=icPartite.find(x=>x.id===partitaId); if(!p) return;
-  const orfana=!MEMBERS.some(m=>m.id===p.giocatore1);
-  if(p.giocatore1!==f4Me&&!orfana){ alert('Solo chi ha creato la partita può eliminarla'); return; }
-  if(!confirm('Eliminare questa partita?')) return;
-  icPartite=icPartite.filter(x=>x.id!==partitaId);
-  renderView();
-  if(p._recId) atDelete('IndovinaChi',p._recId);
+  await eliminaPartitaGenerica(icPartite,v=>icPartite=v,'IndovinaChi',partitaId);
 }
 
 function openNuovaPartitaIC(){
@@ -3529,8 +3513,7 @@ function renderICBoard(p){
   } else {
     html+=`<div style="text-align:center;padding:14px 0;font-size:13px;color:var(--text-sec)">Hai scelto un personaggio segreto.<br>In attesa che ${escH(m2.name)} indovini...</div>`;
   }
-  const orfana=!MEMBERS.some(m=>m.id===p.giocatore1);
-  if(p.giocatore1===me||orfana){
+  if(puoEliminarePartita(p)){
     html+=`<div style="text-align:right;margin-top:8px"><button onclick="eliminaIC('${p.id}')" style="background:none;border:none;color:#ff3b30;font-size:12px;font-weight:700;cursor:pointer;padding:4px 8px">🗑 Elimina partita</button></div>`;
   }
   html+=`</div>`;
@@ -3543,23 +3526,20 @@ const WORDLE_MAX_ROUND=10;
 let wordlePartite=[];
 
 async function loadWordle(){
-  try{
-    const records=await atGetAll('Wordle');
-    wordlePartite=records.map(r=>({
-      _recId:r.id,
-      id:r.fields.ID||r.id,
-      giocatore1:r.fields.Giocatore1||'',
-      giocatore2:r.fields.Giocatore2||'',
-      parolaSegreta:(r.fields.ParolaSegreta||'').toUpperCase(),
-      tentativi:(r.fields.Tentativi||'').split(',').filter(Boolean),
-      roundAttuale:Number(r.fields.RoundAttuale)||1,
-      punti1:Number(r.fields.Punti1)||0,
-      punti2:Number(r.fields.Punti2)||0,
-      stato:r.fields.Stato||'aperta',
-      vincitore:r.fields.Vincitore||'',
-      data:r.fields.Data||''
-    }));
-  }catch(e){ wordlePartite=[]; }
+  wordlePartite=await caricaTabellaGiochi('Wordle',r=>({
+    _recId:r.id,
+    id:r.fields.ID||r.id,
+    giocatore1:r.fields.Giocatore1||'',
+    giocatore2:r.fields.Giocatore2||'',
+    parolaSegreta:(r.fields.ParolaSegreta||'').toUpperCase(),
+    tentativi:(r.fields.Tentativi||'').split(',').filter(Boolean),
+    roundAttuale:Number(r.fields.RoundAttuale)||1,
+    punti1:Number(r.fields.Punti1)||0,
+    punti2:Number(r.fields.Punti2)||0,
+    stato:r.fields.Stato||'aperta',
+    vincitore:r.fields.Vincitore||'',
+    data:r.fields.Data||''
+  }));
 }
 
 function wordleSetter(p){ return (p.roundAttuale%2===1)?p.giocatore1:p.giocatore2; }
@@ -3580,13 +3560,7 @@ function wordleColori(tentativo,segreta){
 }
 
 async function eliminaWordle(partitaId){
-  const p=wordlePartite.find(x=>x.id===partitaId); if(!p) return;
-  const orfana=!MEMBERS.some(m=>m.id===p.giocatore1);
-  if(p.giocatore1!==f4Me&&!orfana){ alert('Solo chi ha creato la partita può eliminarla'); return; }
-  if(!confirm('Eliminare questa partita?')) return;
-  wordlePartite=wordlePartite.filter(x=>x.id!==partitaId);
-  renderView();
-  if(p._recId) atDelete('Wordle',p._recId);
+  await eliminaPartitaGenerica(wordlePartite,v=>wordlePartite=v,'Wordle',partitaId);
 }
 
 let wordleForm={avversario:'',parola:''};
@@ -3727,8 +3701,7 @@ function renderWordleBoard(p){
       html+=`<div style="text-align:center;font-size:13px;color:var(--text-sec)">In attesa che ${escH(mGuesser.name)} indovini...</div>`;
     }
   }
-  const orfana=!MEMBERS.some(m=>m.id===p.giocatore1);
-  if(p.giocatore1===me||orfana){
+  if(puoEliminarePartita(p)){
     html+=`<div style="text-align:right;margin-top:8px"><button onclick="eliminaWordle('${p.id}')" style="background:none;border:none;color:#ff3b30;font-size:12px;font-weight:700;cursor:pointer;padding:4px 8px">🗑 Elimina partita</button></div>`;
   }
   html+=`</div>`;
