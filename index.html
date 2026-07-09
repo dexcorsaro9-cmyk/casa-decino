@@ -933,7 +933,8 @@ function updateGiochiBadge(){
   const haTurno=(typeof f4Partite!=='undefined'&&f4Partite.some(mioTurno))
     ||(typeof trisPartite!=='undefined'&&trisPartite.some(mioTurno))
     ||(typeof impPartite!=='undefined'&&impPartite.some(mioTurnoImp))
-    ||(typeof morraPartite!=='undefined'&&morraPartite.some(mioTurnoMorra));
+    ||(typeof morraPartite!=='undefined'&&morraPartite.some(mioTurnoMorra))
+    ||(typeof icPartite!=='undefined'&&icPartite.some(mioTurnoImp));
   let dot=tab.querySelector('.giochi-badge-dot');
   if(haTurno){
     if(!dot){ dot=document.createElement('span'); dot.className='giochi-badge-dot'; dot.style.cssText='display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff3b30;margin-left:4px;vertical-align:middle'; tab.appendChild(dot); }
@@ -2738,6 +2739,7 @@ function giochiView(){
         <button onclick="setGiochiTab('tris')" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='tris'?'#378ADD':'transparent'};color:${giochiTab==='tris'?'#fff':'var(--text-sec)'}">❌ Tris</button>
         <button onclick="setGiochiTab('impiccato')" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='impiccato'?'#378ADD':'transparent'};color:${giochiTab==='impiccato'?'#fff':'var(--text-sec)'}">🎯 Impiccato</button>
         <button onclick="setGiochiTab('morra')" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='morra'?'#378ADD':'transparent'};color:${giochiTab==='morra'?'#fff':'var(--text-sec)'}">✂️ Morra</button>
+        <button onclick="setGiochiTab('indovinachi')" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='indovinachi'?'#378ADD':'transparent'};color:${giochiTab==='indovinachi'?'#fff':'var(--text-sec)'}">🕵️ Indovina Chi</button>
       </div>`;
   if(giochiTab==='forza4'){
     const mie=f4Partite.filter(p=>p.giocatore1===f4Me||p.giocatore2===f4Me);
@@ -2769,7 +2771,7 @@ function giochiView(){
       html+=`<div style="font-size:12px;color:var(--text-sec);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 8px">Altre partite</div>`;
       for(const p of altre){ html+=`<div style="margin-bottom:16px">${renderImpBoard(p)}</div>`; }
     }
-  } else {
+  } else if(giochiTab==='morra'){
     const mie=morraPartite.filter(p=>p.giocatore1===f4Me||p.giocatore2===f4Me);
     const altre=morraPartite.filter(p=>p.giocatore1!==f4Me&&p.giocatore2!==f4Me);
     html+=`<button onclick="openNuovaPartitaMorra()" style="width:100%;padding:14px;border-radius:14px;background:#378ADD;color:#fff;font-size:15px;font-weight:800;border:none;cursor:pointer;margin-bottom:16px">✂️ Nuova partita Morra Cinese</button>`;
@@ -2778,6 +2780,16 @@ function giochiView(){
     if(altre.length>0){
       html+=`<div style="font-size:12px;color:var(--text-sec);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 8px">Altre partite</div>`;
       for(const p of altre){ html+=`<div style="margin-bottom:16px">${renderMorraBoard(p)}</div>`; }
+    }
+  } else {
+    const mie=icPartite.filter(p=>p.giocatore1===f4Me||p.giocatore2===f4Me);
+    const altre=icPartite.filter(p=>p.giocatore1!==f4Me&&p.giocatore2!==f4Me);
+    html+=`<button onclick="openNuovaPartitaIC()" style="width:100%;padding:14px;border-radius:14px;background:#378ADD;color:#fff;font-size:15px;font-weight:800;border:none;cursor:pointer;margin-bottom:16px">🕵️ Nuova partita Indovina Chi</button>`;
+    if(mie.length===0&&altre.length===0){ html+=`<div style="text-align:center;color:var(--text-sec);padding:30px 0;font-size:14px">Nessuna partita ancora.<br>Scegli un personaggio segreto per un familiare!</div>`; }
+    for(const p of mie){ html+=`<div style="margin-bottom:16px">${renderICBoard(p)}</div>`; }
+    if(altre.length>0){
+      html+=`<div style="font-size:12px;color:var(--text-sec);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 8px">Altre partite</div>`;
+      for(const p of altre){ html+=`<div style="margin-bottom:16px">${renderICBoard(p)}</div>`; }
     }
   }
   html+=`</div></div>`;
@@ -3319,7 +3331,7 @@ async function attivaNotifiche(){
   aggiornaBottoneNotifiche();
 }
 
-const GIOCHI_NOMI={forza4:'Forza 4',tris:'Tris',impiccato:'Impiccato',morra:'Morra Cinese'};
+const GIOCHI_NOMI={forza4:'Forza 4',tris:'Tris',impiccato:'Impiccato',morra:'Morra Cinese',indovinachi:'Indovina Chi'};
 let invitiNotificati=JSON.parse(localStorage.getItem('casaDecino_invitiNotificati')||'[]');
 function segnaInvitoNotificato(id){
   invitiNotificati.push(id);
@@ -3328,7 +3340,7 @@ function segnaInvitoNotificato(id){
 }
 function controllaNuoviInviti(){
   if(!('Notification' in window)||Notification.permission!=='granted') return;
-  const gruppi=[['forza4',f4Partite],['tris',trisPartite],['impiccato',impPartite],['morra',morraPartite]];
+  const gruppi=[['forza4',f4Partite],['tris',trisPartite],['impiccato',impPartite],['morra',morraPartite],['indovinachi',icPartite]];
   for(const[tipo,lista]of gruppi){
     for(const p of lista){
       if(p.giocatore2===f4Me&&p.stato==='aperta'&&!invitiNotificati.includes(p.id)){
@@ -3340,22 +3352,190 @@ function controllaNuoviInviti(){
   }
 }
 
+/* ── INDOVINA CHI ── */
+const IC_ROSTER=[
+  {id:'c1',seed:'Felix',nome:'Personaggio 1',occhiali:true,cappello:false,barba:false,capelli:'castano'},
+  {id:'c2',seed:'Marco',nome:'Personaggio 2',occhiali:false,cappello:true,barba:true,capelli:'nero'},
+  {id:'c3',seed:'Sara',nome:'Personaggio 3',occhiali:false,cappello:false,barba:false,capelli:'biondo'},
+  {id:'c4',seed:'Luca',nome:'Personaggio 4',occhiali:true,cappello:true,barba:false,capelli:'nero'},
+  {id:'c5',seed:'Giulia',nome:'Personaggio 5',occhiali:false,cappello:false,barba:false,capelli:'rosso'},
+  {id:'c6',seed:'Andrea',nome:'Personaggio 6',occhiali:false,cappello:false,barba:true,capelli:'castano'},
+  {id:'c7',seed:'Chiara',nome:'Personaggio 7',occhiali:true,cappello:false,barba:false,capelli:'nero'},
+  {id:'c8',seed:'Davide',nome:'Personaggio 8',occhiali:false,cappello:true,barba:true,capelli:'grigio'},
+  {id:'c9',seed:'Elena',nome:'Personaggio 9',occhiali:false,cappello:false,barba:false,capelli:'castano'},
+  {id:'c10',seed:'Fabio',nome:'Personaggio 10',occhiali:true,cappello:false,barba:true,capelli:'biondo'},
+  {id:'c11',seed:'Alice',nome:'Personaggio 11',occhiali:false,cappello:true,barba:false,capelli:'rosso'},
+  {id:'c12',seed:'Simone',nome:'Personaggio 12',occhiali:false,cappello:false,barba:false,capelli:'nero'},
+  {id:'c13',seed:'Martina',nome:'Personaggio 13',occhiali:true,cappello:false,barba:false,capelli:'castano'},
+  {id:'c14',seed:'Riccardo',nome:'Personaggio 14',occhiali:false,cappello:true,barba:true,capelli:'nero'},
+  {id:'c15',seed:'Valentina',nome:'Personaggio 15',occhiali:false,cappello:false,barba:false,capelli:'grigio'},
+  {id:'c16',seed:'Tommaso',nome:'Personaggio 16',occhiali:true,cappello:true,barba:false,capelli:'biondo'},
+  {id:'c17',seed:'Beatrice',nome:'Personaggio 17',occhiali:false,cappello:false,barba:false,capelli:'nero'},
+  {id:'c18',seed:'Gabriele',nome:'Personaggio 18',occhiali:false,cappello:false,barba:true,capelli:'castano'}
+];
+const IC_DOMANDE=[
+  {label:'Ha gli occhiali?',test:c=>c.occhiali},
+  {label:'Ha un cappello?',test:c=>c.cappello},
+  {label:'Ha la barba?',test:c=>c.barba},
+  {label:'Ha i capelli castani?',test:c=>c.capelli==='castano'},
+  {label:'Ha i capelli neri?',test:c=>c.capelli==='nero'},
+  {label:'Ha i capelli biondi?',test:c=>c.capelli==='biondo'},
+  {label:'Ha i capelli rossi?',test:c=>c.capelli==='rosso'},
+  {label:'Ha i capelli grigi?',test:c=>c.capelli==='grigio'}
+];
+function icUrl(seed){ return `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(seed)}`; }
+function icChar(id){ return IC_ROSTER.find(c=>c.id===id); }
+
+let icPartite=[];
+async function loadIndovinaChi(){
+  try{
+    const records=await atGetAll('IndovinaChi');
+    icPartite=records.map(r=>({
+      _recId:r.id,
+      id:r.fields.ID||r.id,
+      giocatore1:r.fields.Giocatore1||'',
+      giocatore2:r.fields.Giocatore2||'',
+      personaggioSegreto:r.fields.PersonaggioSegreto||'',
+      eliminati:(r.fields.Eliminati||'').split(',').filter(Boolean),
+      stato:r.fields.Stato||'aperta',
+      vincitore:r.fields.Vincitore||'',
+      data:r.fields.Data||''
+    }));
+  }catch(e){ icPartite=[]; }
+}
+
+async function eliminaIC(partitaId){
+  const p=icPartite.find(x=>x.id===partitaId); if(!p) return;
+  const orfana=!MEMBERS.some(m=>m.id===p.giocatore1);
+  if(p.giocatore1!==f4Me&&!orfana){ alert('Solo chi ha creato la partita può eliminarla'); return; }
+  if(!confirm('Eliminare questa partita?')) return;
+  icPartite=icPartite.filter(x=>x.id!==partitaId);
+  renderView();
+  if(p._recId) atDelete('IndovinaChi',p._recId);
+}
+
+function openNuovaPartitaIC(){
+  const altri=MEMBERS.filter(m=>m.id!==f4Me);
+  let opts=altri.map(m=>`<button onclick="apriSceltaPersonaggioIC('${m.id}')" style="width:100%;padding:14px;border-radius:14px;border:1.5px solid var(--border-light);background:var(--card-bg);color:var(--text-main);font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;gap:12px"><span style="font-size:22px">${m.icon}</span><span>${escH(m.name)}</span></button>`).join('');
+  document.getElementById('modal-box').innerHTML=`
+    <div class="modal-hdr"><span class="modal-ttl">🕵️ Chi deve indovinare?</span><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div style="padding:10px 0">${opts}</div>`;
+  showOv();
+}
+
+let icAvversarioScelto=null;
+function apriSceltaPersonaggioIC(avversarioId){
+  icAvversarioScelto=avversarioId;
+  const grid=IC_ROSTER.map(c=>`<div onclick="creaPartitaIC('${c.id}')" style="cursor:pointer;text-align:center;padding:6px;border-radius:10px;border:1.5px solid var(--border-light);background:var(--card-bg)"><img src="${icUrl(c.seed)}" width="48" height="48" style="border-radius:50%"><div style="font-size:10px;font-weight:700;margin-top:4px;color:var(--text-main)">${c.nome}</div></div>`).join('');
+  document.getElementById('modal-box').innerHTML=`
+    <div class="modal-hdr"><span class="modal-ttl">🕵️ Scegli il personaggio segreto</span><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div style="font-size:12px;color:var(--text-sec);margin-bottom:12px">L'avversario dovrà indovinare chi hai scelto</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-height:340px;overflow-y:auto">${grid}</div>`;
+  showOv();
+}
+
+async function creaPartitaIC(personaggioId){
+  const avversarioId=icAvversarioScelto; if(!avversarioId) return;
+  closeModal();
+  const id='ic'+Date.now();
+  const flds={ID:id,Giocatore1:f4Me,Giocatore2:avversarioId,PersonaggioSegreto:personaggioId,Eliminati:'',Stato:'aperta',Vincitore:'',Data:REAL_TODAY};
+  try{
+    const res=await atPost('IndovinaChi',flds);
+    if(res.error){ alert('Errore Airtable: '+(res.error.message||JSON.stringify(res.error))); return; }
+    if(!res.records?.[0]?.id){ alert('Risposta inattesa:\n'+JSON.stringify(res).slice(0,400)); return; }
+    const recId=res.records[0].id;
+    icPartite.unshift({_recId:recId,id,giocatore1:f4Me,giocatore2:avversarioId,personaggioSegreto:personaggioId,eliminati:[],stato:'aperta',vincitore:'',data:REAL_TODAY});
+    mostraInvitoWhatsApp('Indovina Chi',avversarioId);
+  }catch(e){ alert('Errore: '+e.message); }
+}
+
+async function toggleEliminaIC(partitaId,charId){
+  const p=icPartite.find(x=>x.id===partitaId); if(!p||p.stato!=='aperta'||p.giocatore2!==f4Me) return;
+  if(p.eliminati.includes(charId)) p.eliminati=p.eliminati.filter(c=>c!==charId);
+  else p.eliminati.push(charId);
+  renderView();
+  try{ await atPatch('IndovinaChi',p._recId,{Eliminati:p.eliminati.join(',')}); }catch(e){}
+}
+
+function faiDomandaIC(partitaId,domandaIdx){
+  const p=icPartite.find(x=>x.id===partitaId); if(!p) return;
+  const secreto=icChar(p.personaggioSegreto); if(!secreto) return;
+  const d=IC_DOMANDE[domandaIdx];
+  const risposta=d.test(secreto)?'Sì ✅':'No ❌';
+  alert(`${d.label}\n\n${risposta}`);
+}
+
+async function tentaRispostaIC(partitaId,charId){
+  const p=icPartite.find(x=>x.id===partitaId); if(!p||p.stato!=='aperta'||p.giocatore2!==f4Me) return;
+  const personaggio=icChar(charId);
+  if(!confirm(`Confermi di voler indovinare ${personaggio.nome}?`)) return;
+  if(charId===p.personaggioSegreto){
+    p.stato='vinta'; p.vincitore=f4Me;
+    renderView();
+    try{ await atPatch('IndovinaChi',p._recId,{Stato:'vinta',Vincitore:f4Me}); }catch(e){}
+  } else {
+    alert(`❌ Sbagliato! Non è ${personaggio.nome}. Continua a indagare...`);
+  }
+}
+
+function renderICBoard(p){
+  const me=f4Me;
+  const sonoIndovino=p.giocatore2===me;
+  const m1=MEMBERS.find(m=>m.id===p.giocatore1)||{name:p.giocatore1};
+  const m2=MEMBERS.find(m=>m.id===p.giocatore2)||{name:p.giocatore2};
+  let html=`<div style="background:var(--main-bg);border-radius:16px;padding:12px;max-width:400px;margin:0 auto">`;
+  html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <span style="font-size:12px;color:var(--text-sec)">🎭 ${escH(m1.name)}</span>
+    <div style="font-size:11px;color:var(--text-sec);font-weight:700">VS</div>
+    <span style="font-size:12px;color:var(--text-sec)">🕵️ ${escH(m2.name)}</span>
+  </div>`;
+  if(p.stato==='vinta'){
+    const secreto=icChar(p.personaggioSegreto);
+    html+=`<div style="text-align:center;padding:14px 0"><img src="${icUrl(secreto.seed)}" width="64" height="64" style="border-radius:50%"><div style="font-size:15px;font-weight:800;color:#378ADD;margin-top:8px">🏆 ${escH(m2.name)} ha indovinato: ${secreto.nome}!</div></div>`;
+  } else if(sonoIndovino){
+    const domandeOpts=IC_DOMANDE.map((d,i)=>`<option value="${i}">${d.label}</option>`).join('');
+    html+=`<div style="display:flex;gap:6px;margin-bottom:10px">
+      <select id="ic-domanda-${p.id}" style="flex:1;font-size:12px;padding:8px">${domandeOpts}</select>
+      <button onclick="faiDomandaIC('${p.id}',document.getElementById('ic-domanda-${p.id}').value)" style="padding:8px 12px;border-radius:10px;border:none;background:#378ADD;color:#fff;font-weight:700;font-size:12px;cursor:pointer">Chiedi</button>
+    </div>
+    <div style="font-size:10px;color:var(--text-sec);margin-bottom:8px">Tocca un personaggio per eliminarlo/ripristinarlo. Tocca due volte per tentare la risposta.</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">`;
+    for(const c of IC_ROSTER){
+      const eliminato=p.eliminati.includes(c.id);
+      html+=`<div style="text-align:center;position:relative">
+        <img src="${icUrl(c.seed)}" width="100%" style="border-radius:50%;opacity:${eliminato?'0.2':'1'};cursor:pointer;aspect-ratio:1" onclick="toggleEliminaIC('${p.id}','${c.id}')">
+        <div style="font-size:9px;font-weight:700;color:${eliminato?'var(--text-sec)':'var(--text-main)'};text-decoration:${eliminato?'line-through':'none'}">${c.nome}</div>
+        ${eliminato?'':`<button onclick="tentaRispostaIC('${p.id}','${c.id}')" style="font-size:8px;padding:2px 4px;border-radius:6px;border:none;background:#378ADD;color:#fff;cursor:pointer;margin-top:2px">È lui/lei!</button>`}
+      </div>`;
+    }
+    html+=`</div>`;
+  } else {
+    html+=`<div style="text-align:center;padding:14px 0;font-size:13px;color:var(--text-sec)">Hai scelto un personaggio segreto.<br>In attesa che ${escH(m2.name)} indovini...</div>`;
+  }
+  const orfana=!MEMBERS.some(m=>m.id===p.giocatore1);
+  if(p.giocatore1===me||orfana){
+    html+=`<div style="text-align:right;margin-top:8px"><button onclick="eliminaIC('${p.id}')" style="background:none;border:none;color:#ff3b30;font-size:12px;font-weight:700;cursor:pointer;padding:4px 8px">🗑 Elimina partita</button></div>`;
+  }
+  html+=`</div>`;
+  return html;
+}
+
 let invitiPollingId=null;
 function avviaPollingInviti(){
   if(invitiPollingId) return;
   invitiPollingId=setInterval(async()=>{
     if(document.hidden) return;
-    await Promise.all([loadForza4(),loadTris(),loadImpiccato(),loadMorra()]);
+    await Promise.all([loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi()]);
     controllaNuoviInviti();
     if(view==='giochi') renderView(); else updateGiochiBadge();
   },45000);
 }
 
 async function init(){
-  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra()]);
+  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi()]);
   render(); loadWeather();
   aggiornaBottoneNotifiche();
-  const primaPartite=[...f4Partite.map(p=>p.id),...trisPartite.map(p=>p.id),...impPartite.map(p=>p.id),...morraPartite.map(p=>p.id)];
+  const primaPartite=[...f4Partite.map(p=>p.id),...trisPartite.map(p=>p.id),...impPartite.map(p=>p.id),...morraPartite.map(p=>p.id),...icPartite.map(p=>p.id)];
   invitiNotificati=Array.from(new Set([...invitiNotificati,...primaPartite]));
   localStorage.setItem('casaDecino_invitiNotificati',JSON.stringify(invitiNotificati));
   avviaPollingInviti();
@@ -3363,7 +3543,7 @@ async function init(){
   avviaPollingPresenza();
 }
 async function reloadAll(){
-  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra()]);
+  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi()]);
   render();
 }
 
