@@ -798,6 +798,10 @@
           </div>
         </div>
         <button id="notif-btn" onclick="attivaNotifiche()" style="display:none;background:#378ADD;color:#fff;border:none;padding:8px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">🔔 Attiva notifiche</button>
+        <div style="position:relative">
+          <button id="novita-btn" onclick="toggleNovitaPanel()" style="display:none;background:rgba(0,0,0,0.05);border:none;width:38px;height:38px;border-radius:50%;font-size:18px;cursor:pointer;position:relative">🔔<span id="novita-badge" style="display:none;position:absolute;top:-2px;right:-2px;background:#e0422a;color:#fff;font-size:10px;font-weight:800;min-width:16px;height:16px;border-radius:8px;line-height:16px;text-align:center;padding:0 3px"></span></button>
+          <div id="novita-panel" style="display:none;position:absolute;top:44px;right:0;width:280px;max-height:340px;overflow-y:auto;background:var(--card-bg,#fff);border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,0.25);z-index:1000;padding:8px"></div>
+        </div>
       </div>
       <div class="tabs">
         <button class="tab active" id="t-today"    onclick="viewDate=REAL_TODAY; switchView('today')">📅 Oggi</button>
@@ -1710,7 +1714,7 @@ const POSTIT_TEXT_COLORS = [
 async function loadBacheca(){
   try{
     const records=await atGetAll('Bacheca');
-    bachecaNotes=records.map(r=>({_recId:r.id,id:r.fields.ID||r.id,text:r.fields.Testo||'',author:r.fields.Autore||'antonio',date:r.fields.Data||'',color:r.fields.Colore||'yellow',font:r.fields.Font||'caveat',textColor:r.fields.ColoreTesto||'dark'}));
+    bachecaNotes=records.map(r=>({_recId:r.id,id:r.fields.ID||r.id,text:r.fields.Testo||'',author:r.fields.Autore||'antonio',date:r.fields.Data||'',color:r.fields.Colore||'yellow',font:r.fields.Font||'caveat',textColor:r.fields.ColoreTesto||'dark',_created:r.createdTime}));
   } catch(e){ bachecaNotes=[]; }
 }
 
@@ -2086,7 +2090,7 @@ function fotoFont(id){ return FOTO_FONTS.find(f=>f.id===id)||FOTO_FONTS[0]; }
 async function loadFotoRicordi(){
   try{
     const records = await atGetAll('FotoRicordi');
-    fotoRicordi = records.map(r=>({_recId:r.id, id:r.fields.ID||r.id, url:r.fields.URL||'', autore:r.fields.Autore||'antonio', data:r.fields.Data||'', didascalia:r.fields.Didascalia||'', cornice:r.fields.Cornice||'cream', fontDidascalia:r.fields.FontDidascalia||'caveat', viaggioId:r.fields.ViaggioID||''}));
+    fotoRicordi = records.map(r=>({_recId:r.id, id:r.fields.ID||r.id, url:r.fields.URL||'', autore:r.fields.Autore||'antonio', data:r.fields.Data||'', didascalia:r.fields.Didascalia||'', cornice:r.fields.Cornice||'cream', fontDidascalia:r.fields.FontDidascalia||'caveat', viaggioId:r.fields.ViaggioID||'', _created:r.createdTime}));
   } catch(e){ fotoRicordi=[]; }
 }
 
@@ -2465,7 +2469,7 @@ async function loadFilm(){
       const votiRaw=(r.fields.Voti||'').split(',').map(s=>s.trim()).filter(Boolean);
       const voti={};
       votiRaw.forEach(v=>{const[k,val]=v.split(':');if(k&&val) voti[k.trim()]=+val;});
-      return {_recId:r.id,id:r.fields.ID||r.id,titolo:r.fields.Titolo||'',tipo:r.fields.Tipo||'movie',anno:r.fields.Anno||'',locandina:r.fields.Locandina||'',imdbId:r.fields.ImdbId||'',consigliatoDa:r.fields.ConsigliatoDa||'antonio',nota:r.fields.Nota||'',vistiDa:(r.fields.VistiDa||'').split(',').map(s=>s.trim()).filter(Boolean),voti};
+      return {_recId:r.id,id:r.fields.ID||r.id,titolo:r.fields.Titolo||'',tipo:r.fields.Tipo||'movie',anno:r.fields.Anno||'',locandina:r.fields.Locandina||'',imdbId:r.fields.ImdbId||'',consigliatoDa:r.fields.ConsigliatoDa||'antonio',nota:r.fields.Nota||'',vistiDa:(r.fields.VistiDa||'').split(',').map(s=>s.trim()).filter(Boolean),voti,_created:r.createdTime};
     });
   } catch(e){ film=[]; }
 }
@@ -3557,6 +3561,66 @@ function avviaPollingPresenza(){
   },45000);
 }
 
+const NOVITA_FONTI=[
+  {lista:()=>bachecaNotes,autore:x=>x.author,icona:'📌',testo:x=>`ha lasciato un post-it`,view:'bacheca'},
+  {lista:()=>film,autore:x=>x.consigliatoDa,icona:'🎬',testo:x=>`ha aggiunto "${x.titolo}"`,view:'film'},
+  {lista:()=>jukebox,autore:x=>x.autore,icona:'🎵',testo:x=>`ha aggiunto "${x.titolo||'un brano'}" al jukebox`,view:'jukebox'},
+  {lista:()=>fotoRicordi,autore:x=>x.autore,icona:'📷',testo:x=>`ha aggiunto una foto ricordo`,view:'ricordi'},
+  {lista:()=>segreteriaMsgs,autore:x=>x.autore,icona:'☎️',testo:x=>`ha lasciato un messaggio in segreteria`,view:'today'},
+];
+
+function calcolaNovita(){
+  const visto=localStorage.getItem('casaDecino_ultimoVisto');
+  if(!visto) return [];
+  const items=[];
+  NOVITA_FONTI.forEach(fonte=>{
+    fonte.lista().forEach(x=>{
+      if(!x._created) return;
+      if(x._created<=visto) return;
+      const autoreId=fonte.autore(x);
+      if(autoreId===f4Me) return;
+      items.push({created:x._created,autore:autoreId,icona:fonte.icona,testo:fonte.testo(x),view:fonte.view});
+    });
+  });
+  return items.sort((a,b)=>b.created.localeCompare(a.created));
+}
+
+function aggiornaBadgeNovita(){
+  const btn=document.getElementById('novita-btn'), badge=document.getElementById('novita-badge');
+  if(!btn||!badge) return;
+  if(!localStorage.getItem('casaDecino_ultimoVisto')){
+    localStorage.setItem('casaDecino_ultimoVisto',new Date().toISOString());
+  }
+  const novita=calcolaNovita();
+  btn.style.display='inline-flex';
+  if(novita.length){ badge.style.display='block'; badge.innerText=novita.length>9?'9+':novita.length; }
+  else { badge.style.display='none'; }
+}
+
+function toggleNovitaPanel(){
+  const panel=document.getElementById('novita-panel');
+  if(!panel) return;
+  if(panel.style.display==='block'){ panel.style.display='none'; return; }
+  const novita=calcolaNovita();
+  panel.innerHTML=novita.length? novita.map(n=>{
+    const m=M(n.autore);
+    return `<div onclick="switchView('${n.view}');toggleNovitaPanel()" style="display:flex;gap:8px;align-items:flex-start;padding:8px;border-radius:10px;cursor:pointer" onmouseover="this.style.background='rgba(0,0,0,0.04)'" onmouseout="this.style.background=''">
+      <span style="font-size:16px">${n.icona}</span>
+      <span style="font-size:12px;line-height:1.4"><b>${escH(m.name)}</b> ${n.testo}</span>
+    </div>`;
+  }).join('') : `<div style="padding:16px;text-align:center;font-size:12px;color:var(--text-sec)">Nessuna novità 🎉</div>`;
+  panel.style.display='block';
+  localStorage.setItem('casaDecino_ultimoVisto',new Date().toISOString());
+  document.getElementById('novita-badge').style.display='none';
+}
+
+document.addEventListener('click',(e)=>{
+  const panel=document.getElementById('novita-panel');
+  if(panel&&panel.style.display==='block'&&!e.target.closest('#novita-panel')&&!e.target.closest('#novita-btn')){
+    panel.style.display='none';
+  }
+});
+
 function aggiornaBottoneNotifiche(){
   const btn=document.getElementById('notif-btn'); if(!btn) return;
   if('Notification' in window && Notification.permission==='default'){ btn.style.display='inline-block'; }
@@ -3942,7 +4006,7 @@ let segreteriaMsgs=[];
 async function loadSegreteria(){
   try{
     const records=await atGetAll('Segreteria');
-    segreteriaMsgs=records.map(r=>({_recId:r.id,id:r.fields.ID||r.id,autore:r.fields.Autore||'antonio',audioUrl:r.fields.AudioURL||'',data:r.fields.Data||'',ora:r.fields.Ora||'',urgente:r.fields.Urgente===true,ascoltatoDa:(r.fields.AscoltatoDa||'').split(',').filter(Boolean),destinatario:r.fields.Destinatario||'tutti'}));
+    segreteriaMsgs=records.map(r=>({_recId:r.id,id:r.fields.ID||r.id,autore:r.fields.Autore||'antonio',audioUrl:r.fields.AudioURL||'',data:r.fields.Data||'',ora:r.fields.Ora||'',urgente:r.fields.Urgente===true,ascoltatoDa:(r.fields.AscoltatoDa||'').split(',').filter(Boolean),destinatario:r.fields.Destinatario||'tutti',_created:r.createdTime}));
   }catch(e){ segreteriaMsgs=[]; }
 }
 
@@ -4168,7 +4232,7 @@ function estraiIdYoutube(url){
 async function loadJukebox(){
   try{
     const records=await atGetAll('Jukebox');
-    jukebox=records.map(r=>({_recId:r.id,id:r.fields.ID||r.id,videoId:r.fields.VideoID||'',titolo:r.fields.Titolo||'',autore:r.fields.Autore||'antonio',data:r.fields.Data||''}));
+    jukebox=records.map(r=>({_recId:r.id,id:r.fields.ID||r.id,videoId:r.fields.VideoID||'',titolo:r.fields.Titolo||'',autore:r.fields.Autore||'antonio',data:r.fields.Data||'',_created:r.createdTime}));
   }catch(e){ jukebox=[]; }
 }
 
@@ -4260,6 +4324,7 @@ async function init(){
   await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle(),loadSegreteria(),loadJukebox()]);
   render(); loadWeather();
   aggiornaBottoneNotifiche();
+  aggiornaBadgeNovita();
   const primaPartite=[...f4Partite.map(p=>p.id),...trisPartite.map(p=>p.id),...impPartite.map(p=>p.id),...morraPartite.map(p=>p.id),...icPartite.map(p=>p.id),...wordlePartite.map(p=>p.id)];
   invitiNotificati=Array.from(new Set([...invitiNotificati,...primaPartite]));
   localStorage.setItem('casaDecino_invitiNotificati',JSON.stringify(invitiNotificati));
@@ -4272,6 +4337,7 @@ async function reloadAll(){
   await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle(),loadSegreteria(),loadJukebox()]);
   render();
   controllaSegreteriaUrgenti();
+  aggiornaBadgeNovita();
 }
 
 init();
