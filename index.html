@@ -461,6 +461,76 @@
     .mini-postit-author { font-size:9px; font-weight:800; margin-top:6px; opacity:0.6; }
     .bacheca-widget-empty { text-align:center; padding:16px; color:rgba(255,255,255,0.6); font-size:13px; font-weight:600; }
 
+    /* JUKEBOX */
+    /* Mobile unico a "cupola": arco superiore + tubi luminosi + schermo + vinili selezionabili */
+    .jukebox-machine {
+      position: relative;
+      background: linear-gradient(160deg,#2a2a30,#141418 55%,#0c0c0e);
+      border-radius: 110px 110px 18px 18px / 56px 56px 18px 18px;
+      padding: 44px 26px 20px;
+      margin: 0 4px;
+      box-shadow: 0 10px 26px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.08);
+      border: 3px solid #3a3a42;
+      overflow: hidden;
+    }
+    .jukebox-tube {
+      position: absolute; top: 8px; bottom: 8px; width: 9px; border-radius: 5px;
+      background: linear-gradient(180deg,#ffd54a,#ff5f5f 33%,#4ac9ff 66%,#ffd54a);
+      background-size: 100% 300%;
+      animation: jukebox-tube-glow 3.5s linear infinite;
+      box-shadow: 0 0 8px 2px rgba(255,180,80,0.5), 0 0 8px 2px rgba(74,201,255,0.35);
+    }
+    .jukebox-tube.left { left: 10px; }
+    .jukebox-tube.right { right: 10px; }
+    @keyframes jukebox-tube-glow { from{background-position:0 0%} to{background-position:0 300%} }
+    .jukebox-grille {
+      position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 60%; height: 30px;
+      background-image: repeating-linear-gradient(90deg, rgba(255,213,74,0.55) 0 2px, transparent 2px 6px);
+      border-radius: 0 0 40px 40px;
+      opacity: 0.8;
+    }
+    .jukebox-screen {
+      width: 100%; aspect-ratio: 16/9;
+      background: #000;
+      border-radius: 12px;
+      box-shadow: inset 0 0 0 3px #4a4a52, 0 4px 12px rgba(0,0,0,0.5);
+      margin-bottom: 8px;
+      overflow: hidden;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .jukebox-screen-placeholder { color:#5a5a62; font-size:13px; font-weight:700; text-align:center; line-height:1.6; }
+    .jukebox-nowplaying { font-size:12px; color:#f5e6c8; font-weight:700; text-align:center; margin-bottom:16px; min-height:16px; }
+    @keyframes jukebox-spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+    .jukebox-vinyl-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(84px,1fr)); gap:14px; }
+    .jukebox-vinyl { position:relative; text-align:center; cursor:pointer; }
+    .jukebox-vinyl-disc {
+      width:100%; aspect-ratio:1; border-radius:50%;
+      background-size:cover; background-position:center;
+      border:3px solid #222; box-shadow:0 4px 10px rgba(0,0,0,0.5), 0 0 0 2px #444;
+      position:relative; display:flex; align-items:center; justify-content:center;
+    }
+    .jukebox-vinyl.selected .jukebox-vinyl-disc { animation: jukebox-spin 3s linear infinite; box-shadow:0 4px 14px rgba(0,0,0,0.6), 0 0 0 3px #ffd54a; }
+    .jukebox-vinyl-hole { width:22%; height:22%; border-radius:50%; background:#1c1c22; border:2px solid #555; }
+    .jukebox-vinyl-name { font-size:10px; font-weight:700; color:#e5d8bc; margin-top:6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .jukebox-vinyl-del { position:absolute; top:-4px; right:-2px; background:rgba(0,0,0,0.6); border:none; color:#ff8a80; font-size:11px; border-radius:50%; width:18px; height:18px; cursor:pointer; }
+
+    .jukebox-widget-screen {
+      width:100%; aspect-ratio:16/9; background:#000; border-radius:10px;
+      box-shadow: inset 0 0 0 2px #4a4a52, 0 3px 10px rgba(0,0,0,0.4);
+      margin-bottom:6px; overflow:hidden; display:flex; align-items:center; justify-content:center;
+    }
+    .mini-vinyls { display:flex; gap:14px; overflow-x:auto; padding-top:6px; padding-bottom:4px; }
+    .mini-vinyl { flex-shrink:0; width:72px; text-align:center; cursor:pointer; }
+    .mini-vinyl-disc {
+      width:100%; aspect-ratio:1; border-radius:50%;
+      background-size:cover; background-position:center;
+      border:3px solid #222; box-shadow:0 4px 10px rgba(0,0,0,0.5), 0 0 0 2px #444;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .mini-vinyl.playing .mini-vinyl-disc { animation: jukebox-spin 3s linear infinite; box-shadow:0 4px 14px rgba(0,0,0,0.6), 0 0 0 3px #ffd54a; }
+    .mini-vinyl-name { font-size:10px; font-weight:700; color:#f5e6c8; margin-top:6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
     /* SEGRETERIA TELEFONICA */
     .mini-phones { display:flex; gap:12px; overflow-x:auto; padding-top:14px; padding-bottom:4px; }
     .mini-phone {
@@ -1107,6 +1177,40 @@ function bachecaWidget(){
   </div>`;
 }
 
+function jukeboxWidget(){
+  const recent=[...(typeof jukebox!=='undefined'?jukebox:[])].sort((a,b)=>b.data.localeCompare(a.data)).slice(0,5);
+  let inner='';
+  if(!recent.length){
+    inner=`<div class="bacheca-widget-empty">Nessun brano in coda 🎧</div>`;
+  } else {
+    inner=`<div id="jukebox-widget-screen" style="width:0;height:0;overflow:hidden;position:absolute"></div>
+    <div id="jukebox-widget-nowplaying" class="jukebox-nowplaying" style="font-size:11px;min-height:14px"></div>
+    <div class="mini-vinyls">${recent.map(brano=>{
+      const m=M(brano.autore);
+      const thumbUrl=`https://img.youtube.com/vi/${brano.videoId}/hqdefault.jpg`;
+      return `<div class="mini-vinyl" id="mini-vinyl-${brano.id}" onclick="suonaVinileWidget('${brano.id}','${brano.videoId}','${escH(brano.titolo||m.name).replace(/'/g,"&#39;")}','${escH(m.name).replace(/'/g,"&#39;")}')">
+        <div class="mini-vinyl-disc" style="background-image:url('${thumbUrl}')"><div class="jukebox-vinyl-hole"></div></div>
+        <div class="mini-vinyl-name">${escH(brano.titolo||m.name)}</div>
+      </div>`;
+    }).join('')}</div>`;
+  }
+  return `<div class="bacheca-widget" style="background:linear-gradient(160deg,#3a0f0f,#2a0a0a);border-color:#7a2020">
+    <div class="bacheca-widget-hdr">
+      <span class="bacheca-widget-title" style="color:rgba(255,213,74,0.9)">🎵 Jukebox</span>
+      <button class="bacheca-widget-link" style="color:rgba(255,213,74,0.75);background:rgba(0,0,0,0.2)" onclick="switchView('jukebox')">Vedi tutti →</button>
+    </div>
+    ${inner}
+  </div>`;
+}
+
+function suonaVinileWidget(id,videoId,titolo,autoreName){
+  document.querySelectorAll('.mini-vinyl').forEach(v=>v.classList.remove('playing'));
+  document.getElementById(`mini-vinyl-${id}`)?.classList.add('playing');
+  avviaVideo('jukebox-widget-screen',videoId);
+  const np=document.getElementById('jukebox-widget-nowplaying');
+  if(np) np.innerHTML=`▶ <b>${titolo}</b> — proposto da ${autoreName}`;
+}
+
 function segreteriaWidget(){
   const visibili=typeof segreteriaVisibiliPerMe==='function'?segreteriaVisibiliPerMe():(typeof segreteriaMsgs!=='undefined'?segreteriaMsgs:[]);
   const recent=[...visibili].sort((a,b)=>(b.data+b.ora).localeCompare(a.data+a.ora)).slice(0,3);
@@ -1152,7 +1256,7 @@ function todayView(){
   if(freeMembers.length>0 && activeHtml.indexOf('empty-state')===-1){ activeHtml+=`<div style="margin-top:24px;padding-top:16px;border-top:1px dashed var(--border-light);text-align:center"><div class="sec-lbl" style="text-align:center">🎉 Liberi oggi</div><div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px">${freeMembers.map(m => `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--main-bg);padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;color:var(--text-main)"><span style="font-size:14px">${getIcon(m.id)}</span>${m.name}</span>`).join('')}</div></div>`; }
   const ricWidget=prossimeRicorrenzeWidget();
   const sondWidget=sondaggiWidget();
-  return h+activeHtml+(sondWidget?`<div style="margin-top:16px">`+sondWidget+`</div>`:'')+`<div style="margin-top:24px">`+dispensaWidget()+`</div>`+`<div style="margin-top:16px">`+challengeWidget()+`</div>`+(ricWidget?`<div style="margin-top:16px">`+ricWidget+`</div>`:'')+`<div style="margin-top:16px">`+ricordiWidget()+`</div>`+(viaggi.length?`<div style="margin-top:16px">`+viaggiWidget()+`</div>`:'')+`<div style="margin-top:16px">`+filmWidget()+`</div>`+`<div style="margin-top:24px;padding-top:16px;border-top:1px dashed var(--border-light);text-align:center"><div class="sec-lbl" style="text-align:center">Chi è online</div><div id="online-widget" style="display:flex;gap:8px;justify-content:center"></div></div>`;
+  return h+activeHtml+(sondWidget?`<div style="margin-top:16px">`+sondWidget+`</div>`:'')+`<div style="margin-top:24px">`+dispensaWidget()+`</div>`+`<div style="margin-top:16px">`+challengeWidget()+`</div>`+(ricWidget?`<div style="margin-top:16px">`+ricWidget+`</div>`:'')+`<div style="margin-top:16px">`+ricordiWidget()+`</div>`+(viaggi.length?`<div style="margin-top:16px">`+viaggiWidget()+`</div>`:'')+`<div style="margin-top:16px">`+filmWidget()+`</div>`+`<div style="margin-top:16px">`+jukeboxWidget()+`</div>`+`<div style="margin-top:24px;padding-top:16px;border-top:1px dashed var(--border-light);text-align:center"><div class="sec-lbl" style="text-align:center">Chi è online</div><div id="online-widget" style="display:flex;gap:8px;justify-content:center"></div></div>`;
 }
 
 function evCard(e, mContext){
@@ -4054,42 +4158,45 @@ async function loadJukebox(){
 
 function avviaVideo(idContenitore,videoId){
   const contenitore=document.getElementById(idContenitore);
-  contenitore.innerHTML=`<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen style="border-radius:12px"></iframe>`;
+  contenitore.innerHTML=`<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen style="border-radius:10px"></iframe>`;
 }
 
 function jukeboxView(){
   const canzoni=[...jukebox].sort((a,b)=>b.data.localeCompare(a.data));
-  let h=`<div class="section-wrap"><div class="section-hdr"><span class="section-ttl">🎵 Playlist di Famiglia</span></div><div style="padding:0 16px 16px">`;
+  let h=`<div class="section-wrap"><div class="section-hdr"><span class="section-ttl">🎵 Jukebox di Famiglia</span></div><div style="padding:0 16px 16px">`;
   if(!canzoni.length){
     h+=`<div class="empty-state"><span class="big">🎧</span><div style="font-size:15px;font-weight:700">Nessuna canzone in coda</div><div style="font-size:13px;color:var(--text-sec);margin-top:6px">Aggiungi il primo brano!</div></div>`;
     h+=`</div></div>`;
     return h;
   }
-  h+=`<div style="display:grid;grid-template-columns:1fr;gap:16px;">`;
+  h+=`<div class="jukebox-machine">
+    <div class="jukebox-tube left"></div>
+    <div class="jukebox-tube right"></div>
+    <div class="jukebox-grille"></div>
+    <div id="jukebox-screen" class="jukebox-screen">
+      <div class="jukebox-screen-placeholder">🎶<br>Scegli un vinile qui sotto</div>
+    </div>
+    <div id="jukebox-nowplaying" class="jukebox-nowplaying"></div>
+    <div class="jukebox-vinyl-grid">`;
   canzoni.forEach(brano=>{
     const m=M(brano.autore);
-    const boxId=`yt-${brano.id}`;
     const thumbUrl=`https://img.youtube.com/vi/${brano.videoId}/hqdefault.jpg`;
-    h+=`<div style="background:var(--card-bg);border-radius:var(--radius-lg);padding:12px;box-shadow:var(--shadow-sm);border:1px solid var(--border-light);">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-        <div class="avatar" style="background:${m.bg};color:${m.txt};width:32px;height:32px;font-size:16px">${getIcon(m.id)}</div>
-        <div>
-          <div style="font-size:14px;font-weight:800;color:var(--text-main)">${escH(brano.titolo||'Canzone proposta da '+m.name)}</div>
-          <div style="font-size:11px;color:var(--text-sec);font-weight:600">${fmtDateShort(brano.data)}</div>
-        </div>
-        <button onclick="deleteCanzone('${brano.id}')" style="margin-left:auto;background:none;border:none;font-size:16px;color:var(--text-sec);cursor:pointer">🗑</button>
-      </div>
-      <div id="${boxId}" onclick="avviaVideo('${boxId}', '${brano.videoId}')" style="position:relative;width:100%;aspect-ratio:16/9;background:#000 url('${thumbUrl}') center/cover;border-radius:12px;cursor:pointer;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.15)">
-        <div style="position:absolute;inset:0;background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center">
-          <div style="width:50px;height:50px;background:rgba(255,0,0,0.9);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.3)">
-            <span style="color:#fff;font-size:24px;margin-left:4px">▶</span>
-          </div>
-        </div>
-      </div>
+    h+=`<div class="jukebox-vinyl" id="vinyl-${brano.id}" onclick="suonaVinile('${brano.id}','${brano.videoId}','${escH(brano.titolo||m.name).replace(/'/g,"&#39;")}','${escH(m.name).replace(/'/g,"&#39;")}')">
+      <div class="jukebox-vinyl-disc" style="background-image:url('${thumbUrl}')"><div class="jukebox-vinyl-hole"></div></div>
+      <div class="jukebox-vinyl-name">${escH(brano.titolo||m.name)}</div>
+      <button onclick="event.stopPropagation();deleteCanzone('${brano.id}')" class="jukebox-vinyl-del">🗑</button>
     </div>`;
   });
   h+=`</div></div></div>`;
   return h;
+}
+
+function suonaVinile(id,videoId,titolo,autoreName){
+  document.querySelectorAll('.jukebox-vinyl').forEach(v=>v.classList.remove('selected'));
+  document.getElementById(`vinyl-${id}`)?.classList.add('selected');
+  avviaVideo('jukebox-screen',videoId);
+  const np=document.getElementById('jukebox-nowplaying');
+  if(np) np.innerHTML=`▶ <b>${titolo}</b> — proposto da ${autoreName}`;
 }
 
 let jukeboxForm={url:'',titolo:'',autore:'antonio'};
