@@ -887,6 +887,7 @@ const MONTHS_IT=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio
 
 let events=[],ricorrenze=[];
 let view='today',filters=MEMBERS.map(m=>m.id);
+let viewHistory=[];
 
 // Avatar personalizzati — salvati in localStorage
 let memberIcons = JSON.parse(localStorage.getItem('casaDecino_icons')||'{}');
@@ -1012,6 +1013,7 @@ async function saveEvt(){
     events.push({...window.form,id:fields.ID,autore:f4Me,_recId:res.records?.[0]?.id});
   }
   closeModal(); renderView();
+  mostraToast('Salvato ✓');
 }
 
 async function delEvt(id){
@@ -1072,7 +1074,8 @@ function inlineFilters(){
 function toggleF(id){ if(filters.includes(id)){if(filters.length>1)filters=filters.filter(f=>f!==id);}else filters.push(id); render(); }
 function hdrAdd(){if(view==='ricorrenze')openRicModal(null);else if(view==='bacheca')openBachecaModal();else if(view==='dispensa')openDispensaModal();else if(view==='ricordi')openFotoModal();else if(view==='viaggi')openViaggioModal();else if(view==='film')openFilmModal();else if(view==='sondaggi')openSondaggioModal();else if(view==='segreteria')openSegreteriaModal();else if(view==='jukebox')openJukeboxModal();else openModal(null);}
 
-function switchView(v){
+function switchView(v,daHistory){
+  if(!daHistory && v!==view) viewHistory.push(view);
   view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge','t-bacheca','t-dispensa','t-ricordi','t-viaggi','t-film','t-sondaggi','t-giochi','t-segreteria','t-jukebox'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
   const tab=document.getElementById('t-'+v); if(tab) tab.classList.add('active');
   const fab=document.getElementById('fab-add'); const fabTxt=document.getElementById('fab-text');
@@ -1089,6 +1092,41 @@ function switchView(v){
   else { fab.style.display='inline-flex'; fabTxt.innerText=(v==='ricorrenze')?'Ricorrenza':'Impegno'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='📝'; }
   renderView();
   gestisciPollingGiochi();
+}
+
+function tornaIndietro(){
+  if(!viewHistory.length) return;
+  const prev=viewHistory.pop();
+  switchView(prev,true);
+}
+
+(function(){
+  let startX=0,startY=0,tracking=false;
+  document.addEventListener('touchstart',e=>{
+    if(e.target.closest('.modal-box')||e.target.closest('#novita-panel')) return;
+    if(e.touches[0].clientX>40) { tracking=false; return; }
+    startX=e.touches[0].clientX; startY=e.touches[0].clientY; tracking=true;
+  },{passive:true});
+  document.addEventListener('touchend',e=>{
+    if(!tracking) return;
+    tracking=false;
+    const dx=e.changedTouches[0].clientX-startX, dy=e.changedTouches[0].clientY-startY;
+    if(dx>70 && Math.abs(dy)<60) tornaIndietro();
+  },{passive:true});
+})();
+
+function mostraToast(msg){
+  let t=document.getElementById('app-toast');
+  if(!t){
+    t=document.createElement('div');
+    t.id='app-toast';
+    t.style.cssText='position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:#222;color:#fff;padding:10px 18px;border-radius:24px;font-size:13px;font-weight:700;z-index:2000;opacity:0;transition:opacity 0.25s ease,transform 0.25s ease;box-shadow:0 8px 20px rgba(0,0,0,0.3);pointer-events:none';
+    document.body.appendChild(t);
+  }
+  t.innerText=msg;
+  clearTimeout(t._hideTimer);
+  requestAnimationFrame(()=>{ t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)'; });
+  t._hideTimer=setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(20px)'; },1800);
 }
 
 let giochiPollingId=null;
@@ -1433,6 +1471,7 @@ async function saveRicorrenza(){
     ricorrenze.push({...ricForm,id:fields.ID,autore:f4Me,_recId:res.records?.[0]?.id});
   }
   closeModal(); renderView();
+  mostraToast('Salvato ✓');
 }
 async function deleteRic(id){
   if(!confirm('Eliminare la ricorrenza?'))return;
@@ -1825,6 +1864,7 @@ async function saveBachecaNote(){
   const res=await atPost('Bacheca',{ID:id,Testo:text,Autore:bachecaForm.author,Data:REAL_TODAY,Colore:bachecaForm.color,Font:bachecaForm.font,ColoreTesto:bachecaForm.textColor});
   bachecaNotes.push({id,text,author:bachecaForm.author,date:REAL_TODAY,color:bachecaForm.color,font:bachecaForm.font,textColor:bachecaForm.textColor,_recId:res.records?.[0]?.id});
   closeModal(); renderView();
+  mostraToast('Salvato ✓');
 }
 
 async function deleteBachecaNote(id){
@@ -1891,6 +1931,7 @@ async function saveDispensaItem(){
     const recId=res.records[0].id;
     dispensaItems.push({id:recId,articolo:art,autore:dispensaForm.autore,data:REAL_TODAY,comprato:false,_recId:recId});
     closeModal(); renderView();
+    mostraToast('Salvato ✓');
   }catch(e){alert('Errore di rete: '+e.message);if(btn){btn.disabled=false;btn.textContent='Aggiungi';}}
 }
 
@@ -2196,6 +2237,7 @@ async function uploadFoto(){
     const rec=await atPost('FotoRicordi',flds);
     fotoRicordi.push({id,url:data.secure_url,autore:fotoForm.autore,data:REAL_TODAY,didascalia:did,cornice:fotoForm.cornice,fontDidascalia:fotoForm.fontDidascalia,viaggioId:fotoForm.viaggioId||'',_recId:rec.records?.[0]?.id});
     closeModal(); renderView();
+    mostraToast('Salvato ✓');
   } catch(e){ alert('Errore nel caricamento. Riprova.'); closeModal(); }
 }
 
@@ -2470,6 +2512,7 @@ async function saveViaggio(){
   const res=await atPost('Viaggi',fields);
   viaggi.push({...fields,id,membri:viaggioForm.membri,lat:viaggioForm.lat,lng:viaggioForm.lng,autore:f4Me,_recId:res.records?.[0]?.id});
   closeModal(); renderView();
+  mostraToast('Salvato ✓');
 }
 
 async function deleteViaggio(id){
@@ -2580,6 +2623,7 @@ async function saveFilm(){
     if(!rec.records?.[0]?.id){ alert('Risposta Airtable inattesa:\n'+JSON.stringify(rec).slice(0,300)); if(btn){btn.disabled=false;btn.textContent='Salva';} return; }
     film.push({...filmForm,id,vistiDa:[],voti:{},_recId:rec.records[0].id});
     closeModal(); renderView();
+    mostraToast('Salvato ✓');
   } catch(e){ alert('Errore di rete: '+e.message+'\nRiprova tra qualche secondo.'); if(btn){btn.disabled=false;btn.textContent='Salva';} }
 }
 
@@ -4167,6 +4211,7 @@ async function inviaSegreteria(){
     const rec=await atPost('Segreteria',flds);
     segreteriaMsgs.unshift({_recId:rec.records?.[0]?.id,id,autore:f4Me,audioUrl:data.secure_url,data:REAL_TODAY,ora,urgente:segUrgente,ascoltatoDa:[],destinatario:segDestinatario});
     closeModal(); renderView();
+    mostraToast('Salvato ✓');
   }catch(e){ alert('Errore nel caricamento. Riprova.'); closeModal(); }
 }
 
@@ -4340,6 +4385,7 @@ async function saveCanzone(){
     if(rec.error){ alert('Errore Airtable: '+(rec.error.message||JSON.stringify(rec.error))); if(btn){btn.disabled=false;btn.textContent='Aggiungi';} return; }
     jukebox.unshift({_recId:rec.records?.[0]?.id,id,videoId,titolo:flds.Titolo,autore:flds.Autore,data:flds.Data});
     closeModal(); renderView();
+    mostraToast('Salvato ✓');
   }catch(e){ alert('Errore di rete: '+e.message); if(btn){btn.disabled=false;btn.textContent='Aggiungi';} }
 }
 
