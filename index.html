@@ -1197,8 +1197,10 @@ function jukeboxWidget(){
   if(!recent.length){
     inner=`<div class="bacheca-widget-empty">Nessun brano in coda 🎧</div>`;
   } else {
-    inner=`<div id="jukebox-widget-screen" style="width:2px;height:2px;overflow:hidden;position:fixed;top:0;left:0;opacity:0;pointer-events:none"></div>
-    <div id="jukebox-widget-nowplaying" class="jukebox-nowplaying" style="font-size:11px;min-height:14px"></div>
+    inner=`<div style="display:flex;align-items:center;gap:8px;min-height:14px;margin-bottom:6px">
+      <div id="jukebox-widget-screen" style="width:44px;height:26px;flex-shrink:0;border-radius:4px;overflow:hidden;background:#000"></div>
+      <div id="jukebox-widget-nowplaying" class="jukebox-nowplaying" style="font-size:11px;margin-bottom:0;text-align:left"></div>
+    </div>
     <div class="mini-vinyls">${recent.map(brano=>{
       const m=M(brano.autore);
       const thumbUrl=`https://img.youtube.com/vi/${brano.videoId}/hqdefault.jpg`;
