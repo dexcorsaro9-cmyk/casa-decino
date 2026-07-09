@@ -730,6 +730,7 @@
         <button class="tab" id="t-film"       onclick="switchView('film')">🎬 Film</button>
         <button class="tab" id="t-sondaggi"   onclick="switchView('sondaggi')">🗳️ Sondaggi</button>
         <button class="tab" id="t-giochi"     onclick="switchView('giochi')">🎮 Giochi</button>
+        <button class="tab" id="t-jukebox"    onclick="switchView('jukebox')">🎵 Jukebox</button>
       </div>
     </div>
     <div class="content" id="view"></div>
@@ -956,10 +957,10 @@ function inlineFilters(){
     </div>`).join('')}</div>`;
 }
 function toggleF(id){ if(filters.includes(id)){if(filters.length>1)filters=filters.filter(f=>f!==id);}else filters.push(id); render(); }
-function hdrAdd(){if(view==='ricorrenze')openRicModal(null);else if(view==='bacheca')openBachecaModal();else if(view==='dispensa')openDispensaModal();else if(view==='ricordi')openFotoModal();else if(view==='viaggi')openViaggioModal();else if(view==='film')openFilmModal();else if(view==='sondaggi')openSondaggioModal();else if(view==='segreteria')openSegreteriaModal();else openModal(null);}
+function hdrAdd(){if(view==='ricorrenze')openRicModal(null);else if(view==='bacheca')openBachecaModal();else if(view==='dispensa')openDispensaModal();else if(view==='ricordi')openFotoModal();else if(view==='viaggi')openViaggioModal();else if(view==='film')openFilmModal();else if(view==='sondaggi')openSondaggioModal();else if(view==='segreteria')openSegreteriaModal();else if(view==='jukebox')openJukeboxModal();else openModal(null);}
 
 function switchView(v){
-  view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge','t-bacheca','t-dispensa','t-ricordi','t-viaggi','t-film','t-sondaggi','t-giochi','t-segreteria'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
+  view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge','t-bacheca','t-dispensa','t-ricordi','t-viaggi','t-film','t-sondaggi','t-giochi','t-segreteria','t-jukebox'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
   const tab=document.getElementById('t-'+v); if(tab) tab.classList.add('active');
   const fab=document.getElementById('fab-add'); const fabTxt=document.getElementById('fab-text');
   if(v==='challenge'){ fab.style.display='none'; }
@@ -971,6 +972,7 @@ function switchView(v){
   else if(v==='sondaggi'){ fab.style.display='inline-flex'; fabTxt.innerText='Sondaggio'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='🗳️'; }
   else if(v==='giochi'){ fab.style.display='none'; }
   else if(v==='segreteria'){ fab.style.display='inline-flex'; fabTxt.innerText='Messaggio vocale'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='🎤'; }
+  else if(v==='jukebox'){ fab.style.display='inline-flex'; fabTxt.innerText='Brano'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='🎵'; }
   else { fab.style.display='inline-flex'; fabTxt.innerText=(v==='ricorrenze')?'Ricorrenza':'Impegno'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='📝'; }
   renderView();
   gestisciPollingGiochi();
@@ -988,7 +990,7 @@ function gestisciPollingGiochi(){
   }
 }
 
-function renderView(){ const el=document.getElementById('view'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else if(view==='sondaggi')el.innerHTML=sondaggiView(); else if(view==='giochi')el.innerHTML=giochiView(); else if(view==='segreteria')el.innerHTML=segreteriaView(); else el.innerHTML=ricorrenzeView(); updateGiochiBadge(); }
+function renderView(){ const el=document.getElementById('view'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else if(view==='sondaggi')el.innerHTML=sondaggiView(); else if(view==='giochi')el.innerHTML=giochiView(); else if(view==='segreteria')el.innerHTML=segreteriaView(); else if(view==='jukebox')el.innerHTML=jukeboxView(); else el.innerHTML=ricorrenzeView(); updateGiochiBadge(); }
 
 function updateGiochiBadge(){
   const tab=document.getElementById('t-giochi'); if(!tab) return;
@@ -4034,8 +4036,105 @@ function avviaPollingInviti(){
   },45000);
 }
 
+/* ── JUKEBOX YOUTUBE ── */
+let jukebox=[];
+
+function estraiIdYoutube(url){
+  const regex=/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
+  const match=url.match(regex);
+  return match?match[1]:null;
+}
+
+async function loadJukebox(){
+  try{
+    const records=await atGetAll('Jukebox');
+    jukebox=records.map(r=>({_recId:r.id,id:r.fields.ID||r.id,videoId:r.fields.VideoID||'',titolo:r.fields.Titolo||'',autore:r.fields.Autore||'antonio',data:r.fields.Data||''}));
+  }catch(e){ jukebox=[]; }
+}
+
+function avviaVideo(idContenitore,videoId){
+  const contenitore=document.getElementById(idContenitore);
+  contenitore.innerHTML=`<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen style="border-radius:12px"></iframe>`;
+}
+
+function jukeboxView(){
+  const canzoni=[...jukebox].sort((a,b)=>b.data.localeCompare(a.data));
+  let h=`<div class="section-wrap"><div class="section-hdr"><span class="section-ttl">🎵 Playlist di Famiglia</span></div><div style="padding:0 16px 16px">`;
+  if(!canzoni.length){
+    h+=`<div class="empty-state"><span class="big">🎧</span><div style="font-size:15px;font-weight:700">Nessuna canzone in coda</div><div style="font-size:13px;color:var(--text-sec);margin-top:6px">Aggiungi il primo brano!</div></div>`;
+    h+=`</div></div>`;
+    return h;
+  }
+  h+=`<div style="display:grid;grid-template-columns:1fr;gap:16px;">`;
+  canzoni.forEach(brano=>{
+    const m=M(brano.autore);
+    const boxId=`yt-${brano.id}`;
+    const thumbUrl=`https://img.youtube.com/vi/${brano.videoId}/hqdefault.jpg`;
+    h+=`<div style="background:var(--card-bg);border-radius:var(--radius-lg);padding:12px;box-shadow:var(--shadow-sm);border:1px solid var(--border-light);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div class="avatar" style="background:${m.bg};color:${m.txt};width:32px;height:32px;font-size:16px">${getIcon(m.id)}</div>
+        <div>
+          <div style="font-size:14px;font-weight:800;color:var(--text-main)">${escH(brano.titolo||'Canzone proposta da '+m.name)}</div>
+          <div style="font-size:11px;color:var(--text-sec);font-weight:600">${fmtDateShort(brano.data)}</div>
+        </div>
+        <button onclick="deleteCanzone('${brano.id}')" style="margin-left:auto;background:none;border:none;font-size:16px;color:var(--text-sec);cursor:pointer">🗑</button>
+      </div>
+      <div id="${boxId}" onclick="avviaVideo('${boxId}', '${brano.videoId}')" style="position:relative;width:100%;aspect-ratio:16/9;background:#000 url('${thumbUrl}') center/cover;border-radius:12px;cursor:pointer;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.15)">
+        <div style="position:absolute;inset:0;background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center">
+          <div style="width:50px;height:50px;background:rgba(255,0,0,0.9);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.3)">
+            <span style="color:#fff;font-size:24px;margin-left:4px">▶</span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  });
+  h+=`</div></div></div>`;
+  return h;
+}
+
+let jukeboxForm={url:'',titolo:'',autore:'antonio'};
+function openJukeboxModal(){
+  jukeboxForm={url:'',titolo:'',autore:f4Me||'antonio'};
+  renderJukeboxModal();
+  showOv();
+}
+function renderJukeboxModal(){
+  const mbrBtns=MEMBERS.map(m=>`<button class="tr-btn${jukeboxForm.autore===m.id?' sel':''}" onclick="jukeboxForm.autore='${m.id}';renderJukeboxModal()" style="${jukeboxForm.autore===m.id?ms(m):''}">${getIcon(m.id)} ${m.name}</button>`).join('');
+  document.getElementById('modal-box').innerHTML=`
+    <div class="modal-hdr"><div class="modal-ttl">🎵 Aggiungi Canzone</div><button class="cl-btn" onclick="closeModal()">✕</button></div>
+    <div class="fgrp"><label class="flbl">Link YouTube</label><input type="text" placeholder="Incolla il link qui..." value="${escH(jukeboxForm.url)}" oninput="jukeboxForm.url=this.value" style="width:100%"></div>
+    <div class="fgrp"><label class="flbl">Titolo / Cantante (Opzionale)</label><input type="text" placeholder="Es. Pinguini Tattici Nucleari..." value="${escH(jukeboxForm.titolo)}" oninput="jukeboxForm.titolo=this.value" style="width:100%"></div>
+    <div class="fgrp"><label class="flbl">Chi la propone?</label><div class="tr-opts">${mbrBtns}</div></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Annulla</button><button class="btn-save" onclick="saveCanzone()">Aggiungi</button></div>`;
+}
+
+async function saveCanzone(){
+  const url=jukeboxForm.url.trim();
+  if(!url){ alert('Incolla un link di YouTube!'); return; }
+  const videoId=estraiIdYoutube(url);
+  if(!videoId){ alert('Link non valido. Assicurati che sia un link di YouTube.'); return; }
+  const btn=document.querySelector('#modal-box .btn-save');
+  if(btn){ btn.disabled=true; btn.textContent='Salvataggio…'; }
+  const id='jk'+Date.now();
+  const flds={ID:id,VideoID:videoId,Titolo:jukeboxForm.titolo.trim(),Autore:jukeboxForm.autore,Data:REAL_TODAY};
+  try{
+    const rec=await atPost('Jukebox',flds);
+    if(rec.error){ alert('Errore Airtable: '+(rec.error.message||JSON.stringify(rec.error))); if(btn){btn.disabled=false;btn.textContent='Aggiungi';} return; }
+    jukebox.unshift({_recId:rec.records?.[0]?.id,id,videoId,titolo:flds.Titolo,autore:flds.Autore,data:flds.Data});
+    closeModal(); renderView();
+  }catch(e){ alert('Errore di rete: '+e.message); if(btn){btn.disabled=false;btn.textContent='Aggiungi';} }
+}
+
+async function deleteCanzone(id){
+  if(!confirm('Rimuovere questa canzone dalla playlist?')) return;
+  const brano=jukebox.find(b=>b.id===id);
+  jukebox=jukebox.filter(b=>b.id!==id);
+  renderView();
+  if(brano?._recId) atDelete('Jukebox',brano._recId);
+}
+
 async function init(){
-  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle(),loadSegreteria()]);
+  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle(),loadSegreteria(),loadJukebox()]);
   render(); loadWeather();
   aggiornaBottoneNotifiche();
   const primaPartite=[...f4Partite.map(p=>p.id),...trisPartite.map(p=>p.id),...impPartite.map(p=>p.id),...morraPartite.map(p=>p.id),...icPartite.map(p=>p.id),...wordlePartite.map(p=>p.id)];
@@ -4047,7 +4146,7 @@ async function init(){
   controllaSegreteriaUrgenti();
 }
 async function reloadAll(){
-  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle(),loadSegreteria()]);
+  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle(),loadSegreteria(),loadJukebox()]);
   render();
   controllaSegreteriaUrgenti();
 }
