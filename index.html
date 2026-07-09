@@ -1959,7 +1959,10 @@ function prossimeRicorrenzeWidget(){
   }
 
   if(_ricCountdownTimer) clearInterval(_ricCountdownTimer);
-  if(first.diff===0) setTimeout(lanciaCoriandoli, 600);
+  if(first.diff===0 && !localStorage.getItem(ricNotifKey)){
+    localStorage.setItem(ricNotifKey,'1');
+    setTimeout(lanciaCoriandoli, 600);
+  }
 
   _ricCountdownTimer=setInterval(()=>{
     const el=document.getElementById('ric-countdown');
