@@ -485,10 +485,24 @@
     @keyframes jukebox-tube-glow { from{background-position:0 0%} to{background-position:0 300%} }
     .jukebox-grille {
       position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-      width: 60%; height: 30px;
+      width: 78%; height: 40px;
       background-image: repeating-linear-gradient(90deg, rgba(255,213,74,0.55) 0 2px, transparent 2px 6px);
       border-radius: 0 0 40px 40px;
       opacity: 0.8;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .jukebox-neon-text {
+      font-family: 'Caveat', cursive; font-weight: 700; font-size: 26px; letter-spacing: 0.03em;
+      color: #fff;
+      animation: jukebox-neon-color 4s linear infinite;
+      white-space: nowrap;
+    }
+    @keyframes jukebox-neon-color {
+      0%   { color:#ff5f5f; text-shadow:0 0 6px #ff5f5f,0 0 14px #ff5f5f,0 0 24px #ff2b2b; }
+      25%  { color:#ffd54a; text-shadow:0 0 6px #ffd54a,0 0 14px #ffd54a,0 0 24px #ff9a00; }
+      50%  { color:#4ac9ff; text-shadow:0 0 6px #4ac9ff,0 0 14px #4ac9ff,0 0 24px #1e8fff; }
+      75%  { color:#ff6ad5; text-shadow:0 0 6px #ff6ad5,0 0 14px #ff6ad5,0 0 24px #d600ff; }
+      100% { color:#ff5f5f; text-shadow:0 0 6px #ff5f5f,0 0 14px #ff5f5f,0 0 24px #ff2b2b; }
     }
     .jukebox-screen {
       width: 100%; aspect-ratio: 16/9;
@@ -1183,7 +1197,7 @@ function jukeboxWidget(){
   if(!recent.length){
     inner=`<div class="bacheca-widget-empty">Nessun brano in coda 🎧</div>`;
   } else {
-    inner=`<div id="jukebox-widget-screen" style="width:0;height:0;overflow:hidden;position:absolute"></div>
+    inner=`<div id="jukebox-widget-screen" style="width:2px;height:2px;overflow:hidden;position:fixed;top:0;left:0;opacity:0;pointer-events:none"></div>
     <div id="jukebox-widget-nowplaying" class="jukebox-nowplaying" style="font-size:11px;min-height:14px"></div>
     <div class="mini-vinyls">${recent.map(brano=>{
       const m=M(brano.autore);
@@ -4169,10 +4183,10 @@ function jukeboxView(){
     h+=`</div></div>`;
     return h;
   }
-  h+=`<div class="jukebox-machine">
+  h+=`<div class="jukebox-machine" style="margin-top:44px">
     <div class="jukebox-tube left"></div>
     <div class="jukebox-tube right"></div>
-    <div class="jukebox-grille"></div>
+    <div class="jukebox-grille"><span class="jukebox-neon-text">Family Music</span></div>
     <div id="jukebox-screen" class="jukebox-screen">
       <div class="jukebox-screen-placeholder">🎶<br>Scegli un vinile qui sotto</div>
     </div>
