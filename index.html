@@ -1042,7 +1042,7 @@ function todayView(){
   if(freeMembers.length>0 && activeHtml.indexOf('empty-state')===-1){ activeHtml+=`<div style="margin-top:24px;padding-top:16px;border-top:1px dashed var(--border-light);text-align:center"><div class="sec-lbl" style="text-align:center">🎉 Liberi oggi</div><div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px">${freeMembers.map(m => `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--main-bg);padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;color:var(--text-main)"><span style="font-size:14px">${getIcon(m.id)}</span>${m.name}</span>`).join('')}</div></div>`; }
   const ricWidget=prossimeRicorrenzeWidget();
   const sondWidget=sondaggiWidget();
-  return h+activeHtml+(sondWidget?`<div style="margin-top:16px">`+sondWidget+`</div>`:'')+`<div style="margin-top:24px">`+dispensaWidget()+`</div>`+`<div style="margin-top:16px">`+challengeWidget()+`</div>`+(ricWidget?`<div style="margin-top:16px">`+ricWidget+`</div>`:'')+`<div style="margin-top:16px">`+ricordiWidget()+`</div>`+(viaggi.length?`<div style="margin-top:16px">`+viaggiWidget()+`</div>`:'')+`<div style="margin-top:16px">`+filmWidget()+`</div>`;
+  return h+activeHtml+(sondWidget?`<div style="margin-top:16px">`+sondWidget+`</div>`:'')+`<div style="margin-top:24px">`+dispensaWidget()+`</div>`+`<div style="margin-top:16px">`+challengeWidget()+`</div>`+(ricWidget?`<div style="margin-top:16px">`+ricWidget+`</div>`:'')+`<div style="margin-top:16px">`+ricordiWidget()+`</div>`+(viaggi.length?`<div style="margin-top:16px">`+viaggiWidget()+`</div>`:'')+`<div style="margin-top:16px">`+filmWidget()+`</div>`+`<div style="margin-top:24px;padding-top:16px;border-top:1px dashed var(--border-light);text-align:center"><div class="sec-lbl" style="text-align:center">Chi è online</div><div id="online-widget" style="display:flex;gap:8px;justify-content:center"></div></div>`;
 }
 
 function evCard(e, mContext){
@@ -2597,7 +2597,7 @@ async function eliminaPartitaGenerica(lista,setLista,tabella,partitaId){
 /* ── FORZA 4 ── */
 let f4Partite=[];
 let f4Me=localStorage.getItem('casaDecino_f4me')||'antonio';
-function f4SetMe(id){ f4Me=id; localStorage.setItem('casaDecino_f4me',id); renderView(); }
+function f4SetMe(id){ f4Me=id; localStorage.setItem('casaDecino_f4me',id); renderView(); if(typeof inviaHeartbeat==='function') inviaHeartbeat(); }
 
 async function loadForza4(){
   try{
@@ -3194,6 +3194,56 @@ function mostraInvitoWhatsApp(giocoNome,avversarioId){
   const ov=document.getElementById('modal-ov'); ov.style.display='flex'; ov.style.alignItems='center';
 }
 
+/* ── PRESENZA ONLINE ── */
+let presenzaMembri={};
+const PRESENZA_TIMEOUT_MS=120000;
+
+async function loadPresenza(){
+  try{
+    const records=await atGetAll('Presenza');
+    presenzaMembri={};
+    records.forEach(r=>{
+      const membro=r.fields.Membro; if(!membro) return;
+      presenzaMembri[membro]={_recId:r.id,ultimoAccesso:r.fields.UltimoAccesso||''};
+    });
+  }catch(e){}
+}
+
+async function inviaHeartbeat(){
+  const nowIso=new Date().toISOString();
+  const esistente=presenzaMembri[f4Me];
+  try{
+    if(esistente?._recId){
+      await atPatch('Presenza',esistente._recId,{UltimoAccesso:nowIso});
+      presenzaMembri[f4Me].ultimoAccesso=nowIso;
+    } else {
+      const res=await atPost('Presenza',{Membro:f4Me,UltimoAccesso:nowIso});
+      if(res.records?.[0]?.id) presenzaMembri[f4Me]={_recId:res.records[0].id,ultimoAccesso:nowIso};
+    }
+  }catch(e){}
+  renderOnlineWidget();
+}
+
+function renderOnlineWidget(){
+  const el=document.getElementById('online-widget'); if(!el) return;
+  const now=Date.now();
+  el.innerHTML=MEMBERS.map(m=>{
+    const p=presenzaMembri[m.id];
+    const online=p&&p.ultimoAccesso&&(now-new Date(p.ultimoAccesso).getTime())<PRESENZA_TIMEOUT_MS;
+    return `<div title="${escH(m.name)} — ${online?'online':'non attivo'}" style="position:relative;width:20px;height:20px;border-radius:50%;background:${m.bg};display:flex;align-items:center;justify-content:center;font-size:10px;opacity:${online?'1':'0.3'}">${getIcon(m.id)}<span style="position:absolute;bottom:-1px;right:-1px;width:7px;height:7px;border-radius:50%;background:${online?'#16a34a':'#9ca3af'};border:1.5px solid var(--card-bg)"></span></div>`;
+  }).join('');
+}
+
+let presenzaPollingId=null;
+function avviaPollingPresenza(){
+  inviaHeartbeat();
+  if(presenzaPollingId) return;
+  presenzaPollingId=setInterval(()=>{
+    if(document.hidden) return;
+    loadPresenza().then(()=>{ inviaHeartbeat(); });
+  },45000);
+}
+
 function aggiornaBottoneNotifiche(){
   const btn=document.getElementById('notif-btn'); if(!btn) return;
   if('Notification' in window && Notification.permission==='default'){ btn.style.display='inline-block'; }
@@ -3247,6 +3297,8 @@ async function init(){
   invitiNotificati=Array.from(new Set([...invitiNotificati,...primaPartite]));
   localStorage.setItem('casaDecino_invitiNotificati',JSON.stringify(invitiNotificati));
   avviaPollingInviti();
+  await loadPresenza();
+  avviaPollingPresenza();
 }
 async function reloadAll(){
   await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra()]);
