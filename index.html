@@ -461,6 +461,74 @@
     .mini-postit-author { font-size:9px; font-weight:800; margin-top:6px; opacity:0.6; }
     .bacheca-widget-empty { text-align:center; padding:16px; color:rgba(255,255,255,0.6); font-size:13px; font-weight:600; }
 
+    /* SEGRETERIA TELEFONICA */
+    .mini-phones { display:flex; gap:12px; overflow-x:auto; padding-top:14px; padding-bottom:4px; }
+    .mini-phone {
+      flex-shrink:0; width:100px; min-height:100px;
+      background: linear-gradient(160deg,#e8dcc3,#d6c6a3 55%,#c3b088);
+      border-radius:14px; border:2px solid #a8946c;
+      padding:10px 8px 8px; box-shadow:0 4px 10px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.5);
+      display:flex; flex-direction:column; align-items:center; text-align:center;
+      position:relative;
+    }
+    .mini-phone-icon { font-size:26px; }
+    .mini-phone.seg-active .mini-phone-icon { animation: seg-ring 0.35s ease-in-out infinite; }
+    .mini-phone-playbtn { background:#8a6d3f; color:#fff; border:1px solid #6b5230; width:28px; height:28px; border-radius:50%; font-size:11px; cursor:pointer; margin-top:6px; }
+    .mini-phone-name { font-size:9px; font-weight:800; color:#5c4a2a; margin-top:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+    .mini-phone-time { font-size:8px; color:#8a7a5a; }
+    .mini-phone-urgente {
+      position:absolute; top:-8px; right:-6px; z-index:3;
+      background:#fef08a; color:#7a5c00;
+      font-size:8px; font-weight:800; letter-spacing:0.02em; white-space:nowrap;
+      padding:4px 7px 3px; border-radius:2px 2px 2px 8px;
+      box-shadow: 2px 3px 6px rgba(0,0,0,0.35);
+      transform: rotate(9deg);
+    }
+    .mini-phone-urgente::before {
+      content:''; position:absolute; top:-4px; left:50%; transform:translateX(-50%);
+      width:8px; height:8px; border-radius:50%;
+      background:radial-gradient(circle at 38% 32%, #ff8080, #bb0000);
+      box-shadow:0 1px 2px rgba(0,0,0,0.3);
+    }
+    .seg-shelf-wrap { padding: 8px 4px 24px; }
+    .seg-shelf-row { position: relative; padding: 6px 8px 26px; }
+    .seg-plank {
+      position: absolute; bottom: 0; left: -4px; right: -4px; height: 22px;
+      background: linear-gradient(to bottom, #a5713a, #7a4f26 60%, #5c3a1a);
+      border-radius: 4px;
+      box-shadow: 0 6px 10px rgba(0,0,0,0.35), inset 0 2px 3px rgba(255,255,255,0.15);
+    }
+    .seg-recorder {
+      position: relative; z-index: 2;
+      background: linear-gradient(160deg,#e8dcc3,#d6c6a3 55%,#c3b088);
+      border-radius: 14px;
+      padding: 12px 12px 10px;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.5);
+      display: flex; align-items: center; gap: 10px;
+      border: 2px solid #a8946c;
+    }
+    .seg-phone-icon { font-size:26px; flex-shrink:0; transform-origin:top center; }
+    .seg-recorder.seg-active .seg-phone-icon { animation: seg-ring 0.35s ease-in-out infinite; }
+    @keyframes seg-ring { 0%,100%{transform:rotate(0deg)} 25%{transform:rotate(-12deg)} 75%{transform:rotate(12deg)} }
+    .seg-led { width:7px; height:7px; border-radius:50%; background:#b8a67e; flex-shrink:0; box-shadow:0 0 0 rgba(255,59,48,0); transition:all 0.2s; }
+    .seg-recorder.seg-active .seg-led { background:#ff3b30; box-shadow:0 0 6px 2px rgba(255,59,48,0.7); }
+    .seg-playbtn2 {
+      background:#8a6d3f; color:#fff; border:1px solid #6b5230; width:32px; height:32px;
+      border-radius:50%; font-size:12px; cursor:pointer; flex-shrink:0;
+      box-shadow: inset 0 1px 1px rgba(255,255,255,0.25), 0 2px 4px rgba(0,0,0,0.25);
+    }
+    .seg-bars { display:flex; gap:2px; align-items:flex-end; height:18px; flex:1; }
+    .seg-bars span { background:#8a6d3f; border-radius:1px; opacity:0.35; transition:opacity 0.2s; }
+    .seg-bars.seg-playing span { opacity:1; animation: seg-eq 0.6s ease-in-out infinite alternate; }
+    .seg-bars span:nth-child(odd){ animation-delay: 0.1s; }
+    .seg-bars span:nth-child(3n){ animation-delay: 0.2s; }
+    @keyframes seg-eq { from{ transform:scaleY(0.4);} to{ transform:scaleY(1);} }
+    .seg-meta { text-align:right; flex-shrink:0; }
+    .seg-meta-name { font-size:10px; font-weight:800; color:#5c4a2a; }
+    .seg-meta-time { font-size:9px; color:#8a7a5a; }
+    .seg-del-btn { background:none; border:none; color:#ff3b30; font-size:13px; cursor:pointer; flex-shrink:0; }
+
     /* BACHECA */
     .bacheca-board {
       background: #b5835a;
@@ -655,6 +723,7 @@
         <button class="tab" id="t-ricorrenze" onclick="switchView('ricorrenze')">🎂 Ricorrenze</button>
         <button class="tab" id="t-challenge"  onclick="switchView('challenge')">🏆 Challenge</button>
         <button class="tab" id="t-bacheca"    onclick="switchView('bacheca')">📌 Bacheca</button>
+        <button class="tab" id="t-segreteria" onclick="switchView('segreteria')">📞 Segreteria</button>
         <button class="tab" id="t-dispensa"   onclick="switchView('dispensa')">🛒 Dispensa</button>
         <button class="tab" id="t-ricordi"    onclick="switchView('ricordi')">📸 Ricordi</button>
         <button class="tab" id="t-viaggi"     onclick="switchView('viaggi')">🌍 Viaggi</button>
@@ -887,10 +956,10 @@ function inlineFilters(){
     </div>`).join('')}</div>`;
 }
 function toggleF(id){ if(filters.includes(id)){if(filters.length>1)filters=filters.filter(f=>f!==id);}else filters.push(id); render(); }
-function hdrAdd(){if(view==='ricorrenze')openRicModal(null);else if(view==='bacheca')openBachecaModal();else if(view==='dispensa')openDispensaModal();else if(view==='ricordi')openFotoModal();else if(view==='viaggi')openViaggioModal();else if(view==='film')openFilmModal();else if(view==='sondaggi')openSondaggioModal();else openModal(null);}
+function hdrAdd(){if(view==='ricorrenze')openRicModal(null);else if(view==='bacheca')openBachecaModal();else if(view==='dispensa')openDispensaModal();else if(view==='ricordi')openFotoModal();else if(view==='viaggi')openViaggioModal();else if(view==='film')openFilmModal();else if(view==='sondaggi')openSondaggioModal();else if(view==='segreteria')openSegreteriaModal();else openModal(null);}
 
 function switchView(v){
-  view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge','t-bacheca','t-dispensa','t-ricordi','t-viaggi','t-film','t-sondaggi','t-giochi'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
+  view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge','t-bacheca','t-dispensa','t-ricordi','t-viaggi','t-film','t-sondaggi','t-giochi','t-segreteria'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
   const tab=document.getElementById('t-'+v); if(tab) tab.classList.add('active');
   const fab=document.getElementById('fab-add'); const fabTxt=document.getElementById('fab-text');
   if(v==='challenge'){ fab.style.display='none'; }
@@ -901,6 +970,7 @@ function switchView(v){
   else if(v==='film'){ fab.style.display='inline-flex'; fabTxt.innerText='Film/Serie'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='🎬'; }
   else if(v==='sondaggi'){ fab.style.display='inline-flex'; fabTxt.innerText='Sondaggio'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='🗳️'; }
   else if(v==='giochi'){ fab.style.display='none'; }
+  else if(v==='segreteria'){ fab.style.display='inline-flex'; fabTxt.innerText='Messaggio vocale'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='🎤'; }
   else { fab.style.display='inline-flex'; fabTxt.innerText=(v==='ricorrenze')?'Ricorrenza':'Impegno'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='📝'; }
   renderView();
   gestisciPollingGiochi();
@@ -918,7 +988,7 @@ function gestisciPollingGiochi(){
   }
 }
 
-function renderView(){ const el=document.getElementById('view'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else if(view==='sondaggi')el.innerHTML=sondaggiView(); else if(view==='giochi')el.innerHTML=giochiView(); else el.innerHTML=ricorrenzeView(); updateGiochiBadge(); }
+function renderView(){ const el=document.getElementById('view'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else if(view==='sondaggi')el.innerHTML=sondaggiView(); else if(view==='giochi')el.innerHTML=giochiView(); else if(view==='segreteria')el.innerHTML=segreteriaView(); else el.innerHTML=ricorrenzeView(); updateGiochiBadge(); }
 
 function updateGiochiBadge(){
   const tab=document.getElementById('t-giochi'); if(!tab) return;
@@ -1035,10 +1105,41 @@ function bachecaWidget(){
   </div>`;
 }
 
+function segreteriaWidget(){
+  const visibili=typeof segreteriaVisibiliPerMe==='function'?segreteriaVisibiliPerMe():(typeof segreteriaMsgs!=='undefined'?segreteriaMsgs:[]);
+  const recent=[...visibili].sort((a,b)=>(b.data+b.ora).localeCompare(a.data+a.ora)).slice(0,3);
+  let inner='';
+  if(!recent.length){
+    inner=`<div class="bacheca-widget-empty">Nessun messaggio vocale ancora 🎤</div>`;
+  } else {
+    inner=`<div class="mini-phones">
+      ${recent.map(msg=>{
+        const m=M(msg.autore);
+        return `<div class="mini-phone" id="seg-card-${msg.id}">
+          ${msg.urgente?'<span class="mini-phone-urgente">URGENTE</span>':''}
+          <div class="mini-phone-icon">☎️</div>
+          <button id="seg-playbtn-${msg.id}" class="mini-phone-playbtn" onclick="togglePlaySegreteria('${msg.id}')">▶️</button>
+          <div id="seg-listeners-${msg.id}" style="display:flex;margin-top:4px">${typeof segAscoltatoriHtml==='function'?segAscoltatoriHtml(msg):''}</div>
+          <div class="mini-phone-name">${escH(m.name)}</div>
+          <div class="mini-phone-time">${msg.ora}</div>
+          <audio id="seg-audio-${msg.id}" data-seg src="${msg.audioUrl}" style="display:none"></audio>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+  return `<div class="bacheca-widget" style="background:linear-gradient(160deg,#4a6b78,#37525c);border-color:#2a3f47">
+    <div class="bacheca-widget-hdr">
+      <span class="bacheca-widget-title" style="color:rgba(255,255,255,0.9)">📞 Segreteria</span>
+      <button class="bacheca-widget-link" style="color:rgba(255,255,255,0.75);background:rgba(0,0,0,0.15)" onclick="switchView('segreteria')">Vedi tutti →</button>
+    </div>
+    ${inner}
+  </div>`;
+}
+
 function todayView(){
   const evs=events.filter(e=>e.date===viewDate && e.members.some(m=>filters.includes(m))).sort((a,b)=>a.startTime.localeCompare(b.startTime));
   const byM={};MEMBERS.forEach(m=>byM[m.id]=[]); evs.forEach(e=>{e.members.forEach(mid => {if(byM[mid] && filters.includes(mid)) byM[mid].push(e);});});
-  let h=bachecaWidget()+bdayBanners(viewDate);
+  let h=bachecaWidget()+segreteriaWidget()+bdayBanners(viewDate);
   h+=`<div class="sec-lbl" style="display:flex;align-items:center;width:100%">📅 ${new Date(viewDate).toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'})} ${viewDate===REAL_TODAY?'':`<button onclick="viewDate=REAL_TODAY;renderView()" style="margin-left:auto;background:var(--main-bg);border:1px solid var(--border-light);padding:4px 10px;border-radius:20px;color:#378ADD;font-weight:700;font-size:11px;cursor:pointer">TORNA A OGGI</button>`}</div>`;
   let activeHtml='', freeMembers=[];
   MEMBERS.filter(m=>filters.includes(m.id)).forEach(m=>{
@@ -3708,6 +3809,214 @@ function renderWordleBoard(p){
   return html;
 }
 
+/* ── SEGRETERIA TELEFONICA FAMIGLIARE ── */
+let segreteriaMsgs=[];
+async function loadSegreteria(){
+  try{
+    const records=await atGetAll('Segreteria');
+    segreteriaMsgs=records.map(r=>({_recId:r.id,id:r.fields.ID||r.id,autore:r.fields.Autore||'antonio',audioUrl:r.fields.AudioURL||'',data:r.fields.Data||'',ora:r.fields.Ora||'',urgente:r.fields.Urgente===true,ascoltatoDa:(r.fields.AscoltatoDa||'').split(',').filter(Boolean),destinatario:r.fields.Destinatario||'tutti'}));
+  }catch(e){ segreteriaMsgs=[]; }
+}
+
+function segreteriaVisibiliPerMe(){
+  return segreteriaMsgs.filter(m=>m.autore===f4Me||m.destinatario==='tutti'||m.destinatario===f4Me);
+}
+
+let segreteriaUrgentiVisti=JSON.parse(localStorage.getItem('casaDecino_segUrgentiVisti')||'[]');
+function segnaUrgenteVisto(id){
+  segreteriaUrgentiVisti.push(id);
+  if(segreteriaUrgentiVisti.length>200) segreteriaUrgentiVisti=segreteriaUrgentiVisti.slice(-200);
+  localStorage.setItem('casaDecino_segUrgentiVisti',JSON.stringify(segreteriaUrgentiVisti));
+}
+function controllaSegreteriaUrgenti(){
+  const nonVisti=segreteriaMsgs.filter(m=>m.urgente&&m.autore!==f4Me&&!segreteriaUrgentiVisti.includes(m.id));
+  if(!nonVisti.length) return;
+  const msg=nonVisti[0];
+  const m=M(msg.autore);
+  document.getElementById('modal-box').innerHTML=`
+    <div class="modal-hdr"><span class="modal-ttl" style="color:#ff3b30">🚨 Messaggio URGENTE!</span><button class="modal-close" onclick="chiudiPopupUrgenteSegreteria('${msg.id}')">✕</button></div>
+    <div style="text-align:center;padding:10px 0">
+      <div class="avatar" style="${ms(m)};margin:0 auto 10px;width:48px;height:48px;font-size:24px">${getIcon(m.id)}</div>
+      <div style="font-size:14px;font-weight:800;margin-bottom:4px">${escH(m.name)} ti ha lasciato un messaggio urgente</div>
+      <div style="font-size:12px;color:var(--text-sec);margin-bottom:16px">${fmtDateShort(msg.data)} alle ${msg.ora}</div>
+      <audio id="seg-urgente-audio" src="${msg.audioUrl}" controls style="width:100%;margin-bottom:14px"></audio>
+      <button class="btn-save" onclick="chiudiPopupUrgenteSegreteria('${msg.id}')" style="width:100%">Ho ascoltato</button>
+    </div>`;
+  const ov=document.getElementById('modal-ov'); ov.style.display='flex'; ov.style.alignItems='center';
+}
+function chiudiPopupUrgenteSegreteria(id){
+  segnaUrgenteVisto(id);
+  closeModal();
+  setTimeout(controllaSegreteriaUrgenti,300);
+}
+
+let segRecorder=null, segChunks=[], segStream=null, segTimerId=null, segSecondi=0;
+const SEG_MAX_SEC=20;
+
+let segUrgente=false;
+let segDestinatario='tutti';
+function renderSegDestinatarioBtns(){
+  const altri=MEMBERS.filter(m=>m.id!==f4Me);
+  const tuttiSel=segDestinatario==='tutti';
+  let html=`<button onclick="segDestinatario='tutti';renderSegDestinatarioBtns()" class="tr-btn${tuttiSel?' sel':''}" style="${tuttiSel?'background:#378ADD;color:#fff;border-color:transparent':''}">👨‍👩‍👧‍👦 Tutti</button>`;
+  html+=altri.map(m=>{
+    const sel=segDestinatario===m.id;
+    return `<button onclick="segDestinatario='${m.id}';renderSegDestinatarioBtns()" class="tr-btn${sel?' sel':''}" style="${sel?ms(m):''}">${getIcon(m.id)} ${escH(m.name)}</button>`;
+  }).join('');
+  const el=document.getElementById('seg-dest-btns'); if(el) el.innerHTML=html;
+}
+
+function openSegreteriaModal(){
+  segChunks=[]; segSecondi=0; segUrgente=false; segDestinatario='tutti';
+  document.getElementById('modal-box').innerHTML=`
+    <div class="modal-hdr"><span class="modal-ttl">🎤 Nuovo messaggio vocale</span><button class="modal-close" onclick="chiudiSegreteriaModal()">✕</button></div>
+    <div style="text-align:center;padding:20px 0">
+      <div id="seg-timer" style="font-size:32px;font-weight:900;color:var(--text-main);margin-bottom:16px">00:00</div>
+      <button id="seg-rec-btn" onclick="segStartStop()" style="width:80px;height:80px;border-radius:50%;border:none;background:#ff3b30;color:#fff;font-size:28px;cursor:pointer;box-shadow:0 6px 16px rgba(255,59,48,0.35)">🎤</button>
+      <div style="font-size:12px;color:var(--text-sec);margin-top:12px" id="seg-hint">Tocca per iniziare a registrare (max ${SEG_MAX_SEC}s)</div>
+    </div>
+    <div class="fgrp"><label class="flbl">Per chi è questo messaggio?</label><div class="tr-opts" id="seg-dest-btns"></div></div>
+    <label style="display:flex;align-items:center;gap:8px;justify-content:center;padding:10px;background:var(--main-bg);border-radius:12px;margin-bottom:14px;cursor:pointer">
+      <input type="checkbox" id="seg-urgente-check" onchange="segUrgente=this.checked" style="width:18px;height:18px">
+      <span style="font-size:13px;font-weight:700;color:#ff3b30">🚨 Segna come URGENTE</span>
+    </label>
+    <div id="seg-invia-wrap" style="display:none;text-align:center">
+      <button class="btn-save" onclick="inviaSegreteria()" style="width:100%">Invia messaggio</button>
+    </div>`;
+  renderSegDestinatarioBtns();
+  showOv();
+}
+
+function chiudiSegreteriaModal(){
+  if(segStream){ segStream.getTracks().forEach(t=>t.stop()); segStream=null; }
+  if(segTimerId){ clearInterval(segTimerId); segTimerId=null; }
+  closeModal();
+}
+
+async function segStartStop(){
+  const btn=document.getElementById('seg-rec-btn');
+  if(!segRecorder||segRecorder.state==='inactive'){
+    try{
+      segStream=await navigator.mediaDevices.getUserMedia({audio:true});
+    }catch(e){ alert('Permesso microfono negato. Abilita il microfono per registrare.'); return; }
+    segChunks=[];
+    segRecorder=new MediaRecorder(segStream);
+    segRecorder.ondataavailable=e=>{ if(e.data.size>0) segChunks.push(e.data); };
+    segRecorder.onstop=()=>{
+      if(segStream){ segStream.getTracks().forEach(t=>t.stop()); segStream=null; }
+      document.getElementById('seg-invia-wrap').style.display='block';
+      document.getElementById('seg-hint').textContent='Registrazione pronta. Puoi inviarla.';
+    };
+    segRecorder.start();
+    segSecondi=0;
+    document.getElementById('seg-timer').textContent='00:00';
+    document.getElementById('seg-hint').textContent='Registrazione in corso… tocca per fermare';
+    btn.style.background='#666'; btn.textContent='⏹';
+    segTimerId=setInterval(()=>{
+      segSecondi++;
+      const mm=String(Math.floor(segSecondi/60)).padStart(2,'0');
+      const ss=String(segSecondi%60).padStart(2,'0');
+      document.getElementById('seg-timer').textContent=`${mm}:${ss}`;
+      if(segSecondi>=SEG_MAX_SEC) segStartStop();
+    },1000);
+  } else {
+    segRecorder.stop();
+    if(segTimerId){ clearInterval(segTimerId); segTimerId=null; }
+    btn.style.background='#9ca3af'; btn.textContent='🎤'; btn.disabled=true;
+  }
+}
+
+async function inviaSegreteria(){
+  if(!segChunks.length){ alert('Nessuna registrazione trovata'); return; }
+  document.getElementById('modal-box').innerHTML=`<div class="foto-upload-progress">⏳ Caricamento in corso…</div>`;
+  const blob=new Blob(segChunks,{type:'audio/webm'});
+  const formData=new FormData();
+  formData.append('file',blob,'segreteria.webm');
+  formData.append('upload_preset',CL_PRESET);
+  try{
+    const res=await fetch(`https://api.cloudinary.com/v1_1/${CL_CLOUD}/video/upload`,{method:'POST',body:formData});
+    const data=await res.json();
+    if(!data.secure_url) throw new Error('Upload fallito');
+    const id='seg'+Date.now();
+    const now=new Date();
+    const ora=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const flds={ID:id,Autore:f4Me,AudioURL:data.secure_url,Data:REAL_TODAY,Ora:ora,Urgente:segUrgente,Destinatario:segDestinatario};
+    const rec=await atPost('Segreteria',flds);
+    segreteriaMsgs.unshift({_recId:rec.records?.[0]?.id,id,autore:f4Me,audioUrl:data.secure_url,data:REAL_TODAY,ora,urgente:segUrgente,ascoltatoDa:[],destinatario:segDestinatario});
+    closeModal(); renderView();
+  }catch(e){ alert('Errore nel caricamento. Riprova.'); closeModal(); }
+}
+
+async function eliminaSegreteria(id){
+  if(!confirm('Eliminare questo messaggio vocale?')) return;
+  const m=segreteriaMsgs.find(x=>x.id===id);
+  segreteriaMsgs=segreteriaMsgs.filter(x=>x.id!==id);
+  renderView();
+  if(m?._recId) atDelete('Segreteria',m._recId);
+}
+
+function segAscoltatoriHtml(msg){
+  return msg.ascoltatoDa.map(mid=>{
+    const m=M(mid);
+    return `<span title="${escH(m.name)}" style="display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:${m.dot};color:#fff;font-size:8px;box-shadow:0 1px 2px rgba(0,0,0,0.3);margin-left:-3px;border:1.5px solid #fff">${getIcon(m.id)}</span>`;
+  }).join('');
+}
+
+async function segnaAscoltato(id){
+  const msg=segreteriaMsgs.find(x=>x.id===id); if(!msg) return;
+  if(msg.autore===f4Me||msg.ascoltatoDa.includes(f4Me)) return;
+  msg.ascoltatoDa.push(f4Me);
+  document.querySelectorAll(`[id="seg-listeners-${id}"]`).forEach(el=>{ el.innerHTML=segAscoltatoriHtml(msg); });
+  try{ if(msg._recId) await atPatch('Segreteria',msg._recId,{AscoltatoDa:msg.ascoltatoDa.join(',')}); }catch(e){}
+}
+
+function togglePlaySegreteria(id){
+  const audio=document.getElementById(`seg-audio-${id}`);
+  const btn=document.getElementById(`seg-playbtn-${id}`);
+  const bars=document.getElementById(`seg-bars-${id}`);
+  const card=document.getElementById(`seg-card-${id}`);
+  if(!audio) return;
+  document.querySelectorAll('audio[data-seg]').forEach(a=>{ if(a.id!==`seg-audio-${id}`){ a.pause(); a.currentTime=0; } });
+  document.querySelectorAll('[id^="seg-playbtn-"]').forEach(b=>{ if(b.id!==`seg-playbtn-${id}`) b.textContent='▶️'; });
+  document.querySelectorAll('[id^="seg-bars-"]').forEach(b=>{ if(b.id!==`seg-bars-${id}`) b.classList.remove('seg-playing'); });
+  document.querySelectorAll('[id^="seg-card-"]').forEach(c=>{ if(c.id!==`seg-card-${id}`) c.classList.remove('seg-active'); });
+  if(audio.paused){ audio.play(); btn.textContent='⏸'; bars?.classList.add('seg-playing'); card?.classList.add('seg-active'); segnaAscoltato(id); }
+  else { audio.pause(); btn.textContent='▶️'; bars?.classList.remove('seg-playing'); card?.classList.remove('seg-active'); }
+  audio.onended=()=>{ btn.textContent='▶️'; bars?.classList.remove('seg-playing'); card?.classList.remove('seg-active'); };
+}
+
+function segreteriaView(){
+  const sorted=[...segreteriaVisibiliPerMe()].sort((a,b)=>(b.data+b.ora).localeCompare(a.data+a.ora));
+  let h=`<div class="section-wrap"><div class="section-hdr"><span class="section-ttl">📞 Segreteria Telefonica Famigliare</span></div><div class="seg-shelf-wrap">`;
+  if(!sorted.length){ h+=`<div class="empty-state"><span class="big">📞</span><div style="font-size:16px;font-weight:700;">Nessun messaggio vocale ancora</div><div style="font-size:13px;color:var(--text-sec);margin-top:6px">Lascia un messaggio per la famiglia!</div></div>`; }
+  else {
+    h+=`<div class="seg-shelf-row"><div class="seg-plank"></div>`;
+    for(const msg of sorted){
+      const m=M(msg.autore);
+      h+=`<div class="seg-recorder" id="seg-card-${msg.id}" style="${msg.urgente?'border-color:#ff3b30;box-shadow:0 8px 14px rgba(255,59,48,0.35), inset 0 1px 0 rgba(255,255,255,0.5)':''}">
+        <div class="seg-led"></div>
+        <div class="seg-phone-icon">☎️</div>
+        <button id="seg-playbtn-${msg.id}" class="seg-playbtn2" onclick="togglePlaySegreteria('${msg.id}')">▶️</button>
+        <div id="seg-bars-${msg.id}" class="seg-bars">
+          ${Array.from({length:14}).map((_,i)=>`<span style="width:3px;height:${6+((i*7)%14)}px"></span>`).join('')}
+        </div>
+        ${msg.urgente?'<span style="background:#ff3b30;color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:8px;flex-shrink:0">🚨 URGENTE</span>':''}
+        ${msg.destinatario!=='tutti'?`<span style="background:var(--main-bg);color:#5c4a2a;font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;flex-shrink:0">✉️ Per ${escH(M(msg.destinatario).name)}</span>`:''}
+        <div id="seg-listeners-${msg.id}" style="display:flex;flex-shrink:0">${segAscoltatoriHtml(msg)}</div>
+        <div class="seg-meta">
+          <div class="seg-meta-name">${escH(m.name)}</div>
+          <div class="seg-meta-time">${fmtDateShort(msg.data)} ${msg.ora}</div>
+        </div>
+        <button onclick="eliminaSegreteria('${msg.id}')" class="seg-del-btn">🗑</button>
+        <audio id="seg-audio-${msg.id}" data-seg src="${msg.audioUrl}" style="display:none"></audio>
+      </div>`;
+    }
+    h+=`</div>`;
+  }
+  h+=`</div></div>`;
+  return h;
+}
+
 let invitiPollingId=null;
 function avviaPollingInviti(){
   if(invitiPollingId) return;
@@ -3720,7 +4029,7 @@ function avviaPollingInviti(){
 }
 
 async function init(){
-  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle()]);
+  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle(),loadSegreteria()]);
   render(); loadWeather();
   aggiornaBottoneNotifiche();
   const primaPartite=[...f4Partite.map(p=>p.id),...trisPartite.map(p=>p.id),...impPartite.map(p=>p.id),...morraPartite.map(p=>p.id),...icPartite.map(p=>p.id),...wordlePartite.map(p=>p.id)];
@@ -3729,10 +4038,12 @@ async function init(){
   avviaPollingInviti();
   await loadPresenza();
   avviaPollingPresenza();
+  controllaSegreteriaUrgenti();
 }
 async function reloadAll(){
-  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle()]);
+  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle(),loadSegreteria()]);
   render();
+  controllaSegreteriaUrgenti();
 }
 
 init();
