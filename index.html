@@ -930,11 +930,17 @@ function updateGiochiBadge(){
     return myNum===1?!p.mossa1:!p.mossa2;
   };
   const mioTurnoImp=p=>p.stato==='aperta'&&p.giocatore2===f4Me;
+  const mioTurnoWordle=p=>{
+    if(p.stato==='aperta') return (typeof wordleGuesser==='function')&&wordleGuesser(p)===f4Me;
+    if(p.stato==='attesa_parola') return (typeof wordleSetter==='function')&&wordleSetter(p)===f4Me;
+    return false;
+  };
   const haTurno=(typeof f4Partite!=='undefined'&&f4Partite.some(mioTurno))
     ||(typeof trisPartite!=='undefined'&&trisPartite.some(mioTurno))
     ||(typeof impPartite!=='undefined'&&impPartite.some(mioTurnoImp))
     ||(typeof morraPartite!=='undefined'&&morraPartite.some(mioTurnoMorra))
-    ||(typeof icPartite!=='undefined'&&icPartite.some(mioTurnoImp));
+    ||(typeof icPartite!=='undefined'&&icPartite.some(mioTurnoImp))
+    ||(typeof wordlePartite!=='undefined'&&wordlePartite.some(mioTurnoWordle));
   let dot=tab.querySelector('.giochi-badge-dot');
   if(haTurno){
     if(!dot){ dot=document.createElement('span'); dot.className='giochi-badge-dot'; dot.style.cssText='display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff3b30;margin-left:4px;vertical-align:middle'; tab.appendChild(dot); }
@@ -2740,6 +2746,7 @@ function giochiView(){
         <button onclick="setGiochiTab('impiccato')" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='impiccato'?'#378ADD':'transparent'};color:${giochiTab==='impiccato'?'#fff':'var(--text-sec)'}">🎯 Impiccato</button>
         <button onclick="setGiochiTab('morra')" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='morra'?'#378ADD':'transparent'};color:${giochiTab==='morra'?'#fff':'var(--text-sec)'}">✂️ Morra</button>
         <button onclick="setGiochiTab('indovinachi')" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='indovinachi'?'#378ADD':'transparent'};color:${giochiTab==='indovinachi'?'#fff':'var(--text-sec)'}">🕵️ Indovina Chi</button>
+        <button onclick="setGiochiTab('wordle')" style="flex:1;padding:10px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='wordle'?'#378ADD':'transparent'};color:${giochiTab==='wordle'?'#fff':'var(--text-sec)'}">🟩 Wordle</button>
       </div>`;
   if(giochiTab==='forza4'){
     const mie=f4Partite.filter(p=>p.giocatore1===f4Me||p.giocatore2===f4Me);
@@ -2781,7 +2788,7 @@ function giochiView(){
       html+=`<div style="font-size:12px;color:var(--text-sec);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 8px">Altre partite</div>`;
       for(const p of altre){ html+=`<div style="margin-bottom:16px">${renderMorraBoard(p)}</div>`; }
     }
-  } else {
+  } else if(giochiTab==='indovinachi'){
     const mie=icPartite.filter(p=>p.giocatore1===f4Me||p.giocatore2===f4Me);
     const altre=icPartite.filter(p=>p.giocatore1!==f4Me&&p.giocatore2!==f4Me);
     html+=`<button onclick="openNuovaPartitaIC()" style="width:100%;padding:14px;border-radius:14px;background:#378ADD;color:#fff;font-size:15px;font-weight:800;border:none;cursor:pointer;margin-bottom:16px">🕵️ Nuova partita Indovina Chi</button>`;
@@ -2790,6 +2797,16 @@ function giochiView(){
     if(altre.length>0){
       html+=`<div style="font-size:12px;color:var(--text-sec);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 8px">Altre partite</div>`;
       for(const p of altre){ html+=`<div style="margin-bottom:16px">${renderICBoard(p)}</div>`; }
+    }
+  } else {
+    const mie=wordlePartite.filter(p=>p.giocatore1===f4Me||p.giocatore2===f4Me);
+    const altre=wordlePartite.filter(p=>p.giocatore1!==f4Me&&p.giocatore2!==f4Me);
+    html+=`<button onclick="openNuovaPartitaWordle()" style="width:100%;padding:14px;border-radius:14px;background:#378ADD;color:#fff;font-size:15px;font-weight:800;border:none;cursor:pointer;margin-bottom:16px">🟩 Nuova partita Wordle</button>`;
+    if(mie.length===0&&altre.length===0){ html+=`<div style="text-align:center;color:var(--text-sec);padding:30px 0;font-size:14px">Nessuna partita ancora.<br>Scegli una parola di 5 lettere per un familiare!</div>`; }
+    for(const p of mie){ html+=`<div style="margin-bottom:16px">${renderWordleBoard(p)}</div>`; }
+    if(altre.length>0){
+      html+=`<div style="font-size:12px;color:var(--text-sec);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 8px">Altre partite</div>`;
+      for(const p of altre){ html+=`<div style="margin-bottom:16px">${renderWordleBoard(p)}</div>`; }
     }
   }
   html+=`</div></div>`;
@@ -3331,7 +3348,7 @@ async function attivaNotifiche(){
   aggiornaBottoneNotifiche();
 }
 
-const GIOCHI_NOMI={forza4:'Forza 4',tris:'Tris',impiccato:'Impiccato',morra:'Morra Cinese',indovinachi:'Indovina Chi'};
+const GIOCHI_NOMI={forza4:'Forza 4',tris:'Tris',impiccato:'Impiccato',morra:'Morra Cinese',indovinachi:'Indovina Chi',wordle:'Wordle'};
 let invitiNotificati=JSON.parse(localStorage.getItem('casaDecino_invitiNotificati')||'[]');
 function segnaInvitoNotificato(id){
   invitiNotificati.push(id);
@@ -3340,7 +3357,7 @@ function segnaInvitoNotificato(id){
 }
 function controllaNuoviInviti(){
   if(!('Notification' in window)||Notification.permission!=='granted') return;
-  const gruppi=[['forza4',f4Partite],['tris',trisPartite],['impiccato',impPartite],['morra',morraPartite],['indovinachi',icPartite]];
+  const gruppi=[['forza4',f4Partite],['tris',trisPartite],['impiccato',impPartite],['morra',morraPartite],['indovinachi',icPartite],['wordle',wordlePartite]];
   for(const[tipo,lista]of gruppi){
     for(const p of lista){
       if(p.giocatore2===f4Me&&p.stato==='aperta'&&!invitiNotificati.includes(p.id)){
@@ -3520,22 +3537,220 @@ function renderICBoard(p){
   return html;
 }
 
+/* ── WORDLE A DUE (sfida a 10 round) ── */
+const WORDLE_MAX_TENTATIVI=6;
+const WORDLE_MAX_ROUND=10;
+let wordlePartite=[];
+
+async function loadWordle(){
+  try{
+    const records=await atGetAll('Wordle');
+    wordlePartite=records.map(r=>({
+      _recId:r.id,
+      id:r.fields.ID||r.id,
+      giocatore1:r.fields.Giocatore1||'',
+      giocatore2:r.fields.Giocatore2||'',
+      parolaSegreta:(r.fields.ParolaSegreta||'').toUpperCase(),
+      tentativi:(r.fields.Tentativi||'').split(',').filter(Boolean),
+      roundAttuale:Number(r.fields.RoundAttuale)||1,
+      punti1:Number(r.fields.Punti1)||0,
+      punti2:Number(r.fields.Punti2)||0,
+      stato:r.fields.Stato||'aperta',
+      vincitore:r.fields.Vincitore||'',
+      data:r.fields.Data||''
+    }));
+  }catch(e){ wordlePartite=[]; }
+}
+
+function wordleSetter(p){ return (p.roundAttuale%2===1)?p.giocatore1:p.giocatore2; }
+function wordleGuesser(p){ return wordleSetter(p)===p.giocatore1?p.giocatore2:p.giocatore1; }
+
+function wordleColori(tentativo,segreta){
+  const res=new Array(5).fill('grigio');
+  const segLetters=segreta.split('');
+  const usedSeg=new Array(5).fill(false);
+  const tentLetters=tentativo.split('');
+  for(let i=0;i<5;i++){ if(tentLetters[i]===segLetters[i]){ res[i]='verde'; usedSeg[i]=true; } }
+  for(let i=0;i<5;i++){
+    if(res[i]==='verde') continue;
+    const idx=segLetters.findIndex((ch,j)=>ch===tentLetters[i]&&!usedSeg[j]);
+    if(idx!==-1){ res[i]='giallo'; usedSeg[idx]=true; }
+  }
+  return res;
+}
+
+async function eliminaWordle(partitaId){
+  const p=wordlePartite.find(x=>x.id===partitaId); if(!p) return;
+  const orfana=!MEMBERS.some(m=>m.id===p.giocatore1);
+  if(p.giocatore1!==f4Me&&!orfana){ alert('Solo chi ha creato la partita può eliminarla'); return; }
+  if(!confirm('Eliminare questa partita?')) return;
+  wordlePartite=wordlePartite.filter(x=>x.id!==partitaId);
+  renderView();
+  if(p._recId) atDelete('Wordle',p._recId);
+}
+
+let wordleForm={avversario:'',parola:''};
+function openNuovaPartitaWordle(){
+  wordleForm={avversario:'',parola:''};
+  renderWordleModal();
+  showOv();
+}
+function renderWordleModal(){
+  const altri=MEMBERS.filter(m=>m.id!==f4Me);
+  const mbrBtns=altri.map(m=>`<button class="tr-btn${wordleForm.avversario===m.id?' sel':''}" onclick="wordleForm.avversario='${m.id}';renderWordleModal()" style="${wordleForm.avversario===m.id?ms(m):''}">${getIcon(m.id)} ${m.name}</button>`).join('');
+  document.getElementById('modal-box').innerHTML=`
+    <div class="modal-hdr"><span class="modal-ttl">🟩 Nuova partita Wordle</span><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="fgrp"><label class="flbl">Chi deve indovinare?</label><div class="tr-opts">${mbrBtns}</div></div>
+    <div class="fgrp"><label class="flbl">Parola segreta (esattamente 5 lettere)</label><input id="wordle-parola" value="${escH(wordleForm.parola)}" maxlength="5" oninput="wordleForm.parola=this.value.toUpperCase()" placeholder="Es. PORTA" style="text-transform:uppercase"></div>
+    <div style="text-align:center;margin-top:10px">
+      <button class="btn-cancel" onclick="closeModal()">Annulla</button>
+      <button class="btn-save" onclick="nuovaPartitaWordle()" style="margin-left:10px">Crea partita</button>
+    </div>`;
+}
+async function nuovaPartitaWordle(){
+  if(!wordleForm.avversario){ alert('Seleziona chi deve indovinare'); return; }
+  const parola=wordleForm.parola.trim().toUpperCase();
+  if(parola.length!==5){ alert('La parola deve essere di esattamente 5 lettere'); return; }
+  closeModal();
+  const id='wo'+Date.now();
+  const flds={ID:id,Giocatore1:f4Me,Giocatore2:wordleForm.avversario,ParolaSegreta:parola,Tentativi:'',RoundAttuale:1,Punti1:0,Punti2:0,Stato:'aperta',Vincitore:'',Data:REAL_TODAY};
+  try{
+    const res=await atPost('Wordle',flds);
+    if(res.error){ alert('Errore Airtable: '+(res.error.message||JSON.stringify(res.error))); return; }
+    if(!res.records?.[0]?.id){ alert('Risposta inattesa:\n'+JSON.stringify(res).slice(0,400)); return; }
+    const recId=res.records[0].id;
+    wordlePartite.unshift({_recId:recId,id,giocatore1:f4Me,giocatore2:wordleForm.avversario,parolaSegreta:parola,tentativi:[],roundAttuale:1,punti1:0,punti2:0,stato:'aperta',vincitore:'',data:REAL_TODAY});
+    mostraInvitoWhatsApp('Wordle (sfida a 10 parole)',wordleForm.avversario);
+  }catch(e){ alert('Errore: '+e.message); }
+}
+
+async function muoviWordle(partitaId){
+  const p=wordlePartite.find(x=>x.id===partitaId); if(!p||p.stato!=='aperta'||wordleGuesser(p)!==f4Me) return;
+  const input=document.getElementById(`wordle-input-${p.id}`); if(!input) return;
+  const tentativo=input.value.trim().toUpperCase();
+  if(tentativo.length!==5){ alert('Inserisci una parola di esattamente 5 lettere'); return; }
+  p.tentativi.push(tentativo);
+  const vinto=tentativo===p.parolaSegreta;
+  const persoRound=!vinto&&p.tentativi.length>=WORDLE_MAX_TENTATIVI;
+  if(vinto||persoRound){
+    const vincitoreRound=vinto?wordleGuesser(p):wordleSetter(p);
+    if(vincitoreRound===p.giocatore1) p.punti1++; else p.punti2++;
+    if(p.roundAttuale>=WORDLE_MAX_ROUND){
+      p.stato='conclusa';
+      p.vincitore=p.punti1>p.punti2?p.giocatore1:(p.punti2>p.punti1?p.giocatore2:'');
+    } else {
+      p.roundAttuale++;
+      p.stato='attesa_parola';
+      p.parolaSegreta='';
+      p.tentativi=[];
+    }
+  }
+  renderView();
+  try{
+    await atPatch('Wordle',p._recId,{Tentativi:p.tentativi.join(','),ParolaSegreta:p.parolaSegreta,RoundAttuale:p.roundAttuale,Punti1:p.punti1,Punti2:p.punti2,Stato:p.stato,Vincitore:p.vincitore});
+  }catch(e){ alert('Errore salvataggio tentativo: '+e.message); }
+}
+
+function apriProssimaParolaWordle(partitaId){
+  document.getElementById('modal-box').innerHTML=`
+    <div class="modal-hdr"><span class="modal-ttl">🟩 Scegli la parola del round</span><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="fgrp"><label class="flbl">Nuova parola segreta (5 lettere)</label><input id="wordle-nuova-parola" maxlength="5" placeholder="Es. TRENO" style="text-transform:uppercase"></div>
+    <div style="text-align:center;margin-top:10px">
+      <button class="btn-cancel" onclick="closeModal()">Annulla</button>
+      <button class="btn-save" onclick="submitProssimaParolaWordle('${partitaId}')" style="margin-left:10px">Conferma</button>
+    </div>`;
+  showOv();
+}
+async function submitProssimaParolaWordle(partitaId){
+  const p=wordlePartite.find(x=>x.id===partitaId); if(!p) return;
+  const parola=document.getElementById('wordle-nuova-parola')?.value.trim().toUpperCase()||'';
+  if(parola.length!==5){ alert('La parola deve essere di esattamente 5 lettere'); return; }
+  closeModal();
+  p.parolaSegreta=parola; p.stato='aperta';
+  renderView();
+  try{ await atPatch('Wordle',p._recId,{ParolaSegreta:parola,Stato:'aperta'}); }catch(e){ alert('Errore: '+e.message); }
+}
+
+function renderWordleBoard(p){
+  const me=f4Me;
+  const m1=MEMBERS.find(m=>m.id===p.giocatore1)||{name:p.giocatore1};
+  const m2=MEMBERS.find(m=>m.id===p.giocatore2)||{name:p.giocatore2};
+  const coloriMap={verde:'#16a34a',giallo:'#eab308',grigio:'#6b7280'};
+  const setter=wordleSetter(p), guesser=wordleGuesser(p);
+  const mSetter=MEMBERS.find(m=>m.id===setter)||{name:setter};
+  const mGuesser=MEMBERS.find(m=>m.id===guesser)||{name:guesser};
+  let html=`<div style="background:var(--main-bg);border-radius:16px;padding:12px;max-width:320px;margin:0 auto">`;
+  html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+    <div style="text-align:center"><div style="font-size:12px;font-weight:700;color:var(--text-main)">${escH(m1.name)}</div><div style="font-size:20px;font-weight:900;color:#378ADD">${p.punti1}</div></div>
+    <div style="font-size:11px;color:var(--text-sec);font-weight:700;text-align:center">Round ${Math.min(p.roundAttuale,WORDLE_MAX_ROUND)}/${WORDLE_MAX_ROUND}</div>
+    <div style="text-align:center"><div style="font-size:12px;font-weight:700;color:var(--text-main)">${escH(m2.name)}</div><div style="font-size:20px;font-weight:900;color:#F39C12">${p.punti2}</div></div>
+  </div>`;
+  if(p.stato==='conclusa'){
+    if(p.vincitore){
+      const wm=MEMBERS.find(m=>m.id===p.vincitore)||{name:p.vincitore};
+      html+=`<div style="text-align:center;font-size:15px;font-weight:800;color:#378ADD;padding:14px 0">🏆 Ha vinto la sfida ${escH(wm.name)}! (${p.punti1}-${p.punti2})</div>`;
+    } else {
+      html+=`<div style="text-align:center;font-size:15px;font-weight:800;color:var(--text-sec);padding:14px 0">🤝 Sfida in parità! (${p.punti1}-${p.punti2})</div>`;
+    }
+  } else if(p.stato==='attesa_parola'){
+    if(setter===me){
+      html+=`<div style="text-align:center;padding:10px 0">
+        <div style="font-size:13px;color:var(--text-sec);margin-bottom:10px">Tocca a te scegliere la parola del round ${p.roundAttuale}</div>
+        <button onclick="apriProssimaParolaWordle('${p.id}')" style="width:100%;padding:12px;border-radius:12px;border:none;background:#378ADD;color:#fff;font-weight:700;cursor:pointer">Scegli parola</button>
+      </div>`;
+    } else {
+      html+=`<div style="text-align:center;font-size:13px;color:var(--text-sec);padding:14px 0">In attesa che ${escH(mSetter.name)} scelga la parola del round ${p.roundAttuale}...</div>`;
+    }
+  } else {
+    html+=`<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px">`;
+    for(let r=0;r<WORDLE_MAX_TENTATIVI;r++){
+      const tentativo=p.tentativi[r];
+      html+=`<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px">`;
+      if(tentativo){
+        const colori=wordleColori(tentativo,p.parolaSegreta);
+        for(let i=0;i<5;i++){
+          html+=`<div style="aspect-ratio:1;border-radius:6px;background:${coloriMap[colori[i]]};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:16px">${tentativo[i]}</div>`;
+        }
+      } else {
+        for(let i=0;i<5;i++){ html+=`<div style="aspect-ratio:1;border-radius:6px;border:2px solid var(--border-light);background:var(--card-bg)"></div>`; }
+      }
+      html+=`</div>`;
+    }
+    html+=`</div>`;
+    if(guesser===me){
+      html+=`<div style="display:flex;gap:6px">
+        <input id="wordle-input-${p.id}" maxlength="5" style="flex:1;text-transform:uppercase;text-align:center;font-weight:800;letter-spacing:2px" placeholder="?????">
+        <button onclick="muoviWordle('${p.id}')" style="padding:10px 16px;border-radius:10px;border:none;background:#378ADD;color:#fff;font-weight:700;cursor:pointer">Prova</button>
+      </div>
+      <div style="font-size:10px;color:var(--text-sec);margin-top:6px;text-align:center">Tentativo ${p.tentativi.length+1} di ${WORDLE_MAX_TENTATIVI}</div>`;
+    } else {
+      html+=`<div style="text-align:center;font-size:13px;color:var(--text-sec)">In attesa che ${escH(mGuesser.name)} indovini...</div>`;
+    }
+  }
+  const orfana=!MEMBERS.some(m=>m.id===p.giocatore1);
+  if(p.giocatore1===me||orfana){
+    html+=`<div style="text-align:right;margin-top:8px"><button onclick="eliminaWordle('${p.id}')" style="background:none;border:none;color:#ff3b30;font-size:12px;font-weight:700;cursor:pointer;padding:4px 8px">🗑 Elimina partita</button></div>`;
+  }
+  html+=`</div>`;
+  return html;
+}
+
 let invitiPollingId=null;
 function avviaPollingInviti(){
   if(invitiPollingId) return;
   invitiPollingId=setInterval(async()=>{
     if(document.hidden) return;
-    await Promise.all([loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi()]);
+    await Promise.all([loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle()]);
     controllaNuoviInviti();
     if(view==='giochi') renderView(); else updateGiochiBadge();
   },45000);
 }
 
 async function init(){
-  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi()]);
+  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle()]);
   render(); loadWeather();
   aggiornaBottoneNotifiche();
-  const primaPartite=[...f4Partite.map(p=>p.id),...trisPartite.map(p=>p.id),...impPartite.map(p=>p.id),...morraPartite.map(p=>p.id),...icPartite.map(p=>p.id)];
+  const primaPartite=[...f4Partite.map(p=>p.id),...trisPartite.map(p=>p.id),...impPartite.map(p=>p.id),...morraPartite.map(p=>p.id),...icPartite.map(p=>p.id),...wordlePartite.map(p=>p.id)];
   invitiNotificati=Array.from(new Set([...invitiNotificati,...primaPartite]));
   localStorage.setItem('casaDecino_invitiNotificati',JSON.stringify(invitiNotificati));
   avviaPollingInviti();
@@ -3543,7 +3758,7 @@ async function init(){
   avviaPollingPresenza();
 }
 async function reloadAll(){
-  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi()]);
+  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle()]);
   render();
 }
 
