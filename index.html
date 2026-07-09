@@ -970,7 +970,9 @@ async function loadEvents(){
       members: (r.fields.Membro||'').split(',').map(s=>s.trim()).filter(Boolean),
       category: r.fields.Categoria||'altro',
       transport:{type:r.fields['Trasporto Tipo']||'autonomous',by:r.fields['Trasporto Da']||'',note:r.fields['Trasporto Note']||''},
-      notes: r.fields.Note||''
+      notes: r.fields.Note||'',
+      autore: r.fields.Autore||'',
+      _created: r.createdTime
     }));
   } catch(e){ events=[]; }
 }
@@ -983,8 +985,9 @@ async function saveEvt(){
     const ev=events.find(e=>e.id===editId);
     if(ev){Object.assign(ev,{...window.form,id:editId,_recId:ev._recId});await atPatch('Events',ev._recId,fields);}
   } else {
+    fields.Autore=f4Me;
     const res=await atPost('Events',fields);
-    events.push({...window.form,id:fields.ID,_recId:res.records?.[0]?.id});
+    events.push({...window.form,id:fields.ID,autore:f4Me,_recId:res.records?.[0]?.id});
   }
   closeModal(); renderView();
 }
@@ -999,7 +1002,7 @@ async function delEvt(id){
 async function loadRic(){
   try {
     const records=await atGetAll('Ricorrenze');
-    ricorrenze=records.map(r=>({_recId:r.id,id:r.fields.ID||r.id,title:r.fields.Titolo||'',date:r.fields.Data||'',type:r.fields.Tipo||'birthday',member:r.fields.Membro||''}));
+    ricorrenze=records.map(r=>({_recId:r.id,id:r.fields.ID||r.id,title:r.fields.Titolo||'',date:r.fields.Data||'',type:r.fields.Tipo||'birthday',member:r.fields.Membro||'',autore:r.fields.Autore||'',_created:r.createdTime}));
   } catch(e){ ricorrenze=[]; }
 }
 
@@ -1403,8 +1406,9 @@ async function saveRicorrenza(){
     const r=ricorrenze.find(r=>r.id===ricEditId);
     if(r){Object.assign(r,{...ricForm,id:ricEditId,_recId:r._recId});await atPatch('Ricorrenze',r._recId,fields);}
   } else {
+    fields.Autore=f4Me;
     const res=await atPost('Ricorrenze',fields);
-    ricorrenze.push({...ricForm,id:fields.ID,_recId:res.records?.[0]?.id});
+    ricorrenze.push({...ricForm,id:fields.ID,autore:f4Me,_recId:res.records?.[0]?.id});
   }
   closeModal(); renderView();
 }
@@ -1815,7 +1819,7 @@ let dispensaItems = [];
 async function loadDispensa(){
   try{
     const records = await atGetAll('Spesa');
-    dispensaItems = records.map(r=>({_recId:r.id, id:r.fields.ID||r.id, articolo:r.fields.Articolo||'', autore:r.fields.Autore||'antonio', data:r.fields.Data||'', comprato:r.fields.Comprato===true||r.fields.Comprato==='si'}));
+    dispensaItems = records.map(r=>({_recId:r.id, id:r.fields.ID||r.id, articolo:r.fields.Articolo||'', autore:r.fields.Autore||'antonio', data:r.fields.Data||'', comprato:r.fields.Comprato===true||r.fields.Comprato==='si', _created:r.createdTime}));
   } catch(e){ dispensaItems=[]; }
 }
 
@@ -2255,7 +2259,7 @@ let viaggioForm = { luogo:'', nota:'', data:REAL_TODAY, membri:['antonio'], lat:
 async function loadViaggi(){
   try{
     const records = await atGetAll('Viaggi');
-    viaggi = records.map(r=>({_recId:r.id, id:r.fields.ID||r.id, luogo:r.fields.Luogo||'', nota:r.fields.Nota||'', data:r.fields.Data||'', membri:(r.fields.Membri||'antonio').split(',').map(s=>s.trim()).filter(Boolean), lat:+r.fields.Lat||0, lng:+r.fields.Lng||0}));
+    viaggi = records.map(r=>({_recId:r.id, id:r.fields.ID||r.id, luogo:r.fields.Luogo||'', nota:r.fields.Nota||'', data:r.fields.Data||'', membri:(r.fields.Membri||'antonio').split(',').map(s=>s.trim()).filter(Boolean), lat:+r.fields.Lat||0, lng:+r.fields.Lng||0, autore:r.fields.Autore||'', _created:r.createdTime}));
   } catch(e){ viaggi=[]; }
 }
 
@@ -2440,9 +2444,9 @@ async function saveViaggio(){
   if(!viaggioForm.lat){alert('Premi 🔍 per trovare le coordinate del luogo');return;}
   viaggioForm.luogo=luogo;
   const id='v'+Date.now();
-  const fields={ID:id,Luogo:viaggioForm.luogo,Nota:viaggioForm.nota,Data:viaggioForm.data,Membri:viaggioForm.membri.join(','),Lat:viaggioForm.lat,Lng:viaggioForm.lng};
+  const fields={ID:id,Luogo:viaggioForm.luogo,Nota:viaggioForm.nota,Data:viaggioForm.data,Membri:viaggioForm.membri.join(','),Lat:viaggioForm.lat,Lng:viaggioForm.lng,Autore:f4Me};
   const res=await atPost('Viaggi',fields);
-  viaggi.push({...fields,id,membri:viaggioForm.membri,lat:viaggioForm.lat,lng:viaggioForm.lng,_recId:res.records?.[0]?.id});
+  viaggi.push({...fields,id,membri:viaggioForm.membri,lat:viaggioForm.lat,lng:viaggioForm.lng,autore:f4Me,_recId:res.records?.[0]?.id});
   closeModal(); renderView();
 }
 
@@ -2642,7 +2646,7 @@ async function loadSondaggi(){
       const votiRaw=(r.fields.Voti||'').split(',').map(s=>s.trim()).filter(Boolean);
       const voti={};
       votiRaw.forEach(v=>{const[k,val]=v.split(':');if(k&&val) voti[k.trim()]=+val;});
-      return {_recId:r.id,id:r.fields.ID||r.id,domanda:r.fields.Domanda||'',autore:r.fields.Autore||'antonio',opzioni:(r.fields.Opzioni||'').split('|').map(s=>s.trim()).filter(Boolean),voti,stato:r.fields.Stato||'aperto',data:r.fields.Data||''};
+      return {_recId:r.id,id:r.fields.ID||r.id,domanda:r.fields.Domanda||'',autore:r.fields.Autore||'antonio',opzioni:(r.fields.Opzioni||'').split('|').map(s=>s.trim()).filter(Boolean),voti,stato:r.fields.Stato||'aperto',data:r.fields.Data||'',_created:r.createdTime};
     });
   } catch(e){ sondaggi=[]; }
 }
@@ -3566,7 +3570,12 @@ const NOVITA_FONTI=[
   {lista:()=>film,autore:x=>x.consigliatoDa,icona:'🎬',testo:x=>`ha aggiunto "${x.titolo}"`,view:'film'},
   {lista:()=>jukebox,autore:x=>x.autore,icona:'🎵',testo:x=>`ha aggiunto "${x.titolo||'un brano'}" al jukebox`,view:'jukebox'},
   {lista:()=>fotoRicordi,autore:x=>x.autore,icona:'📷',testo:x=>`ha aggiunto una foto ricordo`,view:'ricordi'},
-  {lista:()=>segreteriaMsgs,autore:x=>x.autore,icona:'☎️',testo:x=>`ha lasciato un messaggio in segreteria`,view:'today'},
+  {lista:()=>segreteriaMsgs,autore:x=>x.autore,icona:'☎️',testo:x=>`ha lasciato un messaggio in segreteria`,view:'segreteria'},
+  {lista:()=>dispensaItems,autore:x=>x.autore,icona:'🛒',testo:x=>`ha aggiunto "${x.articolo}" alla lista della spesa`,view:'dispensa'},
+  {lista:()=>sondaggi,autore:x=>x.autore,icona:'🗳',testo:x=>`ha creato un sondaggio: "${x.domanda}"`,view:'sondaggi'},
+  {lista:()=>events,autore:x=>x.autore,icona:'📅',testo:x=>`ha aggiunto un impegno: "${x.title}"`,view:'week'},
+  {lista:()=>ricorrenze,autore:x=>x.autore,icona:'🎂',testo:x=>`ha aggiunto una ricorrenza: "${x.title}"`,view:'ricorrenze'},
+  {lista:()=>viaggi,autore:x=>x.autore,icona:'🌍',testo:x=>`ha aggiunto un viaggio a ${x.luogo}`,view:'viaggi'},
 ];
 
 function calcolaNovita(){
