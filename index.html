@@ -3320,6 +3320,11 @@ function mostraInvitoWhatsApp(giocoNome,avversarioId){
 /* ── PRESENZA ONLINE ── */
 let presenzaMembri={};
 const PRESENZA_TIMEOUT_MS=120000;
+const PRESENZA_INATTIVITA_MS=300000;
+let ultimaInterazione=Date.now();
+['touchstart','mousemove','mousedown','keydown','scroll','click'].forEach(ev=>{
+  document.addEventListener(ev,()=>{ ultimaInterazione=Date.now(); },{passive:true});
+});
 
 async function loadPresenza(){
   try{
@@ -3425,6 +3430,7 @@ function avviaPollingPresenza(){
   if(presenzaPollingId) return;
   presenzaPollingId=setInterval(()=>{
     if(document.hidden) return;
+    if(Date.now()-ultimaInterazione>PRESENZA_INATTIVITA_MS) return;
     loadPresenza().then(()=>{ inviaHeartbeat(); controllaSaluti(); });
   },45000);
 }
