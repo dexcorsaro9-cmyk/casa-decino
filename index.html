@@ -1296,7 +1296,7 @@ function gestisciPollingGiochi(){
   if(giochiPollingId){ clearInterval(giochiPollingId); giochiPollingId=null; }
   if(view==='giochi'){
     giochiPollingId=setInterval(async()=>{
-      if(document.hidden||view!=='giochi') return;
+      if(document.hidden||view!=='giochi'||giochiTab==='statistiche') return;
       const attivo=document.activeElement?.tagName;
       if(attivo==='INPUT'||attivo==='TEXTAREA'||attivo==='SELECT') return;
       await Promise.all([loadForza4(),loadTris(),loadImpiccato(),loadMorra()]);
@@ -1305,7 +1305,7 @@ function gestisciPollingGiochi(){
   }
 }
 
-function renderView(){ const el=document.getElementById('view'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else if(view==='sondaggi')el.innerHTML=sondaggiView(); else if(view==='giochi')el.innerHTML=giochiView(); else if(view==='segreteria'){el.innerHTML=segreteriaView();setTimeout(attivaSwipeSegreteria,50);} else if(view==='jukebox')el.innerHTML=jukeboxView(); else el.innerHTML=ricorrenzeView(); updateGiochiBadge(); }
+function renderView(){ const el=document.getElementById('view'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else if(view==='sondaggi')el.innerHTML=sondaggiView(); else if(view==='giochi'){el.innerHTML=giochiView();ripristinaScrollGiochiSubnav();} else if(view==='segreteria'){el.innerHTML=segreteriaView();setTimeout(attivaSwipeSegreteria,50);} else if(view==='jukebox')el.innerHTML=jukeboxView(); else el.innerHTML=ricorrenzeView(); updateGiochiBadge(); }
 
 function updateGiochiBadge(){
   const tab=document.getElementById('t-giochi'); if(!tab) return;
@@ -3289,6 +3289,12 @@ async function eliminaF4(partitaId){
 }
 
 let giochiTab='forza4';
+let giochiSubnavScroll=0;
+function ripristinaScrollGiochiSubnav(){
+  const nav=document.getElementById('giochi-subnav'); if(!nav) return;
+  nav.scrollLeft=giochiSubnavScroll;
+  nav.addEventListener('scroll',()=>{ giochiSubnavScroll=nav.scrollLeft; },{passive:true});
+}
 function setGiochiTab(t){ giochiTab=t; renderView(); }
 
 const GIOCHI_NOMI_STAT={forza4:{nome:'Forza 4',icona:'🔴'},tris:{nome:'Tris',icona:'❌'},impiccato:{nome:'Impiccato',icona:'🎯'},morra:{nome:'Morra Cinese',icona:'✂️'},indovinachi:{nome:'Indovina Chi',icona:'🕵️'},wordle:{nome:'Wordle',icona:'🟩'}};
@@ -3366,7 +3372,7 @@ function giochiView(){
         <div style="font-size:11px;font-weight:800;color:var(--text-sec);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Chi sei?</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">${memberBtns}</div>
       </div>
-      <div style="display:flex;gap:6px;margin-bottom:16px;background:var(--main-bg);padding:6px;border-radius:14px;overflow-x:auto;-webkit-overflow-scrolling:touch">
+      <div id="giochi-subnav" style="display:flex;gap:6px;margin-bottom:16px;background:var(--main-bg);padding:6px;border-radius:14px;overflow-x:auto;-webkit-overflow-scrolling:touch">
         <button onclick="setGiochiTab('forza4')" style="flex:0 0 auto;white-space:nowrap;padding:10px 14px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='forza4'?'#378ADD':'transparent'};color:${giochiTab==='forza4'?'#fff':'var(--text-sec)'}">🔴 Forza 4</button>
         <button onclick="setGiochiTab('tris')" style="flex:0 0 auto;white-space:nowrap;padding:10px 14px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='tris'?'#378ADD':'transparent'};color:${giochiTab==='tris'?'#fff':'var(--text-sec)'}">❌ Tris</button>
         <button onclick="setGiochiTab('impiccato')" style="flex:0 0 auto;white-space:nowrap;padding:10px 14px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='impiccato'?'#378ADD':'transparent'};color:${giochiTab==='impiccato'?'#fff':'var(--text-sec)'}">🎯 Impiccato</button>
