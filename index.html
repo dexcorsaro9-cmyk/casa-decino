@@ -888,6 +888,7 @@
         <button class="tab" id="t-sondaggi"   data-macro="liste"   onclick="switchView('sondaggi')">🗳️ Sondaggi</button>
         <button class="tab" id="t-giochi"     data-macro="svago"   onclick="switchView('giochi')">🎮 Giochi</button>
         <button class="tab" id="t-jukebox"    data-macro="svago"   onclick="switchView('jukebox')">🎵 Jukebox</button>
+        <button class="tab" id="t-record"     data-macro="svago"   onclick="switchView('record')">🏆 Record</button>
       </div>
     </div>
     <div class="content" id="view">
@@ -949,8 +950,8 @@ let events=[],ricorrenze=[];
 let view='today',filters=MEMBERS.map(m=>m.id);
 let viewHistory=[];
 
-const VIEW_MACRO={today:'home',week:'agenda',month:'agenda',trasporti:'agenda',ricorrenze:'agenda',bacheca:'liste',segreteria:'liste',dispensa:'liste',sondaggi:'liste',giochi:'svago',jukebox:'svago',film:'svago',challenge:'svago',viaggi:'ricordi',ricordi:'ricordi'};
-const MACRO_TABS={home:['today'],agenda:['week','month','trasporti','ricorrenze'],liste:['bacheca','segreteria','dispensa','sondaggi'],svago:['giochi','jukebox','film','challenge'],ricordi:['ricordi','viaggi']};
+const VIEW_MACRO={today:'home',week:'agenda',month:'agenda',trasporti:'agenda',ricorrenze:'agenda',bacheca:'liste',segreteria:'liste',dispensa:'liste',sondaggi:'liste',giochi:'svago',jukebox:'svago',film:'svago',challenge:'svago',record:'svago',viaggi:'ricordi',ricordi:'ricordi'};
+const MACRO_TABS={home:['today'],agenda:['week','month','trasporti','ricorrenze'],liste:['bacheca','segreteria','dispensa','sondaggi'],svago:['giochi','jukebox','film','challenge','record'],ricordi:['ricordi','viaggi']};
 let macroArea='home';
 
 function mostraSaluto(){
@@ -1220,7 +1221,7 @@ function fabClick(){
 
 function switchView(v,daHistory){
   if(!daHistory && v!==view) viewHistory.push(view);
-  view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge','t-bacheca','t-dispensa','t-ricordi','t-viaggi','t-film','t-sondaggi','t-giochi','t-segreteria','t-jukebox'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
+  view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge','t-bacheca','t-dispensa','t-ricordi','t-viaggi','t-film','t-sondaggi','t-giochi','t-segreteria','t-jukebox','t-record'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
   const tab=document.getElementById('t-'+v); if(tab){ tab.classList.add('active'); tab.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'}); }
   macroArea=VIEW_MACRO[v]||macroArea;
   aggiornaMacroUI();
@@ -1308,7 +1309,7 @@ function gestisciPollingGiochi(){
   }
 }
 
-function renderView(){ const el=document.getElementById('view'); el.classList.remove('view-animate'); void el.offsetWidth; el.classList.add('view-animate'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else if(view==='sondaggi')el.innerHTML=sondaggiView(); else if(view==='giochi'){el.innerHTML=giochiView();ripristinaScrollGiochiSubnav();} else if(view==='segreteria'){el.innerHTML=segreteriaView();setTimeout(attivaSwipeSegreteria,50);} else if(view==='jukebox')el.innerHTML=jukeboxView(); else el.innerHTML=ricorrenzeView(); updateGiochiBadge(); }
+function renderView(){ const el=document.getElementById('view'); el.classList.remove('view-animate'); void el.offsetWidth; el.classList.add('view-animate'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else if(view==='sondaggi')el.innerHTML=sondaggiView(); else if(view==='giochi'){el.innerHTML=giochiView();ripristinaScrollGiochiSubnav();} else if(view==='segreteria'){el.innerHTML=segreteriaView();setTimeout(attivaSwipeSegreteria,50);} else if(view==='jukebox')el.innerHTML=jukeboxView(); else if(view==='record')el.innerHTML=recordView(); else el.innerHTML=ricorrenzeView(); updateGiochiBadge(); }
 
 function updateGiochiBadge(){
   const tab=document.getElementById('t-giochi'); if(!tab) return;
@@ -3352,6 +3353,80 @@ function renderRankTableGiochi(ranking,suffix){
     const m=M(item.k); const pct=maxPts>0?Math.round((item.pts/maxPts)*100):0;
     h+=`<div class="rank-row"><span style="font-size:20px;width:28px;text-align:center">${medals[i]||`#${i+1}`}</span><div class="avatar" style="${ms(m)}">${getIcon(m.id)}</div><div style="flex:1"><div style="font-weight:700">${escH(m.name)}</div><div style="margin-top:5px;background:var(--main-bg);border-radius:20px;height:6px;overflow:hidden"><div style="background:${m.dot};height:100%;width:${pct}%;border-radius:20px"></div></div></div><span style="font-size:17px;font-weight:800">${item.pts}<span style="font-size:10px;font-weight:600"> ${suffix||''}</span></span></div>`;
   });
+  return h;
+}
+
+function calcolaRecord(lista,campo){
+  const c={};
+  lista.forEach(x=>{ const v=x[campo]; if(v) c[v]=(c[v]||0)+1; });
+  let vincitore=null,max=0;
+  Object.entries(c).forEach(([k,n])=>{ if(n>max){ max=n; vincitore=k; } });
+  return vincitore?{vincitore,conteggio:max}:null;
+}
+
+function calcolaRecordCasa(){
+  const cats=[];
+  const foto=calcolaRecord(fotoRicordi,'autore');
+  if(foto) cats.push({icona:'📸',titolo:'Il Paparazzo',sub:'foto caricate',...foto});
+  const dj=calcolaRecord(jukebox,'autore');
+  if(dj) cats.push({icona:'🎧',titolo:'Il DJ di Casa',sub:'brani aggiunti',...dj});
+  const spesa=calcolaRecord(dispensaItems,'autore');
+  if(spesa) cats.push({icona:'🛒',titolo:'Lo Squalo della Dispensa',sub:'articoli aggiunti',...spesa});
+  const seg=calcolaRecord(segreteriaMsgs,'autore');
+  if(seg) cats.push({icona:'🎙️',titolo:'Il Logorroico',sub:'messaggi vocali',...seg});
+  const trasportiList=events.filter(e=>e.transport?.type==='accompanied'&&e.transport?.by).map(e=>({autista:e.transport.by}));
+  const tassista=calcolaRecord(trasportiList,'autista');
+  if(tassista) cats.push({icona:'🚕',titolo:'Il Tassista Sfruttato',sub:'passaggi in auto',...tassista});
+  const schiaccia=calcolaRecord(vittorieGiochi,'vincitore');
+  if(schiaccia) cats.push({icona:'🕹️',titolo:'Lo Schiacciasassi',sub:'vittorie ai giochi',...schiaccia});
+  const opin=calcolaRecord(sondaggi,'autore');
+  if(opin) cats.push({icona:'❓',titolo:"L'Opinionista",sub:'sondaggi creati',...opin});
+  const pianif=calcolaRecord(events,'autore');
+  if(pianif) cats.push({icona:'📅',titolo:'Il Pianificatore',sub:'impegni aggiunti',...pianif});
+  const festaiolo=calcolaRecord(ricorrenze,'autore');
+  if(festaiolo) cats.push({icona:'🎂',titolo:'Il Festaiolo',sub:'ricorrenze aggiunte',...festaiolo});
+  const esploratore=calcolaRecord(viaggi,'autore');
+  if(esploratore) cats.push({icona:'🌍',titolo:"L'Esploratore",sub:'viaggi aggiunti',...esploratore});
+  const critico=calcolaRecord(film,'consigliatoDa');
+  if(critico) cats.push({icona:'🎬',titolo:'Il Critico Cinematografico',sub:'film consigliati',...critico});
+  const filosofo=calcolaRecord(bachecaNotes,'author');
+  if(filosofo) cats.push({icona:'📌',titolo:'Il Filosofo della Bacheca',sub:'post-it scritti',...filosofo});
+  const secchione=calcolaRecord(challengeLog.filter(l=>l.status==='approved'),'member');
+  if(secchione) cats.push({icona:'🌟',titolo:'Il Secchione',sub:'sfide completate',...secchione});
+  const amatoCount={};
+  fotoRicordi.forEach(f=>{ const n=Object.keys(f.reazioni||{}).length; if(n) amatoCount[f.autore]=(amatoCount[f.autore]||0)+n; });
+  let amatoV=null,amatoM=0; Object.entries(amatoCount).forEach(([k,n])=>{ if(n>amatoM){amatoM=n;amatoV=k;} });
+  if(amatoV) cats.push({icona:'❤️',titolo:'Il Più Amato',sub:'reazioni ricevute sulle foto',vincitore:amatoV,conteggio:amatoM});
+  const reagenteCount={};
+  fotoRicordi.forEach(f=>{ Object.keys(f.reazioni||{}).forEach(mid=>{ reagenteCount[mid]=(reagenteCount[mid]||0)+1; }); });
+  let reagV=null,reagM=0; Object.entries(reagenteCount).forEach(([k,n])=>{ if(n>reagM){reagM=n;reagV=k;} });
+  if(reagV) cats.push({icona:'😂',titolo:'Il Reagente Compulsivo',sub:'reazioni messe alle foto',vincitore:reagV,conteggio:reagM});
+  return cats;
+}
+
+function recordView(){
+  const cats=calcolaRecordCasa();
+  let h=`<div class="section-wrap"><div class="section-hdr"><span class="section-ttl">🏆 Hall of Fame di Casa Decino</span></div><div style="padding:0 16px 16px">`;
+  if(!cats.length){
+    h+=`<div class="empty-state"><span class="big">🏆</span><div style="font-size:15px;font-weight:700">Ancora nessun record</div><div style="font-size:13px;color:var(--text-sec);margin-top:6px">Iniziate a usare l'app per assegnare i primi titoli!</div></div>`;
+    h+=`</div></div>`;
+    return h;
+  }
+  h+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px">`;
+  cats.forEach(c=>{
+    const m=M(c.vincitore);
+    h+=`<div style="background:linear-gradient(160deg,#3a2a00,#1c1300);border-radius:16px;padding:18px 12px 14px;text-align:center;box-shadow:0 8px 20px rgba(0,0,0,0.3);border:1px solid rgba(255,213,74,0.3)">
+      <div style="font-size:30px;margin-bottom:6px">${c.icona}</div>
+      <div style="font-size:12px;font-weight:800;color:#ffd54a;margin-bottom:12px;min-height:28px">${escH(c.titolo)}</div>
+      <div style="position:relative;display:inline-block;margin-bottom:6px">
+        <div style="width:52px;height:52px;border-radius:50%;${ms(m)};display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto">${getIcon(m.id)}</div>
+        <span style="position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:18px">👑</span>
+      </div>
+      <div style="font-size:13px;font-weight:800;color:#fff">${escH(m.name)}</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:2px">${c.conteggio} ${escH(c.sub)}</div>
+    </div>`;
+  });
+  h+=`</div></div></div>`;
   return h;
 }
 
