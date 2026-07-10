@@ -762,11 +762,14 @@
     .postit-scuola:hover { box-shadow: 6px 8px 20px rgba(47,125,224,0.45), 0 0 0 3px rgba(191,220,253,0.5); }
     .postit-scuola .postit-pin { background: radial-gradient(circle at 38% 32%, #d6e8fe, #1a5cc0); }
 
-    .postit-badge {
-      position: absolute; top: -16px; left: 50%; transform: translateX(-50%);
-      font-size: 22px; filter: drop-shadow(0 3px 3px rgba(0,0,0,0.3));
-      animation: crownBob 2.4s ease-in-out infinite;
+    .postit-badge-corner {
+      position: absolute; font-size: 15px; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
+      animation: crownBob 2.4s ease-in-out infinite; pointer-events: none;
     }
+    .postit-badge-corner.tl { top: 4px; left: 4px; }
+    .postit-badge-corner.tr { top: 4px; right: 4px; animation-delay: 0.3s; }
+    .postit-badge-corner.bl { bottom: 4px; left: 4px; animation-delay: 0.6s; }
+    .postit-badge-corner.br { bottom: 4px; right: 4px; animation-delay: 0.9s; }
     @keyframes crownBob { 0%,100%{ transform: translateX(-50%) rotate(-6deg); } 50%{ transform: translateX(-50%) rotate(6deg); } }
     @media (hover: none) { .postit-del { opacity: 1; } }
     .postit-slide {
@@ -1440,7 +1443,7 @@ function challengeWidget(){
 }
 
 function bachecaWidget(){
-  const recent = [...bachecaNotes].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3);
+  const recent = [...bachecaNotes].sort((a,b)=>(b._created||'').localeCompare(a._created||'')).slice(0,3);
   let inner = '';
   if(!recent.length){
     inner = `<div class="bacheca-widget-empty">Nessun messaggio ancora 📝</div>`;
@@ -1453,8 +1456,9 @@ function bachecaWidget(){
       const m = M(n.author);
       const spec = POSTIT_SPECIALI[n.color];
       return `<div class="mini-postit${spec?' postit-'+n.color:''}" style="${spec?'':'background:'+col.hex+';'}transform:rotate(${rot}deg)">
-        ${spec?`<div class="postit-badge" style="font-size:16px;top:-12px">${spec.icon}</div>`:''}
+        ${spec?postitBadgeCorners(spec.icon,14):''}
         <div class="mini-postit-pin"></div>
+        ${n.fotoUrl?`<img src="${n.fotoUrl}" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:2px;margin-bottom:4px;box-shadow:0 2px 5px rgba(0,0,0,0.2)">`:''}
         <div class="mini-postit-text" style="font-family:${fnt.family};color:${txc.hex}">${escH(n.text)}</div>
         <div class="mini-postit-author" style="color:${m.dot}">${getIcon(m.id)} ${m.name}</div>
       </div>`;
@@ -1509,7 +1513,7 @@ function segreteriaWidget(){
       ${recent.map(msg=>{
         const m=M(msg.autore);
         return `<div class="mini-phone" id="seg-card-${msg.id}">
-          ${msg.urgente?'<span class="mini-phone-urgente">🚨</span>':''}
+          ${msg.urgente?'<span class="mini-phone-urgente">URGENTE</span>':''}
           <div class="mini-phone-icon">☎️</div>
           <button id="seg-playbtn-${msg.id}" class="mini-phone-playbtn" onclick="togglePlaySegreteria('${msg.id}')">▶️</button>
           <div id="seg-listeners-${msg.id}" style="display:flex;margin-top:4px">${typeof segAscoltatoriHtml==='function'?segAscoltatoriHtml(msg):''}</div>
@@ -2007,6 +2011,10 @@ const POSTIT_SPECIALI = {
   love:   { icon:'💖', gradient:'linear-gradient(135deg,#ffe4e6,#ff8a93)', border:'#ff4d5e' },
   scuola: { icon:'🎓', gradient:'linear-gradient(135deg,#e0eefe,#7fb4f7)', border:'#2f7de0' },
 };
+function postitBadgeCorners(icon,size){
+  const fs=size?`font-size:${size}px`:'';
+  return ['tl','tr','bl','br'].map(pos=>`<div class="postit-badge-corner ${pos}" style="${fs}">${icon}</div>`).join('');
+}
 const POSTIT_FONTS = [
   { id:'caveat',    label:'Corsivo',    family:"'Caveat', cursive"        },
   { id:'patrick',   label:'Handwriting',family:"'Patrick Hand', cursive"  },
@@ -2042,7 +2050,7 @@ function fmtDateShort(ds){
 
 function bachecaView(){
   const LIMIT = 9;
-  const sorted = [...bachecaNotes].sort((a,b)=>b.date.localeCompare(a.date));
+  const sorted = [...bachecaNotes].sort((a,b)=>(b._created||'').localeCompare(a._created||''));
   const toShow = bachecaShowAll ? sorted : sorted.slice(0, LIMIT);
   const hasMore = !bachecaShowAll && sorted.length > LIMIT;
   let cards = toShow.map(n=>{
@@ -2053,7 +2061,7 @@ function bachecaView(){
     const txc = POSTIT_TEXT_COLORS.find(c=>c.id===n.textColor)||POSTIT_TEXT_COLORS[0];
     const spec = POSTIT_SPECIALI[n.color];
     return `<div class="postit${spec?' postit-'+n.color:''}" style="transform:rotate(${rot}deg);${spec?'':'background:'+col.hex}">
-      ${spec?`<div class="postit-badge">${spec.icon}</div>`:''}
+      ${spec?postitBadgeCorners(spec.icon,18):''}
       <div class="postit-pin"></div>
       <button class="postit-del" onclick="event.stopPropagation();deleteBachecaNote('${n.id}')">✕</button>
       ${n.fotoUrl?`<img src="${n.fotoUrl}" class="postit-slide" onclick="event.stopPropagation();openFotoLightboxUrl('${n.fotoUrl}')">`:''}
@@ -2146,7 +2154,7 @@ async function saveBachecaNote(){
   const flds={ID:id,Testo:text,Autore:bachecaForm.author,Data:REAL_TODAY,Colore:bachecaForm.color,Font:bachecaForm.font,ColoreTesto:bachecaForm.textColor};
   if(fotoUrl) flds.FotoURL=fotoUrl;
   const res=await atPost('Bacheca',flds);
-  bachecaNotes.push({id,text,author:bachecaForm.author,date:REAL_TODAY,color:bachecaForm.color,font:bachecaForm.font,textColor:bachecaForm.textColor,fotoUrl,_recId:res.records?.[0]?.id});
+  bachecaNotes.push({id,text,author:bachecaForm.author,date:REAL_TODAY,color:bachecaForm.color,font:bachecaForm.font,textColor:bachecaForm.textColor,fotoUrl,_recId:res.records?.[0]?.id,_created:new Date().toISOString()});
   closeModal(); renderView();
   mostraToast('Salvato ✓');
 }
