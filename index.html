@@ -1338,6 +1338,22 @@ function mostraToast(msg){
   t._hideTimer=setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(20px)'; },1800);
 }
 
+function mostraErrore(msg){
+  vibra([15,60,15]);
+  let t=document.getElementById('app-toast');
+  if(!t){
+    t=document.createElement('div');
+    t.id='app-toast';
+    t.style.cssText='position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:#222;color:#fff;padding:10px 18px;border-radius:24px;font-size:13px;font-weight:700;z-index:2000;opacity:0;transition:opacity 0.25s ease,transform 0.25s ease;box-shadow:0 8px 20px rgba(0,0,0,0.3);pointer-events:none;max-width:88vw;text-align:center';
+    document.body.appendChild(t);
+  }
+  t.innerText='⚠️ '+msg;
+  t.style.background='#b91c1c';
+  clearTimeout(t._hideTimer);
+  requestAnimationFrame(()=>{ t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)'; });
+  t._hideTimer=setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(20px)'; setTimeout(()=>{ t.style.background='#222'; },300); },4000);
+}
+
 let giochiPollingId=null;
 function gestisciPollingGiochi(){
   if(giochiPollingId){ clearInterval(giochiPollingId); giochiPollingId=null; }
@@ -2148,7 +2164,7 @@ async function saveBachecaNote(){
       const data=await res.json();
       if(!data.secure_url) throw new Error('Upload fallito');
       fotoUrl=data.secure_url;
-    }catch(e){ alert('Errore nel caricamento della foto. Riprova.'); if(btn){ btn.disabled=false; btn.textContent='Aggiungi'; } return; }
+    }catch(e){ mostraErrore('Errore nel caricamento della foto. Riprova.'); if(btn){ btn.disabled=false; btn.textContent='Aggiungi'; } return; }
   }
   const id=uid();
   const flds={ID:id,Testo:text,Autore:bachecaForm.author,Data:REAL_TODAY,Colore:bachecaForm.color,Font:bachecaForm.font,ColoreTesto:bachecaForm.textColor};
@@ -2218,13 +2234,13 @@ async function saveDispensaItem(){
   const id='d'+Date.now();
   try{
     const res=await atPost('Spesa',{Articolo:art,Autore:dispensaForm.autore,Data:REAL_TODAY,Comprato:false});
-    if(res.error){alert('Errore Airtable: '+(res.error.message||JSON.stringify(res.error)));if(btn){btn.disabled=false;btn.textContent='Aggiungi';}return;}
-    if(!res.records?.[0]?.id){alert('Risposta inattesa:\n'+JSON.stringify(res).slice(0,300));if(btn){btn.disabled=false;btn.textContent='Aggiungi';}return;}
+    if(res.error){mostraErrore('Errore Airtable: '+(res.error.message||JSON.stringify(res.error)));if(btn){btn.disabled=false;btn.textContent='Aggiungi';}return;}
+    if(!res.records?.[0]?.id){mostraErrore('Risposta inattesa:\n'+JSON.stringify(res).slice(0,300));if(btn){btn.disabled=false;btn.textContent='Aggiungi';}return;}
     const recId=res.records[0].id;
     dispensaItems.push({id:recId,articolo:art,autore:dispensaForm.autore,data:REAL_TODAY,comprato:false,_recId:recId});
     closeModal(); renderView();
     mostraToast('Salvato ✓');
-  }catch(e){alert('Errore di rete: '+e.message);if(btn){btn.disabled=false;btn.textContent='Aggiungi';}}
+  }catch(e){mostraErrore('Errore di rete: '+e.message);if(btn){btn.disabled=false;btn.textContent='Aggiungi';}}
 }
 
 let _ricCountdownTimer=null;
@@ -2550,7 +2566,7 @@ async function uploadFoto(){
     fotoRicordi.push({id,url:data.secure_url,autore:fotoForm.autore,data:REAL_TODAY,didascalia:did,cornice:fotoForm.cornice,fontDidascalia:fotoForm.fontDidascalia,viaggioId:fotoForm.viaggioId||'',reazioni:{},_recId:rec.records?.[0]?.id});
     closeModal(); renderView();
     mostraToast('Salvato ✓');
-  } catch(e){ alert('Errore nel caricamento. Riprova.'); closeModal(); }
+  } catch(e){ mostraErrore('Errore nel caricamento. Riprova.'); closeModal(); }
 }
 
 async function deleteFotoRicordo(id){
@@ -2845,7 +2861,7 @@ async function cercaCoordinate(){
       const nome=data[0].display_name.split(',')[0];
       if(nome && nome.length<40) viaggioForm.luogo=nome;
     } else { alert('Posto non trovato. Prova con un nome più specifico.'); }
-  } catch(e){ alert('Errore nella ricerca. Controlla la connessione.'); }
+  } catch(e){ mostraErrore('Errore nella ricerca. Controlla la connessione.'); }
   renderViaggioModal();
 }
 
@@ -2966,12 +2982,12 @@ async function saveFilm(){
   const flds={ID:id,Titolo:filmForm.titolo,Tipo:filmForm.tipo,Anno:String(filmForm.anno||''),Locandina:filmForm.locandina,ImdbId:filmForm.imdbId,ConsigliatoDa:filmForm.consigliatoDa,Nota:filmForm.nota};
   try{
     const rec=await atPost('Film',flds);
-    if(rec.error){ alert('Errore Airtable: '+(rec.error.message||JSON.stringify(rec.error))); if(btn){btn.disabled=false;btn.textContent='Salva';} return; }
-    if(!rec.records?.[0]?.id){ alert('Risposta Airtable inattesa:\n'+JSON.stringify(rec).slice(0,300)); if(btn){btn.disabled=false;btn.textContent='Salva';} return; }
+    if(rec.error){ mostraErrore('Errore Airtable: '+(rec.error.message||JSON.stringify(rec.error))); if(btn){btn.disabled=false;btn.textContent='Salva';} return; }
+    if(!rec.records?.[0]?.id){ mostraErrore('Risposta Airtable inattesa:\n'+JSON.stringify(rec).slice(0,300)); if(btn){btn.disabled=false;btn.textContent='Salva';} return; }
     film.push({...filmForm,id,vistiDa:[],voti:{},_recId:rec.records[0].id});
     closeModal(); renderView();
     mostraToast('Salvato ✓');
-  } catch(e){ alert('Errore di rete: '+e.message+'\nRiprova tra qualche secondo.'); if(btn){btn.disabled=false;btn.textContent='Salva';} }
+  } catch(e){ mostraErrore('Errore di rete: '+e.message+'\nRiprova tra qualche secondo.'); if(btn){btn.disabled=false;btn.textContent='Salva';} }
 }
 
 async function toggleVistoFilm(filmId, memberId){
@@ -2983,7 +2999,7 @@ async function toggleVistoFilm(filmId, memberId){
   const votiStr=Object.entries(f.voti).map(([k,v])=>`${k}:${v}`).join(',');
   if(f._recId){
     try{ await atPatch('Film',f._recId,{VistiDa:f.vistiDa.join(','),Voti:votiStr}); }
-    catch(e){ alert('Errore salvataggio: '+e.message); }
+    catch(e){ mostraErrore('Errore salvataggio: '+e.message); }
   } else { alert('Film non ancora salvato su Airtable, ricarica la pagina e riprova'); return; }
   renderView();
 }
@@ -3211,9 +3227,9 @@ async function saveSondaggio(){
   let recId=null;
   try{
     const rec=await atPost('Sondaggi',flds);
-    if(rec.error){ alert('Errore Airtable: '+rec.error.message); return; }
+    if(rec.error){ mostraErrore('Errore Airtable: '+rec.error.message); return; }
     recId=rec.records?.[0]?.id;
-  } catch(e){ alert('Errore di rete: '+e.message); return; }
+  } catch(e){ mostraErrore('Errore di rete: '+e.message); return; }
   sondaggi.unshift({...flds,id,opzioni,voti:{},_recId:recId});
   // mostra popup con bottone WhatsApp
   const waText=encodeURIComponent(`🗳️ Nuovo sondaggio su Casa Decino!\n\n"${domanda}"\n\nOpzioni: ${opzioni.join(', ')}\n\nVota qui 👉 https://casa-decino.vercel.app/`);
@@ -3329,7 +3345,7 @@ async function muoviF4(partitaId,col){
   renderView();
   try{
     await atPatch('Forza4',p._recId,{Griglia:newG,TurnoDi:nextTurno,Stato:newStato,Vincitore:newVinc});
-  }catch(e){ alert('Errore salvataggio mossa: '+e.message); }
+  }catch(e){ mostraErrore('Errore salvataggio mossa: '+e.message); }
   if(winner) registraVittoriaGioco('forza4',newVinc);
 }
 
@@ -3656,12 +3672,12 @@ async function nuovaPartitaF4(avversarioId){
   const flds={ID:id,Griglia:'.'.repeat(42),TurnoDi:f4Me,Giocatore1:f4Me,Giocatore2:avversarioId,Stato:'aperta',Vincitore:'',Data:REAL_TODAY};
   try{
     const res=await atPost('Forza4',flds);
-    if(res.error){ alert('Errore Airtable: '+(res.error.message||JSON.stringify(res.error))); return; }
-    if(!res.records?.[0]?.id){ alert('Risposta inattesa:\n'+JSON.stringify(res).slice(0,400)); return; }
+    if(res.error){ mostraErrore('Errore Airtable: '+(res.error.message||JSON.stringify(res.error))); return; }
+    if(!res.records?.[0]?.id){ mostraErrore('Risposta inattesa:\n'+JSON.stringify(res).slice(0,400)); return; }
     const recId=res.records[0].id;
     f4Partite.unshift({_recId:recId,id:id,griglia:flds.Griglia,turnoDi:flds.TurnoDi,giocatore1:flds.Giocatore1,giocatore2:flds.Giocatore2,stato:flds.Stato,vincitore:'',data:flds.Data});
     mostraInvitoWhatsApp('Forza 4',avversarioId);
-  }catch(e){ alert('Errore: '+e.message); }
+  }catch(e){ mostraErrore('Errore: '+e.message); }
 }
 
 /* ── TRIS ── */
@@ -3706,7 +3722,7 @@ async function muoviTris(partitaId,idx){
   renderView();
   try{
     await atPatch('Tris',p._recId,{Griglia:newG,TurnoDi:nextTurno,Stato:newStato,Vincitore:newVinc});
-  }catch(e){ alert('Errore salvataggio mossa: '+e.message); }
+  }catch(e){ mostraErrore('Errore salvataggio mossa: '+e.message); }
   if(winner) registraVittoriaGioco('tris',newVinc);
 }
 
@@ -3771,12 +3787,12 @@ async function nuovaPartitaTris(avversarioId){
   const flds={ID:id,Griglia:'.'.repeat(9),TurnoDi:f4Me,Giocatore1:f4Me,Giocatore2:avversarioId,Stato:'aperta',Vincitore:'',Data:REAL_TODAY};
   try{
     const res=await atPost('Tris',flds);
-    if(res.error){ alert('Errore Airtable: '+(res.error.message||JSON.stringify(res.error))); return; }
-    if(!res.records?.[0]?.id){ alert('Risposta inattesa:\n'+JSON.stringify(res).slice(0,400)); return; }
+    if(res.error){ mostraErrore('Errore Airtable: '+(res.error.message||JSON.stringify(res.error))); return; }
+    if(!res.records?.[0]?.id){ mostraErrore('Risposta inattesa:\n'+JSON.stringify(res).slice(0,400)); return; }
     const recId=res.records[0].id;
     trisPartite.unshift({_recId:recId,id:id,griglia:flds.Griglia,turnoDi:flds.TurnoDi,giocatore1:flds.Giocatore1,giocatore2:flds.Giocatore2,stato:flds.Stato,vincitore:'',data:flds.Data});
     mostraInvitoWhatsApp('Tris',avversarioId);
-  }catch(e){ alert('Errore: '+e.message); }
+  }catch(e){ mostraErrore('Errore: '+e.message); }
 }
 
 /* ── IMPICCATO ── */
@@ -3827,7 +3843,7 @@ async function muoviImp(partitaId,lettera){
   renderView();
   try{
     await atPatch('Impiccato',p._recId,{Lettere:nuoveLettere,Errori:nuoviErrori,Stato:newStato,Vincitore:newVinc});
-  }catch(e){ alert('Errore salvataggio mossa: '+e.message); }
+  }catch(e){ mostraErrore('Errore salvataggio mossa: '+e.message); }
   if(newStato!=='aperta') registraVittoriaGioco('impiccato',newVinc);
 }
 
@@ -3902,12 +3918,12 @@ async function nuovaPartitaImp(){
   const flds={ID:id,Parola:parola,Lettere:'',Errori:0,Giocatore1:f4Me,Giocatore2:impForm.avversario,Stato:'aperta',Vincitore:'',Data:REAL_TODAY};
   try{
     const res=await atPost('Impiccato',flds);
-    if(res.error){ alert('Errore Airtable: '+(res.error.message||JSON.stringify(res.error))); return; }
-    if(!res.records?.[0]?.id){ alert('Risposta inattesa:\n'+JSON.stringify(res).slice(0,400)); return; }
+    if(res.error){ mostraErrore('Errore Airtable: '+(res.error.message||JSON.stringify(res.error))); return; }
+    if(!res.records?.[0]?.id){ mostraErrore('Risposta inattesa:\n'+JSON.stringify(res).slice(0,400)); return; }
     const recId=res.records[0].id;
     impPartite.unshift({_recId:recId,id,parola,lettere:'',errori:0,giocatore1:f4Me,giocatore2:impForm.avversario,stato:'aperta',vincitore:'',data:REAL_TODAY});
     mostraInvitoWhatsApp('Impiccato',impForm.avversario);
-  }catch(e){ alert('Errore: '+e.message); }
+  }catch(e){ mostraErrore('Errore: '+e.message); }
 }
 
 /* ── MORRA CINESE ── */
@@ -3960,7 +3976,7 @@ async function muoviMorra(partitaId,mossa){
   renderView();
   try{
     await atPatch('Morra',p._recId,{Mossa1:p.mossa1,Mossa2:p.mossa2,Punti1:p.punti1,Punti2:p.punti2,UltimoEsito:p.ultimoEsito,Stato:p.stato,Vincitore:p.vincitore});
-  }catch(e){ alert('Errore salvataggio mossa: '+e.message); }
+  }catch(e){ mostraErrore('Errore salvataggio mossa: '+e.message); }
   if(p.stato==='vinta') registraVittoriaGioco('morra',p.vincitore);
 }
 
@@ -4019,12 +4035,12 @@ async function nuovaPartitaMorra(avversarioId){
   const flds={ID:id,Giocatore1:f4Me,Giocatore2:avversarioId,Mossa1:'',Mossa2:'',Punti1:0,Punti2:0,Obiettivo:10,UltimoEsito:'',Stato:'aperta',Vincitore:'',Data:REAL_TODAY};
   try{
     const res=await atPost('Morra',flds);
-    if(res.error){ alert('Errore Airtable: '+(res.error.message||JSON.stringify(res.error))); return; }
-    if(!res.records?.[0]?.id){ alert('Risposta inattesa:\n'+JSON.stringify(res).slice(0,400)); return; }
+    if(res.error){ mostraErrore('Errore Airtable: '+(res.error.message||JSON.stringify(res.error))); return; }
+    if(!res.records?.[0]?.id){ mostraErrore('Risposta inattesa:\n'+JSON.stringify(res).slice(0,400)); return; }
     const recId=res.records[0].id;
     morraPartite.unshift({_recId:recId,id,giocatore1:f4Me,giocatore2:avversarioId,mossa1:'',mossa2:'',punti1:0,punti2:0,obiettivo:10,ultimoEsito:'',stato:'aperta',vincitore:'',data:REAL_TODAY});
     mostraInvitoWhatsApp('Morra Cinese',avversarioId);
-  }catch(e){ alert('Errore: '+e.message); }
+  }catch(e){ mostraErrore('Errore: '+e.message); }
 }
 
 function mostraInvitoWhatsApp(giocoNome,avversarioId){
@@ -4137,7 +4153,7 @@ async function salutaMembro(memberId){
       await atPost('Presenza',{Membro:memberId,UltimoAccesso:'',SalutoDa:f4Me,SalutoAt:nowIso});
     }
     alert('👋 Saluto inviato!');
-  }catch(e){ alert('Errore invio saluto: '+e.message); }
+  }catch(e){ mostraErrore('Errore invio saluto: '+e.message); }
 }
 
 let ultimoSalutoVisto=localStorage.getItem('casaDecino_ultimoSalutoVisto')||'';
@@ -4340,12 +4356,12 @@ async function creaPartitaIC(personaggioId){
   const flds={ID:id,Giocatore1:f4Me,Giocatore2:avversarioId,PersonaggioSegreto:personaggioId,Eliminati:'',PersonaggioSegreto2:'',Eliminati2:'',TurnoDi:'',Stato:'attesa_avversario',Vincitore:'',Data:REAL_TODAY};
   try{
     const res=await atPost('IndovinaChi',flds);
-    if(res.error){ alert('Errore Airtable: '+(res.error.message||JSON.stringify(res.error))); return; }
-    if(!res.records?.[0]?.id){ alert('Risposta inattesa:\n'+JSON.stringify(res).slice(0,400)); return; }
+    if(res.error){ mostraErrore('Errore Airtable: '+(res.error.message||JSON.stringify(res.error))); return; }
+    if(!res.records?.[0]?.id){ mostraErrore('Risposta inattesa:\n'+JSON.stringify(res).slice(0,400)); return; }
     const recId=res.records[0].id;
     icPartite.unshift({_recId:recId,id,giocatore1:f4Me,giocatore2:avversarioId,personaggioSegreto:personaggioId,eliminati:[],personaggioSegreto2:'',eliminati2:[],turnoDi:'',stato:'attesa_avversario',vincitore:'',data:REAL_TODAY});
     mostraInvitoWhatsApp('Indovina Chi',avversarioId);
-  }catch(e){ alert('Errore: '+e.message); }
+  }catch(e){ mostraErrore('Errore: '+e.message); }
 }
 
 let icPersonaggio2Scelto=null;
@@ -4365,7 +4381,7 @@ async function salvaPersonaggio2IC(personaggioId){
   closeModal();
   p.personaggioSegreto2=personaggioId; p.stato='aperta'; p.turnoDi=p.giocatore1;
   renderView();
-  try{ await atPatch('IndovinaChi',p._recId,{PersonaggioSegreto2:personaggioId,Stato:'aperta',TurnoDi:p.giocatore1}); }catch(e){ alert('Errore: '+e.message); }
+  try{ await atPatch('IndovinaChi',p._recId,{PersonaggioSegreto2:personaggioId,Stato:'aperta',TurnoDi:p.giocatore1}); }catch(e){ mostraErrore('Errore: '+e.message); }
 }
 
 function icAvversarioDi(p,membroId){ return membroId===p.giocatore1?p.giocatore2:p.giocatore1; }
@@ -4569,12 +4585,12 @@ async function nuovaPartitaWordle(){
   const flds={ID:id,Giocatore1:f4Me,Giocatore2:wordleForm.avversario,ParolaSegreta:parola,Tentativi:'',RoundAttuale:1,Punti1:0,Punti2:0,Stato:'aperta',Vincitore:'',Data:REAL_TODAY};
   try{
     const res=await atPost('Wordle',flds);
-    if(res.error){ alert('Errore Airtable: '+(res.error.message||JSON.stringify(res.error))); return; }
-    if(!res.records?.[0]?.id){ alert('Risposta inattesa:\n'+JSON.stringify(res).slice(0,400)); return; }
+    if(res.error){ mostraErrore('Errore Airtable: '+(res.error.message||JSON.stringify(res.error))); return; }
+    if(!res.records?.[0]?.id){ mostraErrore('Risposta inattesa:\n'+JSON.stringify(res).slice(0,400)); return; }
     const recId=res.records[0].id;
     wordlePartite.unshift({_recId:recId,id,giocatore1:f4Me,giocatore2:wordleForm.avversario,parolaSegreta:parola,tentativi:[],roundAttuale:1,punti1:0,punti2:0,stato:'aperta',vincitore:'',data:REAL_TODAY});
     mostraInvitoWhatsApp('Wordle (sfida a 10 parole)',wordleForm.avversario);
-  }catch(e){ alert('Errore: '+e.message); }
+  }catch(e){ mostraErrore('Errore: '+e.message); }
 }
 
 async function muoviWordle(partitaId){
@@ -4601,7 +4617,7 @@ async function muoviWordle(partitaId){
   renderView();
   try{
     await atPatch('Wordle',p._recId,{Tentativi:p.tentativi.join(','),ParolaSegreta:p.parolaSegreta,RoundAttuale:p.roundAttuale,Punti1:p.punti1,Punti2:p.punti2,Stato:p.stato,Vincitore:p.vincitore});
-  }catch(e){ alert('Errore salvataggio tentativo: '+e.message); }
+  }catch(e){ mostraErrore('Errore salvataggio tentativo: '+e.message); }
   if(p.stato==='conclusa'&&p.vincitore) registraVittoriaGioco('wordle',p.vincitore);
 }
 
@@ -4622,7 +4638,7 @@ async function submitProssimaParolaWordle(partitaId){
   closeModal();
   p.parolaSegreta=parola; p.stato='aperta';
   renderView();
-  try{ await atPatch('Wordle',p._recId,{ParolaSegreta:parola,Stato:'aperta'}); }catch(e){ alert('Errore: '+e.message); }
+  try{ await atPatch('Wordle',p._recId,{ParolaSegreta:parola,Stato:'aperta'}); }catch(e){ mostraErrore('Errore: '+e.message); }
 }
 
 function renderWordleBoard(p){
@@ -4824,7 +4840,7 @@ async function inviaSegreteria(){
     segreteriaMsgs.unshift({_recId:rec.records?.[0]?.id,id,autore:f4Me,audioUrl:data.secure_url,data:REAL_TODAY,ora,urgente:segUrgente,ascoltatoDa:[],destinatario:segDestinatario});
     closeModal(); renderView();
     mostraToast('Salvato ✓');
-  }catch(e){ alert('Errore nel caricamento. Riprova.'); closeModal(); }
+  }catch(e){ mostraErrore('Errore nel caricamento. Riprova.'); closeModal(); }
 }
 
 async function eliminaSegreteria(id){
@@ -5082,11 +5098,11 @@ async function saveCanzone(){
   const flds={ID:id,VideoID:videoId,Titolo:jukeboxForm.titolo.trim(),Autore:jukeboxForm.autore,Data:REAL_TODAY};
   try{
     const rec=await atPost('Jukebox',flds);
-    if(rec.error){ alert('Errore Airtable: '+(rec.error.message||JSON.stringify(rec.error))); if(btn){btn.disabled=false;btn.textContent='Aggiungi';} return; }
+    if(rec.error){ mostraErrore('Errore Airtable: '+(rec.error.message||JSON.stringify(rec.error))); if(btn){btn.disabled=false;btn.textContent='Aggiungi';} return; }
     jukebox.unshift({_recId:rec.records?.[0]?.id,id,videoId,titolo:flds.Titolo,autore:flds.Autore,data:flds.Data});
     closeModal(); renderView();
     mostraToast('Salvato ✓');
-  }catch(e){ alert('Errore di rete: '+e.message); if(btn){btn.disabled=false;btn.textContent='Aggiungi';} }
+  }catch(e){ mostraErrore('Errore di rete: '+e.message); if(btn){btn.disabled=false;btn.textContent='Aggiungi';} }
 }
 
 async function deleteCanzone(id){
@@ -5098,8 +5114,9 @@ async function deleteCanzone(id){
 }
 
 async function init(){
-  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle(),loadSegreteria(),loadJukebox(),loadVittorieGiochi()]);
+  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle(),loadSegreteria(),loadJukebox(),loadVittorieGiochi(),loadPresenza()]);
   render(); loadWeather();
+  renderOnlineWidget();
   aggiornaMacroUI();
   aggiornaFab();
   mostraSaluto();
@@ -5110,13 +5127,13 @@ async function init(){
   invitiNotificati=Array.from(new Set([...invitiNotificati,...primaPartite]));
   localStorage.setItem('casaDecino_invitiNotificati',JSON.stringify(invitiNotificati));
   avviaPollingInviti();
-  await loadPresenza();
   avviaPollingPresenza();
   controllaSegreteriaUrgenti();
 }
 async function reloadAll(){
-  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle(),loadSegreteria(),loadJukebox(),loadVittorieGiochi()]);
+  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle(),loadSegreteria(),loadJukebox(),loadVittorieGiochi(),loadPresenza()]);
   render();
+  renderOnlineWidget();
   controllaSegreteriaUrgenti();
   aggiornaBadgeNovita();
   controllaSorpassiHallOfFame();
@@ -5124,6 +5141,7 @@ async function reloadAll(){
 
 let _ultimoErroreMostrato=0;
 window.addEventListener('error',(e)=>{
+  if(!localStorage.getItem('casaDecino_debug')) return;
   const ora=Date.now();
   if(ora-_ultimoErroreMostrato<3000) return;
   _ultimoErroreMostrato=ora;
