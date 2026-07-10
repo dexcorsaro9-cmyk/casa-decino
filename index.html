@@ -59,8 +59,23 @@
       color: var(--text-main);
       font-size: 14px;
       line-height: 1.4;
-      padding-bottom: 90px;
+      padding-bottom: calc(78px + env(safe-area-inset-bottom));
     }
+
+    .bottom-nav {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 950;
+      display: flex; background: var(--card-bg); border-top: 1px solid var(--border-light);
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.08);
+      padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    }
+    .bn-btn {
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+      background: none; border: none; cursor: pointer; padding: 6px 2px; border-radius: 12px;
+      color: var(--text-sec); font-weight: 700; font-size: 10px;
+    }
+    .bn-btn .bn-icon { font-size: 20px; }
+    .bn-btn.active { color: #378ADD; }
+    .bn-btn.active .bn-icon { transform: translateY(-1px); }
 
     #app { position: relative; max-width: 800px; margin: 0 auto; padding: 0 12px; }
 
@@ -181,7 +196,7 @@
     /* Tasto Fluttuante WhatsApp Style */
     .fab-btn {
       position: fixed;
-      bottom: 24px;
+      bottom: calc(70px + env(safe-area-inset-bottom));
       right: 24px;
       z-index: 999;
       display: inline-flex;
@@ -818,22 +833,22 @@
           <div id="novita-panel" style="display:none;position:absolute;top:44px;right:0;width:280px;max-height:340px;overflow-y:auto;background:var(--card-bg,#fff);border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,0.25);z-index:1000;padding:8px"></div>
         </div>
       </div>
-      <div class="tabs">
-        <button class="tab active" id="t-today"    onclick="viewDate=REAL_TODAY; switchView('today')">📅 Oggi</button>
-        <button class="tab" id="t-week"       onclick="switchView('week')">🗓 Settimana</button>
-        <button class="tab" id="t-month"      onclick="switchView('month')">📆 Mese</button>
-        <button class="tab" id="t-trasporti"  onclick="switchView('trasporti')">🚗 Trasporti</button>
-        <button class="tab" id="t-ricorrenze" onclick="switchView('ricorrenze')">🎂 Ricorrenze</button>
-        <button class="tab" id="t-challenge"  onclick="switchView('challenge')">🏆 Challenge</button>
-        <button class="tab" id="t-bacheca"    onclick="switchView('bacheca')">📌 Bacheca</button>
-        <button class="tab" id="t-segreteria" onclick="switchView('segreteria')">📞 Segreteria</button>
-        <button class="tab" id="t-dispensa"   onclick="switchView('dispensa')">🛒 Dispensa</button>
-        <button class="tab" id="t-ricordi"    onclick="switchView('ricordi')">📸 Ricordi</button>
-        <button class="tab" id="t-viaggi"     onclick="switchView('viaggi')">🌍 Viaggi</button>
-        <button class="tab" id="t-film"       onclick="switchView('film')">🎬 Film</button>
-        <button class="tab" id="t-sondaggi"   onclick="switchView('sondaggi')">🗳️ Sondaggi</button>
-        <button class="tab" id="t-giochi"     onclick="switchView('giochi')">🎮 Giochi</button>
-        <button class="tab" id="t-jukebox"    onclick="switchView('jukebox')">🎵 Jukebox</button>
+      <div class="tabs" id="tabs-bar">
+        <button class="tab active" id="t-today"    data-macro="home"    onclick="viewDate=REAL_TODAY; switchView('today')">📅 Oggi</button>
+        <button class="tab" id="t-week"       data-macro="agenda"  onclick="switchView('week')">🗓 Settimana</button>
+        <button class="tab" id="t-month"      data-macro="agenda"  onclick="switchView('month')">📆 Mese</button>
+        <button class="tab" id="t-trasporti"  data-macro="agenda"  onclick="switchView('trasporti')">🚗 Trasporti</button>
+        <button class="tab" id="t-ricorrenze" data-macro="agenda"  onclick="switchView('ricorrenze')">🎂 Ricorrenze</button>
+        <button class="tab" id="t-challenge"  data-macro="ricordi" onclick="switchView('challenge')">🏆 Challenge</button>
+        <button class="tab" id="t-bacheca"    data-macro="liste"   onclick="switchView('bacheca')">📌 Bacheca</button>
+        <button class="tab" id="t-segreteria" data-macro="liste"   onclick="switchView('segreteria')">📞 Segreteria</button>
+        <button class="tab" id="t-dispensa"   data-macro="liste"   onclick="switchView('dispensa')">🛒 Dispensa</button>
+        <button class="tab" id="t-ricordi"    data-macro="ricordi" onclick="switchView('ricordi')">📸 Ricordi</button>
+        <button class="tab" id="t-viaggi"     data-macro="ricordi" onclick="switchView('viaggi')">🌍 Viaggi</button>
+        <button class="tab" id="t-film"       data-macro="svago"   onclick="switchView('film')">🎬 Film</button>
+        <button class="tab" id="t-sondaggi"   data-macro="liste"   onclick="switchView('sondaggi')">🗳️ Sondaggi</button>
+        <button class="tab" id="t-giochi"     data-macro="svago"   onclick="switchView('giochi')">🎮 Giochi</button>
+        <button class="tab" id="t-jukebox"    data-macro="svago"   onclick="switchView('jukebox')">🎵 Jukebox</button>
       </div>
     </div>
     <div class="content" id="view">
@@ -845,7 +860,15 @@
       </div>
     </div>
   </div>
-  
+
+  <div class="bottom-nav">
+    <button class="bn-btn active" id="bn-home"    onclick="switchMacro('home')"><span class="bn-icon">🏠</span>Home</button>
+    <button class="bn-btn" id="bn-agenda"  onclick="switchMacro('agenda')"><span class="bn-icon">🗓️</span>Agenda</button>
+    <button class="bn-btn" id="bn-liste"   onclick="switchMacro('liste')"><span class="bn-icon">🛒</span>Liste</button>
+    <button class="bn-btn" id="bn-svago"   onclick="switchMacro('svago')"><span class="bn-icon">🎮</span>Svago</button>
+    <button class="bn-btn" id="bn-ricordi" onclick="switchMacro('ricordi')"><span class="bn-icon">📸</span>Ricordi</button>
+  </div>
+
   <button class="fab-btn" id="fab-add" onclick="hdrAdd()">
     <span class="fab-icon">📝</span>
     <span id="fab-text">Aggiungi</span>
@@ -888,6 +911,24 @@ const MONTHS_IT=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio
 let events=[],ricorrenze=[];
 let view='today',filters=MEMBERS.map(m=>m.id);
 let viewHistory=[];
+
+const VIEW_MACRO={today:'home',week:'agenda',month:'agenda',trasporti:'agenda',ricorrenze:'agenda',bacheca:'liste',segreteria:'liste',dispensa:'liste',sondaggi:'liste',giochi:'svago',jukebox:'svago',film:'svago',viaggi:'ricordi',ricordi:'ricordi',challenge:'ricordi'};
+const MACRO_TABS={home:['today'],agenda:['week','month','trasporti','ricorrenze'],liste:['bacheca','segreteria','dispensa','sondaggi'],svago:['giochi','jukebox','film'],ricordi:['viaggi','ricordi','challenge']};
+let macroArea='home';
+let ultimaViewPerMacro={};
+
+function switchMacro(m){
+  const target=ultimaViewPerMacro[m]||MACRO_TABS[m][0];
+  switchView(target);
+}
+
+function aggiornaMacroUI(){
+  document.querySelectorAll('.bn-btn').forEach(b=>b.classList.remove('active'));
+  const bn=document.getElementById('bn-'+macroArea); if(bn) bn.classList.add('active');
+  document.querySelectorAll('#tabs-bar .tab').forEach(t=>{ t.style.display=(t.dataset.macro===macroArea)?'':'none'; });
+  const tabsBar=document.getElementById('tabs-bar');
+  if(tabsBar) tabsBar.style.display=(MACRO_TABS[macroArea].length<=1)?'none':'flex';
+}
 
 // Avatar personalizzati — salvati in localStorage
 let memberIcons = JSON.parse(localStorage.getItem('casaDecino_icons')||'{}');
@@ -1078,6 +1119,9 @@ function switchView(v,daHistory){
   if(!daHistory && v!==view) viewHistory.push(view);
   view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge','t-bacheca','t-dispensa','t-ricordi','t-viaggi','t-film','t-sondaggi','t-giochi','t-segreteria','t-jukebox'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
   const tab=document.getElementById('t-'+v); if(tab){ tab.classList.add('active'); tab.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'}); }
+  macroArea=VIEW_MACRO[v]||macroArea;
+  ultimaViewPerMacro[macroArea]=v;
+  aggiornaMacroUI();
   const fab=document.getElementById('fab-add'); const fabTxt=document.getElementById('fab-text');
   if(v==='challenge'){ fab.style.display='none'; }
   else if(v==='bacheca'){ fab.style.display='inline-flex'; fabTxt.innerText='Post-it'; document.getElementById('fab-add').querySelector('.fab-icon').innerText='📌'; }
@@ -4590,6 +4634,7 @@ async function deleteCanzone(id){
 async function init(){
   await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle(),loadSegreteria(),loadJukebox(),loadVittorieGiochi()]);
   render(); loadWeather();
+  aggiornaMacroUI();
   aggiornaBottoneNotifiche();
   aggiornaBadgeNovita();
   const primaPartite=[...f4Partite.map(p=>p.id),...trisPartite.map(p=>p.id),...impPartite.map(p=>p.id),...morraPartite.map(p=>p.id),...icPartite.map(p=>p.id),...wordlePartite.map(p=>p.id)];
