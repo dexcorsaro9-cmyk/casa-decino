@@ -3024,30 +3024,28 @@ async function deleteFilm(id){
 /* ── LAZIO MIA ── */
 let lazioNews = [];
 let lazioNewsLoaded = false;
-
-function estraiImmagineNews(item){
-  if(item.thumbnail) return item.thumbnail;
-  if(item.enclosure && item.enclosure.link) return item.enclosure.link;
-  const m=(item.description||item.content||'').match(/<img[^>]+src=["']([^"']+)["']/i);
-  return m ? m[1] : '';
-}
+let lazioNewsErrore = '';
 
 async function loadLazioNews(){
+  lazioNewsErrore='';
   try{
     const feedUrl='https://news.google.com/rss/search?q=Lazio%20calcio%20quando%3A2d&hl=it&gl=IT&ceid=IT:it';
-    const url='https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(feedUrl);
-    const res=await fetch(url);
-    const data=await res.json();
-    if(data.status==='ok'&&Array.isArray(data.items)){
-      lazioNews=data.items.slice(0,10).map(it=>({
-        titolo:it.title||'',
-        link:it.link||'',
-        data:it.pubDate||'',
-        img:estraiImmagineNews(it),
-        desc:(it.description||'').replace(/<[^>]+>/g,'').trim().slice(0,160)
-      }));
-    }
-  } catch(e){ /* nessuna news disponibile */ }
+    const proxyUrl='https://api.allorigins.win/raw?url='+encodeURIComponent(feedUrl);
+    const res=await fetch(proxyUrl);
+    if(!res.ok){ lazioNewsErrore=`Richiesta fallita (HTTP ${res.status})`; lazioNewsLoaded=true; return; }
+    const xmlText=await res.text();
+    const xml=new DOMParser().parseFromString(xmlText,'text/xml');
+    if(xml.querySelector('parsererror')){ lazioNewsErrore='Il feed ricevuto non è un XML valido'; lazioNewsLoaded=true; return; }
+    const items=Array.from(xml.querySelectorAll('item'));
+    lazioNews=items.slice(0,10).map(it=>({
+      titolo:it.querySelector('title')?.textContent||'',
+      link:it.querySelector('link')?.textContent||'',
+      data:it.querySelector('pubDate')?.textContent||'',
+      img:'',
+      desc:(it.querySelector('description')?.textContent||'').replace(/<[^>]+>/g,'').trim().slice(0,160)
+    }));
+    if(!lazioNews.length) lazioNewsErrore='Il feed non ha restituito notizie';
+  } catch(e){ lazioNewsErrore='Errore di rete: '+e.message; }
   lazioNewsLoaded=true;
 }
 
@@ -3060,7 +3058,12 @@ function fmtDataNews(ds){
 
 function lazioWidget(){
   if(!lazioNewsLoaded) return '';
-  if(!lazioNews.length) return '';
+  if(!lazioNews.length){
+    return `<div class="film-widget" style="background:linear-gradient(160deg,#0c2f5e 0%,#1c5aa6 60%,#2f7fc9 100%)">
+      <div class="film-widget-hdr"><span class="film-widget-title">🦅 Lazio Mia</span><button class="film-widget-link" onclick="switchView('lazio')">Dettagli →</button></div>
+      <div class="film-widget-empty">Notizie non disponibili al momento${lazioNewsErrore?' — '+escH(lazioNewsErrore):''}</div>
+    </div>`;
+  }
   const cards=lazioNews.slice(0,10).map((n,i)=>{
     const img=n.img
       ? `<img class="lazio-news-img" src="${escH(n.img)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`+
@@ -3080,10 +3083,11 @@ function lazioWidget(){
 
 function lazioView(){
   let h=`<div style="margin-bottom:14px"><div class="sec-lbl">🦅 LAZIO MIA</div></div>`;
+  h+=`<div style="text-align:right;margin-bottom:10px"><button onclick="loadLazioNews().then(()=>renderView())" style="background:var(--main-bg);border:1px solid var(--border-light);padding:6px 14px;border-radius:20px;color:#378ADD;font-weight:700;font-size:12px;cursor:pointer">🔄 Ricarica</button></div>`;
   if(!lazioNewsLoaded){
     h+=`<div class="empty-state"><span class="big">🦅</span><div style="font-size:16px;font-weight:700">Caricamento notizie…</div></div>`;
   } else if(!lazioNews.length){
-    h+=`<div class="empty-state"><span class="big">🦅</span><div style="font-size:16px;font-weight:700">Nessuna notizia disponibile al momento</div><div style="font-size:13px;margin-top:6px;color:var(--text-sec)">Riprova più tardi</div></div>`;
+    h+=`<div class="empty-state"><span class="big">🦅</span><div style="font-size:16px;font-weight:700">Nessuna notizia disponibile al momento</div><div style="font-size:13px;margin-top:6px;color:var(--text-sec)">${lazioNewsErrore?escH(lazioNewsErrore):'Riprova più tardi'}</div></div>`;
   } else {
     h+=lazioNews.map(n=>{
       const img=n.img
