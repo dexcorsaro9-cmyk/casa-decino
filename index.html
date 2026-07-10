@@ -630,15 +630,21 @@
       border-radius: 4px;
       box-shadow: 0 6px 10px rgba(0,0,0,0.35), inset 0 2px 3px rgba(255,255,255,0.15);
     }
+    .seg-swipe-wrap { position: relative; z-index: 2; margin-bottom: 18px; border-radius: 14px; overflow: hidden; }
+    .seg-swipe-del {
+      position: absolute; inset: 0; background: #ff3b30; border-radius: 14px;
+      display: flex; align-items: center; justify-content: flex-end; padding-right: 22px;
+      font-size: 20px; cursor: pointer;
+    }
     .seg-recorder {
-      position: relative; z-index: 2;
+      position: relative;
       background: linear-gradient(160deg,#e8dcc3,#d6c6a3 55%,#c3b088);
       border-radius: 14px;
       padding: 12px 12px 10px;
-      margin-bottom: 18px;
       box-shadow: 0 8px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.5);
       display: flex; align-items: center; gap: 10px;
       border: 2px solid #a8946c;
+      touch-action: pan-y;
     }
     .seg-phone-icon { font-size:26px; flex-shrink:0; transform-origin:top center; }
     .seg-recorder.seg-active .seg-phone-icon { animation: seg-ring 0.35s ease-in-out infinite; }
@@ -720,6 +726,12 @@
     }
     .postit:hover .postit-del { opacity: 1; }
     @media (hover: none) { .postit-del { opacity: 1; } }
+    .postit-slide {
+      display: block; width: 100%; aspect-ratio: 4/3; object-fit: cover;
+      border: 6px solid #fff; border-radius: 2px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+      margin-bottom: 8px; cursor: pointer;
+    }
     /* ── FOTO RICORDI (polaroid) ── */
     .ricordi-sfondo { background:linear-gradient(160deg,#f5efe6 0%,#ede3d6 100%); border-radius:var(--radius-lg); padding:28px 16px 24px; margin-bottom:8px; }
     .filo-wrapper { position:relative; padding:36px 0 16px; }
@@ -736,6 +748,7 @@
     .foto-img { width:100%; aspect-ratio:1; object-fit:cover; display:block; }
     .foto-caption { position:absolute; bottom:10px; left:8px; right:8px; font-size:15px; font-weight:600; color:#5a3e28; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .foto-author-dot { position:absolute; top:12px; right:12px; width:10px; height:10px; border-radius:50%; border:2px solid #fdf8f0; box-shadow:0 1px 3px rgba(0,0,0,0.3); }
+    .foto-reaz-badge { position:absolute; bottom:34px; left:8px; background:rgba(255,255,255,0.92); border-radius:12px; padding:2px 6px; font-size:11px; box-shadow:0 1px 4px rgba(0,0,0,0.25); }
     .foto-del { position:absolute; top:6px; left:6px; background:rgba(90,62,40,0.55); border:none; color:#fff; border-radius:50%; width:22px; height:22px; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.15s; }
     .foto-card:hover .foto-del { opacity:1; }
     @media (hover:none) { .foto-del { opacity:1; } }
@@ -803,6 +816,10 @@
     .foto-lb-ov { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(11,19,43,0.92); z-index:2000; display:flex; align-items:center; justify-content:center; padding:24px; animation:fadeIn 0.18s ease; }
     @keyframes fadeIn { from{opacity:0} to{opacity:1} }
     .foto-lb-card { position:relative; background:#fdf8f0; padding:10px 10px 56px; border-radius:2px; max-width:340px; width:100%; box-shadow:0 24px 64px rgba(0,0,0,0.55); }
+    .foto-lb-card.has-reaz { padding-bottom: 140px; }
+    .foto-lb-card.has-reaz .foto-lb-caption { bottom:104px; }
+    .foto-lb-card.has-reaz .foto-lb-meta { bottom:88px; }
+    .foto-lb-reaz { position:absolute; bottom:8px; left:10px; right:10px; }
     .foto-lb-img { width:100%; max-height:58vh; object-fit:contain; display:block; }
     .foto-lb-caption { position:absolute; bottom:16px; left:10px; right:10px; font-family:'Caveat',cursive; font-size:19px; font-weight:600; color:#5a3e28; text-align:center; }
     .foto-lb-meta { position:absolute; bottom:6px; left:10px; right:10px; font-size:10px; font-weight:700; color:#8B5E3C; text-align:center; opacity:0.65; }
@@ -1280,13 +1297,15 @@ function gestisciPollingGiochi(){
   if(view==='giochi'){
     giochiPollingId=setInterval(async()=>{
       if(document.hidden||view!=='giochi') return;
+      const attivo=document.activeElement?.tagName;
+      if(attivo==='INPUT'||attivo==='TEXTAREA'||attivo==='SELECT') return;
       await Promise.all([loadForza4(),loadTris(),loadImpiccato(),loadMorra()]);
-      renderView();
+      if(view==='giochi') renderView();
     },5000);
   }
 }
 
-function renderView(){ const el=document.getElementById('view'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else if(view==='sondaggi')el.innerHTML=sondaggiView(); else if(view==='giochi')el.innerHTML=giochiView(); else if(view==='segreteria')el.innerHTML=segreteriaView(); else if(view==='jukebox')el.innerHTML=jukeboxView(); else el.innerHTML=ricorrenzeView(); updateGiochiBadge(); }
+function renderView(){ const el=document.getElementById('view'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else if(view==='sondaggi')el.innerHTML=sondaggiView(); else if(view==='giochi')el.innerHTML=giochiView(); else if(view==='segreteria'){el.innerHTML=segreteriaView();setTimeout(attivaSwipeSegreteria,50);} else if(view==='jukebox')el.innerHTML=jukeboxView(); else el.innerHTML=ricorrenzeView(); updateGiochiBadge(); }
 
 function updateGiochiBadge(){
   const tab=document.getElementById('t-giochi'); if(!tab) return;
@@ -1925,7 +1944,7 @@ const POSTIT_TEXT_COLORS = [
 async function loadBacheca(){
   try{
     const records=await atGetAll('Bacheca');
-    bachecaNotes=records.map(r=>({_recId:r.id,id:r.fields.ID||r.id,text:r.fields.Testo||'',author:r.fields.Autore||'antonio',date:r.fields.Data||'',color:r.fields.Colore||'yellow',font:r.fields.Font||'caveat',textColor:r.fields.ColoreTesto||'dark',_created:r.createdTime}));
+    bachecaNotes=records.map(r=>({_recId:r.id,id:r.fields.ID||r.id,text:r.fields.Testo||'',author:r.fields.Autore||'antonio',date:r.fields.Data||'',color:r.fields.Colore||'yellow',font:r.fields.Font||'caveat',textColor:r.fields.ColoreTesto||'dark',fotoUrl:r.fields.FotoURL||'',_created:r.createdTime}));
   } catch(e){ bachecaNotes=[]; }
 }
 
@@ -1954,6 +1973,7 @@ function bachecaView(){
     return `<div class="postit" style="transform:rotate(${rot}deg);background:${col.hex}">
       <div class="postit-pin"></div>
       <button class="postit-del" onclick="event.stopPropagation();deleteBachecaNote('${n.id}')">✕</button>
+      ${n.fotoUrl?`<img src="${n.fotoUrl}" class="postit-slide" onclick="event.stopPropagation();openFotoLightboxUrl('${n.fotoUrl}')">`:''}
       <div class="postit-text" style="font-family:${fnt.family};color:${txc.hex}">${escH(n.text)}</div>
       <div class="postit-footer">
         <div class="postit-author"><span style="width:8px;height:8px;border-radius:50%;background:${m.dot};display:inline-block"></span>${m.name}</div>
@@ -1982,6 +2002,14 @@ function openBachecaModal(){
   showOv();
 }
 
+function bachecaAnteprimaFoto(){
+  const box=document.getElementById('bacheca-foto-anteprima'); if(!box) return;
+  const file=document.getElementById('bacheca-foto')?.files?.[0];
+  if(!file){ box.innerHTML=''; return; }
+  const url=URL.createObjectURL(file);
+  box.innerHTML=`<img src="${url}" style="width:80px;aspect-ratio:4/3;object-fit:cover;border:4px solid #fff;border-radius:2px;box-shadow:0 3px 8px rgba(0,0,0,0.25)">`;
+}
+
 function renderBachecaModal(){
   const mbrBtns = MEMBERS.map(m=>`<button class="tr-btn${bachecaForm.author===m.id?' sel':''}" onclick="bachecaForm.author='${m.id}';renderBachecaModal()" style="${bachecaForm.author===m.id?ms(m):''}">${getIcon(m.id)} ${m.name}</button>`).join('');
   const colorBtns = POSTIT_COLORS.map(c=>`<button onclick="bachecaForm.color='${c.id}';renderBachecaModal()" title="${c.label}" style="width:32px;height:32px;border-radius:50%;background:${c.hex};border:${bachecaForm.color===c.id?'3px solid #378ADD':'2px solid rgba(0,0,0,0.15)'};cursor:pointer;transition:transform 0.1s;${bachecaForm.color===c.id?'transform:scale(1.2)':''}"></button>`).join('');
@@ -1998,6 +2026,10 @@ function renderBachecaModal(){
     <div class="fgrp"><label class="flbl">Colore sfondo</label><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">${colorBtns}</div></div>
     <div class="fgrp"><label class="flbl">Colore testo</label><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">${textColorBtns}</div></div>
     <div class="fgrp"><label class="flbl">Font</label><div class="tr-opts">${fontBtns}</div></div>
+    <div class="fgrp"><label class="flbl">Foto (opzionale)</label>
+      <input type="file" id="bacheca-foto" accept="image/*" onchange="bachecaAnteprimaFoto()" style="width:100%;padding:10px;border:1px solid var(--border-light);border-radius:10px;background:var(--main-bg)">
+      <div id="bacheca-foto-anteprima" style="margin-top:8px"></div>
+    </div>
     <div class="fgrp"><label class="flbl">Firma</label><div class="tr-opts">${mbrBtns}</div></div>
     <div class="modal-actions"><span></span><div class="btn-row"><button class="btn-cancel" onclick="closeModal()">Annulla</button><button class="btn-save" onclick="saveBachecaNote()">Aggiungi</button></div></div>
   `;
@@ -2006,9 +2038,27 @@ function renderBachecaModal(){
 async function saveBachecaNote(){
   const text=document.getElementById('bacheca-text')?.value.trim()||bachecaForm.text.trim();
   if(!text){ alert('Scrivi un messaggio'); return; }
+  const fileInput=document.getElementById('bacheca-foto');
+  const file=fileInput?.files?.[0];
+  const btn=document.querySelector('#modal-box .btn-save');
+  let fotoUrl='';
+  if(file){
+    if(btn){ btn.disabled=true; btn.textContent='Caricamento foto…'; }
+    try{
+      const formData=new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', CL_PRESET);
+      const res=await fetch(`https://api.cloudinary.com/v1_1/${CL_CLOUD}/image/upload`,{method:'POST',body:formData});
+      const data=await res.json();
+      if(!data.secure_url) throw new Error('Upload fallito');
+      fotoUrl=data.secure_url;
+    }catch(e){ alert('Errore nel caricamento della foto. Riprova.'); if(btn){ btn.disabled=false; btn.textContent='Aggiungi'; } return; }
+  }
   const id=uid();
-  const res=await atPost('Bacheca',{ID:id,Testo:text,Autore:bachecaForm.author,Data:REAL_TODAY,Colore:bachecaForm.color,Font:bachecaForm.font,ColoreTesto:bachecaForm.textColor});
-  bachecaNotes.push({id,text,author:bachecaForm.author,date:REAL_TODAY,color:bachecaForm.color,font:bachecaForm.font,textColor:bachecaForm.textColor,_recId:res.records?.[0]?.id});
+  const flds={ID:id,Testo:text,Autore:bachecaForm.author,Data:REAL_TODAY,Colore:bachecaForm.color,Font:bachecaForm.font,ColoreTesto:bachecaForm.textColor};
+  if(fotoUrl) flds.FotoURL=fotoUrl;
+  const res=await atPost('Bacheca',flds);
+  bachecaNotes.push({id,text,author:bachecaForm.author,date:REAL_TODAY,color:bachecaForm.color,font:bachecaForm.font,textColor:bachecaForm.textColor,fotoUrl,_recId:res.records?.[0]?.id});
   closeModal(); renderView();
   mostraToast('Salvato ✓');
 }
@@ -2303,7 +2353,14 @@ function fotoFont(id){ return FOTO_FONTS.find(f=>f.id===id)||FOTO_FONTS[0]; }
 async function loadFotoRicordi(){
   try{
     const records = await atGetAll('FotoRicordi');
-    fotoRicordi = records.map(r=>({_recId:r.id, id:r.fields.ID||r.id, url:r.fields.URL||'', autore:r.fields.Autore||'antonio', data:r.fields.Data||'', didascalia:r.fields.Didascalia||'', cornice:r.fields.Cornice||'cream', fontDidascalia:r.fields.FontDidascalia||'caveat', viaggioId:r.fields.ViaggioID||'', _created:r.createdTime}));
+    fotoRicordi = records.map(r=>{
+      const reazioni={};
+      (r.fields.Reazioni||'').split(',').forEach(pair=>{
+        const [mid,emoji]=pair.split(':');
+        if(mid&&emoji) reazioni[mid]=emoji;
+      });
+      return {_recId:r.id, id:r.fields.ID||r.id, url:r.fields.URL||'', autore:r.fields.Autore||'antonio', data:r.fields.Data||'', didascalia:r.fields.Didascalia||'', cornice:r.fields.Cornice||'cream', fontDidascalia:r.fields.FontDidascalia||'caveat', viaggioId:r.fields.ViaggioID||'', reazioni, _created:r.createdTime};
+    });
   } catch(e){ fotoRicordi=[]; }
 }
 
@@ -2319,11 +2376,14 @@ function ricordiView(){
     const rot=photoRotation(f.id);
     const cor=fotoCornice(f.cornice);
     const fnt=fotoFont(f.fontDidascalia);
+    const reazTop=Object.values(f.reazioni||{});
+    const reazBadge=reazTop.length?`<div class="foto-reaz-badge">${[...new Set(reazTop)].slice(0,3).join('')}${reazTop.length>3?` ${reazTop.length}`:''}</div>`:'';
     return `<div class="foto-card" style="transform:rotate(${rot}deg)" onclick="openFotoLightbox('${f.id}')">
       <div class="molletta"><div class="molletta-spring"></div></div>
       <div class="foto-inner" style="background:${cor.hex}">
         <img class="foto-img" src="${escH(f.url)}" loading="lazy" onerror="this.style.background='#eee'">
         <div class="foto-author-dot" style="background:${m.dot}"></div>
+        ${reazBadge}
         <button class="foto-del" onclick="event.stopPropagation();deleteFotoRicordo('${f.id}')">✕</button>
         <div class="foto-caption" style="font-family:${fnt.family}">${escH(f.didascalia||m.name)}</div>
       </div>
@@ -2381,7 +2441,7 @@ async function uploadFoto(){
     const flds={ID:id,URL:data.secure_url,Autore:fotoForm.autore,Data:REAL_TODAY,Didascalia:did,Cornice:fotoForm.cornice,FontDidascalia:fotoForm.fontDidascalia};
     if(fotoForm.viaggioId) flds.ViaggioID=fotoForm.viaggioId;
     const rec=await atPost('FotoRicordi',flds);
-    fotoRicordi.push({id,url:data.secure_url,autore:fotoForm.autore,data:REAL_TODAY,didascalia:did,cornice:fotoForm.cornice,fontDidascalia:fotoForm.fontDidascalia,viaggioId:fotoForm.viaggioId||'',_recId:rec.records?.[0]?.id});
+    fotoRicordi.push({id,url:data.secure_url,autore:fotoForm.autore,data:REAL_TODAY,didascalia:did,cornice:fotoForm.cornice,fontDidascalia:fotoForm.fontDidascalia,viaggioId:fotoForm.viaggioId||'',reazioni:{},_recId:rec.records?.[0]?.id});
     closeModal(); renderView();
     mostraToast('Salvato ✓');
   } catch(e){ alert('Errore nel caricamento. Riprova.'); closeModal(); }
@@ -2395,6 +2455,29 @@ async function deleteFotoRicordo(id){
   renderView();
 }
 
+const FOTO_EMOJI_REAZIONI=['❤️','😂','😮','😢','👍','🎉'];
+
+function renderFotoReazioni(f){
+  const mia=f.reazioni?.[f4Me];
+  const conteggi={};
+  Object.values(f.reazioni||{}).forEach(e=>{ conteggi[e]=(conteggi[e]||0)+1; });
+  const riepilogo=Object.keys(conteggi).length?`<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">${Object.entries(conteggi).map(([e,n])=>`<span style="background:rgba(0,0,0,0.06);border-radius:12px;padding:2px 8px;font-size:12px">${e} ${n}</span>`).join('')}</div>`:'';
+  return `<div style="display:flex;gap:6px;justify-content:center;margin-top:10px">
+      ${FOTO_EMOJI_REAZIONI.map(e=>`<button onclick="event.stopPropagation();toggleReazioneFoto('${f.id}','${e}')" style="background:${mia===e?'#378ADD':'rgba(0,0,0,0.06)'};border:none;border-radius:50%;width:34px;height:34px;font-size:16px;cursor:pointer;transition:transform 0.1s">${e}</button>`).join('')}
+    </div>${riepilogo}`;
+}
+
+async function toggleReazioneFoto(id,emoji){
+  const f=fotoRicordi.find(f=>f.id===id); if(!f) return;
+  if(!f.reazioni) f.reazioni={};
+  if(f.reazioni[f4Me]===emoji) delete f.reazioni[f4Me];
+  else f.reazioni[f4Me]=emoji;
+  const box=document.getElementById(`foto-lb-reaz-${id}`);
+  if(box) box.innerHTML=renderFotoReazioni(f);
+  const serial=Object.entries(f.reazioni).map(([mid,e])=>`${mid}:${e}`).join(',');
+  try{ if(f._recId) await atPatch('FotoRicordi',f._recId,{Reazioni:serial}); }catch(e){}
+}
+
 function openFotoLightbox(id){
   const f=fotoRicordi.find(f=>f.id===id); if(!f) return;
   const m=M(f.autore);
@@ -2403,11 +2486,23 @@ function openFotoLightbox(id){
   const lb=document.createElement('div');
   lb.className='foto-lb-ov';
   lb.onclick=(e)=>{ if(e.target===lb) lb.remove(); };
-  lb.innerHTML=`<div class="foto-lb-card" style="background:${cor.hex}">
+  lb.innerHTML=`<div class="foto-lb-card has-reaz" style="background:${cor.hex}">
     <button class="foto-lb-close" onclick="this.closest('.foto-lb-ov').remove()">✕</button>
     <img class="foto-lb-img" src="${escH(f.url)}" onerror="this.style.background='#eee'">
     <div class="foto-lb-caption" style="font-family:${fnt.family}">${escH(f.didascalia||m.name)}</div>
     <div class="foto-lb-meta"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${m.dot};margin-right:4px;vertical-align:middle"></span>${m.name} · ${fmtDateShort(f.data)}</div>
+    <div id="foto-lb-reaz-${f.id}" class="foto-lb-reaz">${renderFotoReazioni(f)}</div>
+  </div>`;
+  document.body.appendChild(lb);
+}
+
+function openFotoLightboxUrl(url){
+  const lb=document.createElement('div');
+  lb.className='foto-lb-ov';
+  lb.onclick=(e)=>{ if(e.target===lb) lb.remove(); };
+  lb.innerHTML=`<div class="foto-lb-card" style="background:#fff;padding-bottom:10px">
+    <button class="foto-lb-close" onclick="this.closest('.foto-lb-ov').remove()">✕</button>
+    <img class="foto-lb-img" src="${escH(url)}" onerror="this.style.background='#eee'">
   </div>`;
   document.body.appendChild(lb);
 }
@@ -3989,16 +4084,6 @@ const IC_ROSTER=[
   {id:'c17',seed:'Beatrice',nome:'Personaggio 17',occhiali:false,cappello:false,barba:false,capelli:'nero'},
   {id:'c18',seed:'Gabriele',nome:'Personaggio 18',occhiali:false,cappello:false,barba:true,capelli:'castano'}
 ];
-const IC_DOMANDE=[
-  {label:'Ha gli occhiali?',test:c=>c.occhiali},
-  {label:'Ha un cappello?',test:c=>c.cappello},
-  {label:'Ha la barba?',test:c=>c.barba},
-  {label:'Ha i capelli castani?',test:c=>c.capelli==='castano'},
-  {label:'Ha i capelli neri?',test:c=>c.capelli==='nero'},
-  {label:'Ha i capelli biondi?',test:c=>c.capelli==='biondo'},
-  {label:'Ha i capelli rossi?',test:c=>c.capelli==='rosso'},
-  {label:'Ha i capelli grigi?',test:c=>c.capelli==='grigio'}
-];
 function icUrl(seed){ return `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(seed)}`; }
 function icChar(id){ return IC_ROSTER.find(c=>c.id===id); }
 
@@ -4016,6 +4101,10 @@ async function loadIndovinaChi(){
     turnoDi:r.fields.TurnoDi||'',
     stato:r.fields.Stato||'attesa_avversario',
     vincitore:r.fields.Vincitore||'',
+    domandaPendente:r.fields.DomandaPendente||'',
+    chiChiede:r.fields.ChiChiede||'',
+    ultimaDomanda:r.fields.UltimaDomanda||'',
+    ultimaRisposta:r.fields.UltimaRisposta||'',
     data:r.fields.Data||''
   }));
 }
@@ -4095,16 +4184,22 @@ async function toggleEliminaIC(partitaId,charId){
   try{ await atPatch('IndovinaChi',p._recId,{[fieldName]:p[campo].join(',')}); }catch(e){}
 }
 
-async function faiDomandaIC(partitaId,domandaIdx){
+async function inviaDomandaIC(partitaId){
   const p=icPartite.find(x=>x.id===partitaId); if(!p||p.stato!=='aperta'||p.turnoDi!==f4Me) return;
-  const secreto=icChar(icSegretoDi(p,f4Me)); if(!secreto) return;
-  const d=IC_DOMANDE[domandaIdx];
-  const risposta=d.test(secreto)?'Sì ✅':'No ❌';
-  alert(`${d.label}\n\n${risposta}`);
-  const prossimoTurno=icAvversarioDi(p,f4Me);
-  p.turnoDi=prossimoTurno;
+  const input=document.getElementById(`ic-domanda-${p.id}`);
+  const testo=input?.value.trim(); if(!testo){ alert('Scrivi una domanda'); return; }
+  p.stato='attesa_risposta'; p.domandaPendente=testo; p.chiChiede=f4Me;
   renderView();
-  try{ await atPatch('IndovinaChi',p._recId,{TurnoDi:prossimoTurno}); }catch(e){}
+  try{ await atPatch('IndovinaChi',p._recId,{Stato:'attesa_risposta',DomandaPendente:testo,ChiChiede:f4Me}); }catch(e){}
+}
+
+async function rispondiDomandaIC(partitaId,risposta){
+  const p=icPartite.find(x=>x.id===partitaId); if(!p||p.stato!=='attesa_risposta') return;
+  if(f4Me!==icAvversarioDi(p,p.chiChiede)) return;
+  const prossimoTurno=f4Me;
+  p.stato='aperta'; p.ultimaDomanda=p.domandaPendente; p.ultimaRisposta=risposta; p.domandaPendente=''; p.turnoDi=prossimoTurno;
+  renderView();
+  try{ await atPatch('IndovinaChi',p._recId,{Stato:'aperta',UltimaDomanda:p.ultimaDomanda,UltimaRisposta:risposta,DomandaPendente:'',TurnoDi:prossimoTurno}); }catch(e){}
 }
 
 async function tentaRispostaIC(partitaId,charId){
@@ -4151,9 +4246,10 @@ function renderICBoard(p){
     html+=`</div>`;
     return html;
   }
-  if(p.stato==='aperta'){
+  if(p.stato==='aperta'||p.stato==='attesa_risposta'){
     const nomeTurno=(MEMBERS.find(m=>m.id===p.turnoDi)||{name:p.turnoDi}).name;
-    html+=`<div style="text-align:center;font-size:10px;font-weight:800;color:#378ADD;margin-bottom:8px">${p.turnoDi===me?'🎯 Tocca a te!':`In attesa di ${escH(nomeTurno)}...`}</div>`;
+    if(p.stato==='aperta') html+=`<div style="text-align:center;font-size:10px;font-weight:800;color:#378ADD;margin-bottom:8px">${p.turnoDi===me?'🎯 Tocca a te!':`In attesa di ${escH(nomeTurno)}...`}</div>`;
+    if(p.ultimaDomanda) html+=`<div style="text-align:center;font-size:11px;color:var(--text-sec);margin-bottom:8px;font-style:italic">❓ "${escH(p.ultimaDomanda)}" → ${p.ultimaRisposta==='si'?'Sì ✅':'No ❌'}</div>`;
   }
   if(p.stato==='vinta'){
     const s1=icChar(p.personaggioSegreto), s2=icChar(p.personaggioSegreto2);
@@ -4165,13 +4261,25 @@ function renderICBoard(p){
       </div>
       <div style="font-size:15px;font-weight:800;color:#378ADD">🏆 Ha vinto ${escH((MEMBERS.find(m=>m.id===p.vincitore)||{name:p.vincitore}).name)}!</div>
     </div>`;
+  } else if(p.stato==='attesa_risposta'){
+    const chiRisponde=icAvversarioDi(p,p.chiChiede);
+    if(me===chiRisponde){
+      html+=`<div style="text-align:center;padding:14px 0">
+        <div style="font-size:14px;font-weight:700;margin-bottom:12px">❓ "${escH(p.domandaPendente)}"</div>
+        <div style="display:flex;gap:10px;justify-content:center">
+          <button onclick="rispondiDomandaIC('${p.id}','si')" style="padding:10px 22px;border-radius:14px;border:none;background:#34C759;color:#fff;font-weight:800;font-size:13px;cursor:pointer">Sì ✅</button>
+          <button onclick="rispondiDomandaIC('${p.id}','no')" style="padding:10px 22px;border-radius:14px;border:none;background:#ff3b30;color:#fff;font-weight:800;font-size:13px;cursor:pointer">No ❌</button>
+        </div>
+      </div>`;
+    } else if(p.giocatore1===me||p.giocatore2===me){
+      html+=`<div style="text-align:center;padding:14px 0;font-size:13px;color:var(--text-sec)">Hai chiesto: <b>"${escH(p.domandaPendente)}"</b><br>In attesa della risposta...</div>`;
+    }
   } else if(p.giocatore1===me||p.giocatore2===me){
     const eTurnoMio=p.turnoDi===me;
-    const domandeOpts=IC_DOMANDE.map((d,i)=>`<option value="${i}">${d.label}</option>`).join('');
     const eliminatiMiei=icEliminatiDi(p,me);
     html+=`<div style="display:flex;gap:6px;margin-bottom:10px">
-      <select id="ic-domanda-${p.id}" ${eTurnoMio?'':'disabled'} style="flex:1;font-size:12px;padding:8px">${domandeOpts}</select>
-      <button ${eTurnoMio?'':'disabled'} onclick="faiDomandaIC('${p.id}',document.getElementById('ic-domanda-${p.id}').value)" style="padding:8px 12px;border-radius:10px;border:none;background:${eTurnoMio?'#378ADD':'#9ca3af'};color:#fff;font-weight:700;font-size:12px;cursor:${eTurnoMio?'pointer':'default'}">Chiedi</button>
+      <input type="text" id="ic-domanda-${p.id}" ${eTurnoMio?'':'disabled'} placeholder="Scrivi una domanda…" style="flex:1;font-size:12px;padding:8px;border-radius:8px;border:1px solid var(--border-light)">
+      <button ${eTurnoMio?'':'disabled'} onclick="inviaDomandaIC('${p.id}')" style="padding:8px 12px;border-radius:10px;border:none;background:${eTurnoMio?'#378ADD':'#9ca3af'};color:#fff;font-weight:700;font-size:12px;cursor:${eTurnoMio?'pointer':'default'}">Invia</button>
     </div>
     <div style="font-size:10px;color:var(--text-sec);margin-bottom:8px">Tocca un personaggio per eliminarlo/ripristinarlo (in qualsiasi momento). Usa "È lui/lei!" per tentare la risposta nel tuo turno.</div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">`;
@@ -4194,7 +4302,7 @@ function renderICBoard(p){
 
 /* ── WORDLE A DUE (sfida a 10 round) ── */
 const WORDLE_MAX_TENTATIVI=6;
-const WORDLE_MAX_ROUND=10;
+const WORDLE_MAX_ROUND=6;
 let wordlePartite=[];
 
 async function loadWordle(){
@@ -4566,7 +4674,9 @@ function segreteriaView(){
     h+=`<div class="seg-shelf-row"><div class="seg-plank"></div>`;
     for(const msg of sorted){
       const m=M(msg.autore);
-      h+=`<div class="seg-recorder" id="seg-card-${msg.id}" style="${msg.urgente?'border-color:#ff3b30;box-shadow:0 8px 14px rgba(255,59,48,0.35), inset 0 1px 0 rgba(255,255,255,0.5)':''}">
+      h+=`<div class="seg-swipe-wrap">
+        <div class="seg-swipe-del" onclick="eliminaSegreteria('${msg.id}')">🗑</div>
+        <div class="seg-recorder" id="seg-card-${msg.id}" style="${msg.urgente?'border-color:#ff3b30;box-shadow:0 8px 14px rgba(255,59,48,0.35), inset 0 1px 0 rgba(255,255,255,0.5)':''}">
         <div class="seg-led"></div>
         <div class="seg-phone-icon">☎️</div>
         <button id="seg-playbtn-${msg.id}" class="seg-playbtn2" onclick="togglePlaySegreteria('${msg.id}')">▶️</button>
@@ -4580,14 +4690,37 @@ function segreteriaView(){
           <div class="seg-meta-name">${escH(m.name)}</div>
           <div class="seg-meta-time">${fmtDateShort(msg.data)} ${msg.ora}</div>
         </div>
-        <button onclick="eliminaSegreteria('${msg.id}')" class="seg-del-btn">🗑</button>
         <audio id="seg-audio-${msg.id}" data-seg src="${msg.audioUrl}" style="display:none"></audio>
-      </div>`;
+      </div></div>`;
     }
     h+=`</div>`;
   }
   h+=`</div></div>`;
   return h;
+}
+
+function attivaSwipeSegreteria(){
+  document.querySelectorAll('.seg-recorder').forEach(el=>{
+    if(el.dataset.swipeInit) return;
+    el.dataset.swipeInit='1';
+    let startX=0,startY=0,dx=0,tracking=false;
+    el.addEventListener('touchstart',e=>{
+      startX=e.touches[0].clientX; startY=e.touches[0].clientY; dx=0; tracking=true;
+      el.style.transition='none';
+    },{passive:true});
+    el.addEventListener('touchmove',e=>{
+      if(!tracking) return;
+      const x=e.touches[0].clientX, y=e.touches[0].clientY;
+      dx=x-startX;
+      if(Math.abs(y-startY)>Math.abs(dx)) return;
+      if(dx<0) el.style.transform=`translateX(${Math.max(dx,-90)}px)`;
+    },{passive:true});
+    el.addEventListener('touchend',()=>{
+      tracking=false;
+      el.style.transition='transform 0.2s ease';
+      el.style.transform=(dx<-60)?'translateX(-90px)':'translateX(0)';
+    });
+  });
 }
 
 let invitiPollingId=null;
@@ -4619,14 +4752,38 @@ async function loadJukebox(){
 
 function avviaVideo(idContenitore,videoId){
   const contenitore=document.getElementById(idContenitore);
-  contenitore.innerHTML=`<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}?playsinline=1&controls=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen style="border-radius:10px"></iframe>`;
+  const origin=encodeURIComponent(location.origin);
+  contenitore.innerHTML=`<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}?playsinline=1&controls=1&enablejsapi=1&origin=${origin}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen style="border-radius:10px"></iframe>`;
 }
 
+let jukeboxShuffleAttivo=false;
+window.addEventListener('message',(e)=>{
+  if(!jukeboxShuffleAttivo) return;
+  let data;
+  try{ data=JSON.parse(e.data); }catch(err){ return; }
+  if(data.event==='onStateChange'&&data.info===0) suonaVinileCasuale();
+});
+
+function toggleJukeboxShuffle(){
+  jukeboxShuffleAttivo=!jukeboxShuffleAttivo;
+  if(jukeboxShuffleAttivo) suonaVinileCasuale();
+  renderView();
+}
+
+let jukeboxFiltro='tutti';
+function setJukeboxFiltro(id){ jukeboxFiltro=id; renderView(); }
+
 function jukeboxView(){
-  const canzoni=[...jukebox].sort((a,b)=>b.data.localeCompare(a.data));
-  let h=`<div class="section-wrap"><div class="section-hdr"><span class="section-ttl">🎵 Jukebox di Famiglia</span></div><div style="padding:0 16px 16px">`;
+  const tutte=[...jukebox].sort((a,b)=>b.data.localeCompare(a.data));
+  const canzoni=jukeboxFiltro==='tutti'?tutte:tutte.filter(c=>c.autore===jukeboxFiltro);
+  const filtroBtns=`<div style="display:flex;gap:6px;overflow-x:auto;padding:0 16px 12px;-webkit-overflow-scrolling:touch">
+    <button onclick="setJukeboxFiltro('tutti')" style="flex:0 0 auto;white-space:nowrap;padding:8px 14px;border:none;border-radius:20px;font-weight:700;font-size:12px;cursor:pointer;background:${jukeboxFiltro==='tutti'?'#e0422a':'var(--main-bg)'};color:${jukeboxFiltro==='tutti'?'#fff':'var(--text-sec)'}">🎵 Tutti</button>
+    ${MEMBERS.map(m=>`<button onclick="setJukeboxFiltro('${m.id}')" style="flex:0 0 auto;white-space:nowrap;padding:8px 14px;border:none;border-radius:20px;font-weight:700;font-size:12px;cursor:pointer;background:${jukeboxFiltro===m.id?'#e0422a':'var(--main-bg)'};color:${jukeboxFiltro===m.id?'#fff':'var(--text-sec)'}">${getIcon(m.id)} ${escH(m.name)}</button>`).join('')}
+  </div>`;
+  let h=`<div class="section-wrap"><div class="section-hdr"><span class="section-ttl">🎵 Jukebox di Famiglia</span></div>${filtroBtns}<div style="padding:0 16px 16px">`;
   if(!canzoni.length){
-    h+=`<div class="empty-state"><span class="big">🎧</span><div style="font-size:15px;font-weight:700">Nessuna canzone in coda</div><div style="font-size:13px;color:var(--text-sec);margin-top:6px">Aggiungi il primo brano!</div></div>`;
+    const msg=jukeboxFiltro==='tutti'?'Nessuna canzone in coda':`${M(jukeboxFiltro).name} non ha ancora aggiunto vinili`;
+    h+=`<div class="empty-state"><span class="big">🎧</span><div style="font-size:15px;font-weight:700">${escH(msg)}</div><div style="font-size:13px;color:var(--text-sec);margin-top:6px">Aggiungi il primo brano!</div></div>`;
     h+=`</div></div>`;
     return h;
   }
@@ -4637,7 +4794,10 @@ function jukeboxView(){
     <div id="jukebox-screen" class="jukebox-screen">
       <div class="jukebox-screen-placeholder">🎶<br>Scegli un vinile qui sotto</div>
     </div>
-    <div id="jukebox-nowplaying" class="jukebox-nowplaying"></div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div id="jukebox-nowplaying" class="jukebox-nowplaying" style="flex:1;margin-bottom:0"></div>
+      <button onclick="toggleJukeboxShuffle()" title="Shuffle" style="background:${jukeboxShuffleAttivo?'#34C759':'rgba(255,255,255,0.15)'};color:#fff;border:none;width:24px;height:24px;border-radius:50%;font-size:11px;cursor:pointer;flex-shrink:0;margin-bottom:10px">🔀</button>
+    </div>
     <div class="jukebox-vinyl-grid">`;
   canzoni.forEach(brano=>{
     const m=M(brano.autore);
@@ -4658,6 +4818,16 @@ function suonaVinile(id,videoId,titolo,autoreName){
   avviaVideo('jukebox-screen',videoId);
   const np=document.getElementById('jukebox-nowplaying');
   if(np) np.innerHTML=`▶ <b>${titolo}</b> — proposto da ${autoreName}`;
+}
+
+function suonaVinileCasuale(){
+  const lista=jukeboxFiltro==='tutti'?jukebox:jukebox.filter(c=>c.autore===jukeboxFiltro);
+  if(!lista.length) return;
+  const selezionatoId=document.querySelector('.jukebox-vinyl.selected')?.id?.replace('vinyl-','');
+  const candidati=lista.length>1?lista.filter(c=>c.id!==selezionatoId):lista;
+  const brano=candidati[Math.floor(Math.random()*candidati.length)];
+  const m=M(brano.autore);
+  suonaVinile(brano.id,brano.videoId,escH(brano.titolo||m.name),escH(m.name));
 }
 
 let jukeboxForm={url:'',titolo:'',autore:'antonio'};
