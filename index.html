@@ -3404,6 +3404,25 @@ function calcolaRecordCasa(){
   return cats;
 }
 
+function controllaSorpassiHallOfFame(){
+  const cats=calcolaRecordCasa();
+  const key='casaDecino_hofLeaders';
+  const salvati=JSON.parse(localStorage.getItem(key)||'{}');
+  const nuovi={};
+  cats.forEach(c=>{
+    nuovi[c.titolo]=c.vincitore;
+    const prima=salvati[c.titolo];
+    if(prima&&prima!==c.vincitore){
+      const vecchio=M(prima), nuovo=M(c.vincitore);
+      mostraToast(`${c.icona} ${nuovo.name} ha superato ${vecchio.name}: ${c.titolo}!`);
+      if('Notification' in window && Notification.permission==='granted'){
+        new Notification(`${c.icona} Sorpasso in Hall of Fame!`,{body:`${nuovo.name} ha superato ${vecchio.name} nel titolo "${c.titolo}"`,icon:'/icon-192.png'});
+      }
+    }
+  });
+  localStorage.setItem(key,JSON.stringify(nuovi));
+}
+
 function recordView(){
   const cats=calcolaRecordCasa();
   let h=`<div class="section-wrap"><div class="section-hdr"><span class="section-ttl">🏆 Hall of Fame di Casa Decino</span></div><div style="padding:0 16px 16px">`;
@@ -4983,6 +5002,7 @@ async function init(){
   mostraSaluto();
   aggiornaBottoneNotifiche();
   aggiornaBadgeNovita();
+  controllaSorpassiHallOfFame();
   const primaPartite=[...f4Partite.map(p=>p.id),...trisPartite.map(p=>p.id),...impPartite.map(p=>p.id),...morraPartite.map(p=>p.id),...icPartite.map(p=>p.id),...wordlePartite.map(p=>p.id)];
   invitiNotificati=Array.from(new Set([...invitiNotificati,...primaPartite]));
   localStorage.setItem('casaDecino_invitiNotificati',JSON.stringify(invitiNotificati));
@@ -4996,6 +5016,7 @@ async function reloadAll(){
   render();
   controllaSegreteriaUrgenti();
   aggiornaBadgeNovita();
+  controllaSorpassiHallOfFame();
 }
 
 let _ultimoErroreMostrato=0;
