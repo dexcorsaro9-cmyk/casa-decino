@@ -1,4 +1,4 @@
-const CACHE = 'casa-decino-v5';
+const CACHE = 'casa-decino-v6';
 const ASSETS = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -12,7 +12,7 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  if (e.request.url.includes('airtable.com') || e.request.url.includes('api.open-meteo.com')) return;
+  if (e.request.url.includes('airtable.com') || e.request.url.includes('api.open-meteo.com') || e.request.url.includes('allorigins.win')) return;
   e.respondWith(
     fetch(e.request, { cache: 'no-store' }).catch(() => caches.match(e.request))
   );
