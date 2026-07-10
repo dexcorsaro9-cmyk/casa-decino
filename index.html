@@ -271,6 +271,8 @@
     .dot8 { width: 8px; height: 8px; border-radius: 50%; }
 
     .content { padding-top: 4px; }
+    @keyframes fadeView { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .view-animate { animation: fadeView 0.25s cubic-bezier(0.2, 1, 0.5, 1) forwards; }
     .sec-lbl {
       font-size: 11px;
       color: var(--text-sec);
@@ -364,6 +366,7 @@
     .modal { background: var(--card-bg); border-radius: 24px; width: calc(100% - 32px); max-width: 520px; padding: 26px; box-shadow: 0 20px 50px rgba(0,0,0,0.25); border: 1px solid var(--border-light); animation: slideUp 0.25s cubic-bezier(0.1, 0.76, 0.55, 0.94); margin: 0 16px; }
     @keyframes slideUp { from { transform: translateY(-16px); opacity:0; } to { transform: translateY(0); opacity:1; } }
     .modal-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .modal-drag-handle { width: 36px; height: 5px; background: var(--text-sec); opacity: 0.3; border-radius: 3px; margin: -10px auto 16px; cursor: grab; }
     .modal-ttl { font-size: 19px; font-weight: 800; letter-spacing: -0.01em; }
     .cl-btn { background: var(--main-bg); border: none; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 14px; color: var(--text-main); font-weight: bold; }
     
@@ -1305,7 +1308,7 @@ function gestisciPollingGiochi(){
   }
 }
 
-function renderView(){ const el=document.getElementById('view'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else if(view==='sondaggi')el.innerHTML=sondaggiView(); else if(view==='giochi'){el.innerHTML=giochiView();ripristinaScrollGiochiSubnav();} else if(view==='segreteria'){el.innerHTML=segreteriaView();setTimeout(attivaSwipeSegreteria,50);} else if(view==='jukebox')el.innerHTML=jukeboxView(); else el.innerHTML=ricorrenzeView(); updateGiochiBadge(); }
+function renderView(){ const el=document.getElementById('view'); el.classList.remove('view-animate'); void el.offsetWidth; el.classList.add('view-animate'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else if(view==='sondaggi')el.innerHTML=sondaggiView(); else if(view==='giochi'){el.innerHTML=giochiView();ripristinaScrollGiochiSubnav();} else if(view==='segreteria'){el.innerHTML=segreteriaView();setTimeout(attivaSwipeSegreteria,50);} else if(view==='jukebox')el.innerHTML=jukeboxView(); else el.innerHTML=ricorrenzeView(); updateGiochiBadge(); }
 
 function updateGiochiBadge(){
   const tab=document.getElementById('t-giochi'); if(!tab) return;
@@ -1588,8 +1591,33 @@ function ricorrenzeView(){
 /* ── INTERFACCIA POPUP MODALI ── */
 function openModal(id){ editId=id; if(id){ const e=events.find(ev=>ev.id===id); if(!e)return; form={...e, members: [...e.members], transport:{...e.transport}}; } else { form={id:'',title:'',date:viewDate,startTime:'08:00',endTime:'13:00',members:['antonio'],category:'scuola',transport:{type:'autonomous',by:'',note:''},notes:''}; } renderEvModal(); showOv(); }
 function openModalForDate(ds){ editId=null; form={id:'',title:'',date:ds,startTime:'08:00',endTime:'13:00',members:['antonio'],category:'scuola',transport:{type:'autonomous',by:'',note:''},notes:''}; renderEvModal(); showOv(); }
-function showOv(){ const ov=document.getElementById('modal-ov'); ov.style.display='flex'; window.scrollTo({top:0,behavior:'smooth'}); }
-function closeModal(){ const ov=document.getElementById('modal-ov'); ov.style.display='none'; }
+function showOv(){
+  const ov=document.getElementById('modal-ov'); ov.style.display='flex'; window.scrollTo({top:0,behavior:'smooth'});
+  const modal=document.getElementById('modal-box');
+  if(modal&&!modal.querySelector('.modal-drag-handle')){ modal.insertAdjacentHTML('afterbegin','<div class="modal-drag-handle"></div>'); }
+  let startY=0,currentY=0;
+  modal.ontouchstart=(e)=>{
+    if(e.target.closest('.modal-hdr')||e.target.classList.contains('modal-drag-handle')){
+      startY=e.touches[0].clientY; modal.style.transition='none';
+    }
+  };
+  modal.ontouchmove=(e)=>{
+    if(!startY) return;
+    currentY=e.touches[0].clientY-startY;
+    if(currentY>0) modal.style.transform=`translateY(${currentY}px)`;
+  };
+  modal.ontouchend=()=>{
+    if(!startY) return;
+    modal.style.transition='transform 0.25s cubic-bezier(0.1, 0.76, 0.55, 0.94)';
+    if(currentY>90){ closeModal(); } else { modal.style.transform='translateY(0)'; }
+    startY=0;
+  };
+}
+function closeModal(){
+  const ov=document.getElementById('modal-ov'); ov.style.display='none';
+  const modal=document.getElementById('modal-box');
+  if(modal) modal.style.transform='translateY(0)';
+}
 
 function renderEvModal(){
   const mbrBtns = MEMBERS.map(m => `<button class="tr-btn${form.members.includes(m.id)?' sel':''}" onclick="toggleMbr('${m.id}')" style="${form.members.includes(m.id)?ms(m):''}">${getIcon(m.id)} ${m.name}</button>`).join('');
