@@ -3329,22 +3329,16 @@ function renderRankTableGiochi(ranking,suffix){
 
 function statisticheGiochiView(){
   const vittorie=tutteLeVittorie();
-  const now=new Date();
-  const curYM=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  const meseName=MONTHS_IT[now.getMonth()];
   const contaVittorie=(fn)=>{
     const c={}; MEMBERS.forEach(m=>c[m.id]=0);
     vittorie.filter(fn).forEach(v=>{ if(c[v.vincitore]!==undefined) c[v.vincitore]++; });
     return c;
   };
   const toRank=(c)=>MEMBERS.map(m=>({k:m.id,pts:c[m.id]})).sort((a,b)=>b.pts-a.pts);
-  const meseRank=toRank(contaVittorie(v=>v.data&&v.data.startsWith(curYM)));
   const totRank=toRank(contaVittorie(()=>true));
 
   let h=`<div class="sec-lbl">🏆 Podio Totale — di sempre</div>`;
   h+=renderPodioGiochi(totRank)+renderRankTableGiochi(totRank,'vittorie');
-  h+=`<div class="sec-lbl" style="margin-top:24px;margin-bottom:16px">🗓 Classifica di ${meseName.charAt(0).toUpperCase()+meseName.slice(1)}</div>`;
-  h+=renderRankTableGiochi(meseRank,'vittorie');
 
   const perGioco=Object.keys(GIOCHI_NOMI_STAT).map(gioco=>({gioco,rank:toRank(contaVittorie(v=>v.gioco===gioco)).filter(r=>r.pts>0)})).filter(x=>x.rank.length);
   if(perGioco.length){
