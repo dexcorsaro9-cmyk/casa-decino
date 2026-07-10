@@ -879,21 +879,6 @@
       gap: 8px; transition: background 0.15s;
     }
     .bacheca-add-btn:hover { background: rgba(255,255,255,0.97); color: rgba(0,0,0,0.6); }
-
-    .lazio-news-list { display:flex; gap:10px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; }
-    .lazio-news-list::-webkit-scrollbar { display:none; }
-    .lazio-news-card { flex-shrink:0; width:140px; cursor:pointer; }
-    .lazio-news-img { width:140px; height:90px; border-radius:8px; object-fit:cover; box-shadow:0 4px 12px rgba(0,0,0,0.35); display:block; background:rgba(255,255,255,0.1); }
-    .lazio-news-img-placeholder { width:140px; height:90px; border-radius:8px; background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; font-size:30px; box-shadow:0 4px 12px rgba(0,0,0,0.3); }
-    .lazio-news-title { font-size:11px; font-weight:700; color:#fff; margin-top:6px; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-    .lazio-news-date { font-size:9px; color:rgba(255,255,255,0.55); margin-top:2px; }
-    .lazio-full-card { display:flex; gap:12px; background:var(--card-bg); border-radius:var(--radius-md); padding:10px; margin-bottom:12px; box-shadow:var(--shadow-sm); cursor:pointer; align-items:flex-start; }
-    .lazio-full-card:hover { box-shadow:var(--shadow-md); }
-    .lazio-full-img { width:96px; height:72px; flex-shrink:0; border-radius:8px; object-fit:cover; background:var(--main-bg); }
-    .lazio-full-img-placeholder { width:96px; height:72px; flex-shrink:0; border-radius:8px; background:var(--main-bg); display:flex; align-items:center; justify-content:center; font-size:26px; }
-    .lazio-full-title { font-size:14px; font-weight:800; color:var(--text-main); line-height:1.3; }
-    .lazio-full-desc { font-size:12px; color:var(--text-sec); margin-top:4px; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-    .lazio-full-date { font-size:10px; color:var(--text-sec); font-weight:700; margin-top:6px; }
   </style>
 </head>
 <body>
@@ -947,7 +932,6 @@
         <button class="tab" id="t-giochi"     data-macro="svago"   onclick="switchView('giochi')">🎮 Giochi</button>
         <button class="tab" id="t-jukebox"    data-macro="svago"   onclick="switchView('jukebox')">🎵 Jukebox</button>
         <button class="tab" id="t-record"     data-macro="svago"   onclick="switchView('record')">🏆 Record</button>
-        <button class="tab" id="t-lazio"      data-macro="svago"   onclick="switchView('lazio')">🦅 Lazio Mia</button>
       </div>
     </div>
     <div class="content" id="view">
@@ -1009,8 +993,8 @@ let events=[],ricorrenze=[];
 let view='today',filters=MEMBERS.map(m=>m.id);
 let viewHistory=[];
 
-const VIEW_MACRO={today:'home',week:'agenda',month:'agenda',trasporti:'agenda',ricorrenze:'agenda',bacheca:'liste',segreteria:'liste',dispensa:'liste',sondaggi:'liste',giochi:'svago',jukebox:'svago',film:'svago',challenge:'svago',record:'svago',lazio:'svago',viaggi:'ricordi',ricordi:'ricordi'};
-const MACRO_TABS={home:['today'],agenda:['week','month','trasporti','ricorrenze'],liste:['bacheca','segreteria','dispensa','sondaggi'],svago:['giochi','jukebox','film','challenge','record','lazio'],ricordi:['ricordi','viaggi']};
+const VIEW_MACRO={today:'home',week:'agenda',month:'agenda',trasporti:'agenda',ricorrenze:'agenda',bacheca:'liste',segreteria:'liste',dispensa:'liste',sondaggi:'liste',giochi:'svago',jukebox:'svago',film:'svago',challenge:'svago',record:'svago',viaggi:'ricordi',ricordi:'ricordi'};
+const MACRO_TABS={home:['today'],agenda:['week','month','trasporti','ricorrenze'],liste:['bacheca','segreteria','dispensa','sondaggi'],svago:['giochi','jukebox','film','challenge','record'],ricordi:['ricordi','viaggi']};
 let macroArea='home';
 
 function mostraSaluto(){
@@ -1280,7 +1264,7 @@ function fabClick(){
 
 function switchView(v,daHistory){
   if(!daHistory && v!==view) viewHistory.push(view);
-  view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge','t-bacheca','t-dispensa','t-ricordi','t-viaggi','t-film','t-sondaggi','t-giochi','t-segreteria','t-jukebox','t-record','t-lazio'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
+  view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge','t-bacheca','t-dispensa','t-ricordi','t-viaggi','t-film','t-sondaggi','t-giochi','t-segreteria','t-jukebox','t-record'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
   const tab=document.getElementById('t-'+v); if(tab){ tab.classList.add('active'); tab.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'}); }
   macroArea=VIEW_MACRO[v]||macroArea;
   aggiornaMacroUI();
@@ -1368,7 +1352,7 @@ function gestisciPollingGiochi(){
   }
 }
 
-function renderView(silenzioso){ const el=document.getElementById('view'); if(!silenzioso){ el.classList.remove('view-animate'); void el.offsetWidth; el.classList.add('view-animate'); } if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else if(view==='sondaggi')el.innerHTML=sondaggiView(); else if(view==='giochi'){el.innerHTML=giochiView();ripristinaScrollGiochiSubnav();} else if(view==='segreteria'){el.innerHTML=segreteriaView();setTimeout(attivaSwipeSegreteria,50);} else if(view==='jukebox')el.innerHTML=jukeboxView(); else if(view==='record')el.innerHTML=recordView(); else if(view==='lazio')el.innerHTML=lazioView(); else el.innerHTML=ricorrenzeView(); updateGiochiBadge(); }
+function renderView(silenzioso){ const el=document.getElementById('view'); if(!silenzioso){ el.classList.remove('view-animate'); void el.offsetWidth; el.classList.add('view-animate'); } if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else if(view==='sondaggi')el.innerHTML=sondaggiView(); else if(view==='giochi'){el.innerHTML=giochiView();ripristinaScrollGiochiSubnav();} else if(view==='segreteria'){el.innerHTML=segreteriaView();setTimeout(attivaSwipeSegreteria,50);} else if(view==='jukebox')el.innerHTML=jukeboxView(); else if(view==='record')el.innerHTML=recordView(); else el.innerHTML=ricorrenzeView(); updateGiochiBadge(); }
 
 function updateGiochiBadge(){
   const tab=document.getElementById('t-giochi'); if(!tab) return;
@@ -1563,7 +1547,7 @@ function todayView(){
   if(freeMembers.length>0 && activeHtml.indexOf('empty-state')===-1){ activeHtml+=`<div style="margin-top:24px;padding-top:16px;border-top:1px dashed var(--border-light);text-align:center"><div class="sec-lbl" style="text-align:center">🎉 Liberi oggi</div><div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px">${freeMembers.map(m => `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--main-bg);padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;color:var(--text-main)"><span style="font-size:14px">${getIcon(m.id)}</span>${m.name}</span>`).join('')}</div></div>`; }
   const ricWidget=prossimeRicorrenzeWidget();
   const sondWidget=sondaggiWidget();
-  return h+activeHtml+(sondWidget?`<div style="margin-top:16px">`+sondWidget+`</div>`:'')+`<div style="margin-top:24px">`+dispensaWidget()+`</div>`+`<div style="margin-top:16px">`+challengeWidget()+`</div>`+(ricWidget?`<div style="margin-top:16px">`+ricWidget+`</div>`:'')+`<div style="margin-top:16px">`+ricordiWidget()+`</div>`+(viaggi.length?`<div style="margin-top:16px">`+viaggiWidget()+`</div>`:'')+`<div style="margin-top:16px">`+filmWidget()+`</div>`+`<div style="margin-top:16px">`+jukeboxWidget()+`</div>`+(lazioWidget()?`<div style="margin-top:16px">`+lazioWidget()+`</div>`:'')+`<div style="margin-top:24px;padding-top:16px;border-top:1px dashed var(--border-light);text-align:center"><div class="sec-lbl" style="text-align:center">Chi è online</div><div id="online-widget" style="display:flex;gap:8px;justify-content:center"></div></div>`;
+  return h+activeHtml+(sondWidget?`<div style="margin-top:16px">`+sondWidget+`</div>`:'')+`<div style="margin-top:24px">`+dispensaWidget()+`</div>`+`<div style="margin-top:16px">`+challengeWidget()+`</div>`+(ricWidget?`<div style="margin-top:16px">`+ricWidget+`</div>`:'')+`<div style="margin-top:16px">`+ricordiWidget()+`</div>`+(viaggi.length?`<div style="margin-top:16px">`+viaggiWidget()+`</div>`:'')+`<div style="margin-top:16px">`+filmWidget()+`</div>`+`<div style="margin-top:16px">`+jukeboxWidget()+`</div>`+`<div style="margin-top:24px;padding-top:16px;border-top:1px dashed var(--border-light);text-align:center"><div class="sec-lbl" style="text-align:center">Chi è online</div><div id="online-widget" style="display:flex;gap:8px;justify-content:center"></div></div>`;
 }
 
 function evCard(e, mContext){
@@ -3019,92 +3003,6 @@ async function deleteFilm(id){
   film=film.filter(x=>x.id!==id);
   if(f?._recId) atDelete('Film',f._recId);
   renderView();
-}
-
-/* ── LAZIO MIA ── */
-let lazioNews = [];
-let lazioNewsLoaded = false;
-let lazioNewsErrore = '';
-
-async function loadLazioNews(){
-  lazioNewsErrore='';
-  try{
-    const feedUrl='https://news.google.com/rss/search?q=Lazio%20calcio%20quando%3A2d&hl=it&gl=IT&ceid=IT:it';
-    const proxyUrl='https://api.allorigins.win/raw?url='+encodeURIComponent(feedUrl);
-    const res=await fetch(proxyUrl);
-    if(!res.ok){ lazioNewsErrore=`Richiesta fallita (HTTP ${res.status})`; lazioNewsLoaded=true; return; }
-    const xmlText=await res.text();
-    const xml=new DOMParser().parseFromString(xmlText,'text/xml');
-    if(xml.querySelector('parsererror')){ lazioNewsErrore='Il feed ricevuto non è un XML valido'; lazioNewsLoaded=true; return; }
-    const items=Array.from(xml.querySelectorAll('item'));
-    lazioNews=items.slice(0,10).map(it=>({
-      titolo:it.querySelector('title')?.textContent||'',
-      link:it.querySelector('link')?.textContent||'',
-      data:it.querySelector('pubDate')?.textContent||'',
-      img:'',
-      desc:(it.querySelector('description')?.textContent||'').replace(/<[^>]+>/g,'').trim().slice(0,160)
-    }));
-    if(!lazioNews.length) lazioNewsErrore='Il feed non ha restituito notizie';
-  } catch(e){ lazioNewsErrore='Errore di rete: '+e.message; }
-  lazioNewsLoaded=true;
-}
-
-function fmtDataNews(ds){
-  if(!ds) return '';
-  const d=new Date(ds);
-  if(isNaN(d)) return '';
-  return d.toLocaleDateString('it-IT',{day:'numeric',month:'short'});
-}
-
-function lazioWidget(){
-  if(!lazioNewsLoaded) return '';
-  if(!lazioNews.length){
-    return `<div class="film-widget" style="background:linear-gradient(160deg,#0c2f5e 0%,#1c5aa6 60%,#2f7fc9 100%)">
-      <div class="film-widget-hdr"><span class="film-widget-title">🦅 Lazio Mia</span><button class="film-widget-link" onclick="switchView('lazio')">Dettagli →</button></div>
-      <div class="film-widget-empty">Notizie non disponibili al momento${lazioNewsErrore?' — '+escH(lazioNewsErrore):''}</div>
-    </div>`;
-  }
-  const cards=lazioNews.slice(0,10).map((n,i)=>{
-    const img=n.img
-      ? `<img class="lazio-news-img" src="${escH(n.img)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`+
-        `<div class="lazio-news-img-placeholder" style="display:none">🦅</div>`
-      : `<div class="lazio-news-img-placeholder">🦅</div>`;
-    return `<div class="lazio-news-card" style="animation:polaroidDrop 0.35s cubic-bezier(.22,1.4,.64,1) ${i*0.06}s both" onclick="window.open('${n.link}','_blank')" title="${escH(n.titolo)}">
-      ${img}
-      <div class="lazio-news-title">${escH(n.titolo)}</div>
-      <div class="lazio-news-date">${fmtDataNews(n.data)}</div>
-    </div>`;
-  }).join('');
-  return `<div class="film-widget" style="background:linear-gradient(160deg,#0c2f5e 0%,#1c5aa6 60%,#2f7fc9 100%)">
-    <div class="film-widget-hdr"><span class="film-widget-title">🦅 Lazio Mia</span><button class="film-widget-link" onclick="switchView('lazio')">Vedi tutte →</button></div>
-    <div class="lazio-news-list">${cards}</div>
-  </div>`;
-}
-
-function lazioView(){
-  let h=`<div style="margin-bottom:14px"><div class="sec-lbl">🦅 LAZIO MIA</div></div>`;
-  h+=`<div style="text-align:right;margin-bottom:10px"><button onclick="loadLazioNews().then(()=>renderView())" style="background:var(--main-bg);border:1px solid var(--border-light);padding:6px 14px;border-radius:20px;color:#378ADD;font-weight:700;font-size:12px;cursor:pointer">🔄 Ricarica</button></div>`;
-  if(!lazioNewsLoaded){
-    h+=`<div class="empty-state"><span class="big">🦅</span><div style="font-size:16px;font-weight:700">Caricamento notizie…</div></div>`;
-  } else if(!lazioNews.length){
-    h+=`<div class="empty-state"><span class="big">🦅</span><div style="font-size:16px;font-weight:700">Nessuna notizia disponibile al momento</div><div style="font-size:13px;margin-top:6px;color:var(--text-sec)">${lazioNewsErrore?escH(lazioNewsErrore):'Riprova più tardi'}</div></div>`;
-  } else {
-    h+=lazioNews.map(n=>{
-      const img=n.img
-        ? `<img class="lazio-full-img" src="${escH(n.img)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`+
-          `<div class="lazio-full-img-placeholder" style="display:none">🦅</div>`
-        : `<div class="lazio-full-img-placeholder">🦅</div>`;
-      return `<div class="lazio-full-card" onclick="window.open('${n.link}','_blank')">
-        ${img}
-        <div style="flex:1;min-width:0">
-          <div class="lazio-full-title">${escH(n.titolo)}</div>
-          ${n.desc?`<div class="lazio-full-desc">${escH(n.desc)}</div>`:''}
-          <div class="lazio-full-date">${fmtDataNews(n.data)}</div>
-        </div>
-      </div>`;
-    }).join('');
-  }
-  return h;
 }
 
 function filmView(){
@@ -5202,7 +5100,6 @@ async function deleteCanzone(id){
 async function init(){
   await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle(),loadSegreteria(),loadJukebox(),loadVittorieGiochi()]);
   render(); loadWeather();
-  loadLazioNews().then(()=>{ if(view==='today'||view==='lazio') renderView(true); });
   aggiornaMacroUI();
   aggiornaFab();
   mostraSaluto();
