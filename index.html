@@ -808,7 +808,7 @@
           
           <div class="brand-text-container">
             <div class="brand-name">Casa <span>Decino</span></div>
-            <div class="brand-sub">Agenda di famiglia</div>
+            <div class="brand-sub">Agenda di famiglia <span style="opacity:0.4;font-size:9px">build 2026-07-10a</span></div>
             <div id="weather-widget" class="weather-box" onclick="openWeatherPopup()"></div>
           </div>
         </div>
@@ -4605,6 +4605,14 @@ async function reloadAll(){
   controllaSegreteriaUrgenti();
   aggiornaBadgeNovita();
 }
+
+let _ultimoErroreMostrato=0;
+window.addEventListener('error',(e)=>{
+  const ora=Date.now();
+  if(ora-_ultimoErroreMostrato<3000) return;
+  _ultimoErroreMostrato=ora;
+  alert('⚠️ Errore JS: '+e.message+'\n(riga '+e.lineno+')');
+});
 
 init();
 
