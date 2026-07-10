@@ -1183,6 +1183,7 @@ function updateGiochiBadge(){
     return myNum===1?!p.mossa1:!p.mossa2;
   };
   const mioTurnoImp=p=>p.stato==='aperta'&&p.giocatore2===f4Me;
+  const mioTurnoIC=p=>(p.stato==='aperta'&&p.turnoDi===f4Me)||(p.stato==='attesa_avversario'&&p.giocatore2===f4Me);
   const mioTurnoWordle=p=>{
     if(p.stato==='aperta') return (typeof wordleGuesser==='function')&&wordleGuesser(p)===f4Me;
     if(p.stato==='attesa_parola') return (typeof wordleSetter==='function')&&wordleSetter(p)===f4Me;
@@ -1192,7 +1193,7 @@ function updateGiochiBadge(){
     ||(typeof trisPartite!=='undefined'&&trisPartite.some(mioTurno))
     ||(typeof impPartite!=='undefined'&&impPartite.some(mioTurnoImp))
     ||(typeof morraPartite!=='undefined'&&morraPartite.some(mioTurnoMorra))
-    ||(typeof icPartite!=='undefined'&&icPartite.some(mioTurnoImp))
+    ||(typeof icPartite!=='undefined'&&icPartite.some(mioTurnoIC))
     ||(typeof wordlePartite!=='undefined'&&wordlePartite.some(mioTurnoWordle));
   let dot=tab.querySelector('.giochi-badge-dot');
   if(haTurno){
@@ -2919,9 +2920,28 @@ async function caricaTabellaGiochi(tabella,mapFn){
   catch(e){ return []; }
 }
 
+let vittorieGiochi=[];
+async function loadVittorieGiochi(){
+  try{
+    const records=await atGetAll('GiochiVittorie');
+    vittorieGiochi=records.map(r=>({_recId:r.id,id:r.fields.ID||r.id,gioco:r.fields.Gioco||'',vincitore:r.fields.Vincitore||'',data:r.fields.Data||''}));
+  }catch(e){ vittorieGiochi=[]; }
+}
+
+async function registraVittoriaGioco(gioco,vincitoreId){
+  if(!vincitoreId) return;
+  const id='gv'+Date.now()+Math.random().toString(36).slice(2,5);
+  const rec={gioco,vincitore:vincitoreId,data:REAL_TODAY};
+  vittorieGiochi.push(rec);
+  try{
+    const res=await atPost('GiochiVittorie',{ID:id,Gioco:gioco,Vincitore:vincitoreId,Data:REAL_TODAY});
+    rec._recId=res.records?.[0]?.id; rec.id=id;
+  }catch(e){}
+}
+
 function puoEliminarePartita(p){
   const orfana=!MEMBERS.some(m=>m.id===p.giocatore1);
-  return p.giocatore1===f4Me||orfana;
+  return p.giocatore1===f4Me||orfana||f4Me==='antonio';
 }
 async function eliminaPartitaGenerica(lista,setLista,tabella,partitaId){
   const p=lista.find(x=>x.id===partitaId); if(!p) return null;
@@ -2994,6 +3014,7 @@ async function muoviF4(partitaId,col){
   try{
     await atPatch('Forza4',p._recId,{Griglia:newG,TurnoDi:nextTurno,Stato:newStato,Vincitore:newVinc});
   }catch(e){ alert('Errore salvataggio mossa: '+e.message); }
+  if(winner) registraVittoriaGioco('forza4',newVinc);
 }
 
 function renderF4Board(p){
@@ -3060,6 +3081,72 @@ async function eliminaF4(partitaId){
 let giochiTab='forza4';
 function setGiochiTab(t){ giochiTab=t; renderView(); }
 
+const GIOCHI_NOMI_STAT={forza4:{nome:'Forza 4',icona:'🔴'},tris:{nome:'Tris',icona:'❌'},impiccato:{nome:'Impiccato',icona:'🎯'},morra:{nome:'Morra Cinese',icona:'✂️'},indovinachi:{nome:'Indovina Chi',icona:'🕵️'},wordle:{nome:'Wordle',icona:'🟩'}};
+
+function tutteLeVittorie(){
+  return vittorieGiochi;
+}
+
+function renderPodioGiochi(ranking){
+  if(!ranking.length||ranking.every(r=>r.pts===0)) return `<div style="text-align:center;padding:24px;color:var(--text-sec);font-weight:600;font-size:13px">🎮 Nessuna vittoria ancora — si comincia!</div>`;
+  const visual=[ranking[1]||null, ranking[0], ranking[2]||null];
+  const heights=[90,120,70]; const medals=['🥈','🥇','🥉'];
+  const delays=[0.18,0.36,0];
+  let h=`<div class="podio">`;
+  visual.forEach((item,i)=>{
+    if(!item||!item.pts){h+=`<div class="podio-item" style="width:76px"></div>`;return;}
+    const m=M(item.k);
+    h+=`<div class="podio-item" style="animation-delay:${delays[i]}s"><div style="font-size:28px;margin-bottom:4px">${getIcon(m.id)}</div><div style="font-size:12px;font-weight:800;margin-bottom:4px">${escH(m.name)}</div><div style="font-size:18px;margin-bottom:6px">${medals[i]}</div><div class="podio-bar" style="background:${m.dot};height:${heights[i]}px"><span style="color:#fff;font-weight:800;font-size:13px">${item.pts}</span></div></div>`;
+  });
+  return h+`</div>`;
+}
+
+function renderRankTableGiochi(ranking,suffix){
+  const medals=['🥇','🥈','🥉']; const maxPts=ranking[0]?.pts||1;
+  let h='';
+  ranking.forEach((item,i)=>{
+    const m=M(item.k); const pct=maxPts>0?Math.round((item.pts/maxPts)*100):0;
+    h+=`<div class="rank-row"><span style="font-size:20px;width:28px;text-align:center">${medals[i]||`#${i+1}`}</span><div class="avatar" style="${ms(m)}">${getIcon(m.id)}</div><div style="flex:1"><div style="font-weight:700">${escH(m.name)}</div><div style="margin-top:5px;background:var(--main-bg);border-radius:20px;height:6px;overflow:hidden"><div style="background:${m.dot};height:100%;width:${pct}%;border-radius:20px"></div></div></div><span style="font-size:17px;font-weight:800">${item.pts}<span style="font-size:10px;font-weight:600"> ${suffix||''}</span></span></div>`;
+  });
+  return h;
+}
+
+function statisticheGiochiView(){
+  const vittorie=tutteLeVittorie();
+  const now=new Date();
+  const curYM=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const meseName=MONTHS_IT[now.getMonth()];
+  const contaVittorie=(fn)=>{
+    const c={}; MEMBERS.forEach(m=>c[m.id]=0);
+    vittorie.filter(fn).forEach(v=>{ if(c[v.vincitore]!==undefined) c[v.vincitore]++; });
+    return c;
+  };
+  const toRank=(c)=>MEMBERS.map(m=>({k:m.id,pts:c[m.id]})).sort((a,b)=>b.pts-a.pts);
+  const meseRank=toRank(contaVittorie(v=>v.data&&v.data.startsWith(curYM)));
+  const totRank=toRank(contaVittorie(()=>true));
+
+  let h=`<div class="sec-lbl">🏆 Podio Totale — di sempre</div>`;
+  h+=renderPodioGiochi(totRank)+renderRankTableGiochi(totRank,'vittorie');
+  h+=`<div class="sec-lbl" style="margin-top:24px;margin-bottom:16px">🗓 Classifica di ${meseName.charAt(0).toUpperCase()+meseName.slice(1)}</div>`;
+  h+=renderRankTableGiochi(meseRank,'vittorie');
+
+  const perGioco=Object.keys(GIOCHI_NOMI_STAT).map(gioco=>({gioco,rank:toRank(contaVittorie(v=>v.gioco===gioco)).filter(r=>r.pts>0)})).filter(x=>x.rank.length);
+  if(perGioco.length){
+    h+=`<div class="sec-lbl" style="margin-top:24px;margin-bottom:16px">🎮 Per gioco</div>`;
+    perGioco.forEach(({gioco,rank})=>{
+      const info=GIOCHI_NOMI_STAT[gioco];
+      h+=`<div style="margin-bottom:14px"><div style="font-size:12px;font-weight:800;color:var(--text-sec);margin-bottom:6px">${info.icona} ${info.nome}</div>`;
+      rank.forEach((item,i)=>{
+        const m=M(item.k);
+        h+=`<div class="rank-row" style="padding:8px 10px"><span style="font-size:15px;width:22px;text-align:center">${['🥇','🥈','🥉'][i]||`#${i+1}`}</span><div class="avatar" style="${ms(m)};width:28px;height:28px;font-size:13px">${getIcon(m.id)}</div><div style="flex:1;font-weight:700;font-size:13px">${escH(m.name)}</div><span style="font-size:14px;font-weight:800">${item.pts}</span></div>`;
+      });
+      h+=`</div>`;
+    });
+  }
+  if(!vittorie.length) h+=`<div style="text-align:center;color:var(--text-sec);padding:20px 0;font-size:13px">Ancora nessuna partita conclusa.</div>`;
+  return h;
+}
+
 function giochiView(){
   const memberBtns=MEMBERS.map(m=>`<button onclick="f4SetMe('${m.id}')" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:20px;border:2px solid ${f4Me===m.id?m.dot:'var(--border-light)'};background:${f4Me===m.id?m.bg:'var(--card-bg)'};color:${f4Me===m.id?m.txt:'var(--text-sec)'};font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap"><span>${getIcon(m.id)}</span>${escH(m.name)}</button>`).join('');
   let html=`<div class="section-wrap">
@@ -3076,6 +3163,7 @@ function giochiView(){
         <button onclick="setGiochiTab('morra')" style="flex:0 0 auto;white-space:nowrap;padding:10px 14px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='morra'?'#378ADD':'transparent'};color:${giochiTab==='morra'?'#fff':'var(--text-sec)'}">✂️ Morra</button>
         <button onclick="setGiochiTab('indovinachi')" style="flex:0 0 auto;white-space:nowrap;padding:10px 14px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='indovinachi'?'#378ADD':'transparent'};color:${giochiTab==='indovinachi'?'#fff':'var(--text-sec)'}">🕵️ Indovina Chi</button>
         <button onclick="setGiochiTab('wordle')" style="flex:0 0 auto;white-space:nowrap;padding:10px 14px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='wordle'?'#378ADD':'transparent'};color:${giochiTab==='wordle'?'#fff':'var(--text-sec)'}">🟩 Wordle</button>
+        <button onclick="setGiochiTab('statistiche')" style="flex:0 0 auto;white-space:nowrap;padding:10px 14px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:${giochiTab==='statistiche'?'#378ADD':'transparent'};color:${giochiTab==='statistiche'?'#fff':'var(--text-sec)'}">📊 Statistiche</button>
       </div>`;
   if(giochiTab==='forza4'){
     const mie=f4Partite.filter(p=>p.giocatore1===f4Me||p.giocatore2===f4Me);
@@ -3127,7 +3215,7 @@ function giochiView(){
       html+=`<div style="font-size:12px;color:var(--text-sec);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 8px">Altre partite</div>`;
       for(const p of altre){ html+=`<div style="margin-bottom:16px">${renderICBoard(p)}</div>`; }
     }
-  } else {
+  } else if(giochiTab==='wordle'){
     const mie=wordlePartite.filter(p=>p.giocatore1===f4Me||p.giocatore2===f4Me);
     const altre=wordlePartite.filter(p=>p.giocatore1!==f4Me&&p.giocatore2!==f4Me);
     html+=`<button onclick="openNuovaPartitaWordle()" style="width:100%;padding:14px;border-radius:14px;background:#378ADD;color:#fff;font-size:15px;font-weight:800;border:none;cursor:pointer;margin-bottom:16px">🟩 Nuova partita Wordle</button>`;
@@ -3137,6 +3225,8 @@ function giochiView(){
       html+=`<div style="font-size:12px;color:var(--text-sec);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 8px">Altre partite</div>`;
       for(const p of altre){ html+=`<div style="margin-bottom:16px">${renderWordleBoard(p)}</div>`; }
     }
+  } else {
+    html+=statisticheGiochiView();
   }
   html+=`</div></div>`;
   return html;
@@ -3208,6 +3298,7 @@ async function muoviTris(partitaId,idx){
   try{
     await atPatch('Tris',p._recId,{Griglia:newG,TurnoDi:nextTurno,Stato:newStato,Vincitore:newVinc});
   }catch(e){ alert('Errore salvataggio mossa: '+e.message); }
+  if(winner) registraVittoriaGioco('tris',newVinc);
 }
 
 function renderTrisBoard(p){
@@ -3328,6 +3419,7 @@ async function muoviImp(partitaId,lettera){
   try{
     await atPatch('Impiccato',p._recId,{Lettere:nuoveLettere,Errori:nuoviErrori,Stato:newStato,Vincitore:newVinc});
   }catch(e){ alert('Errore salvataggio mossa: '+e.message); }
+  if(newStato!=='aperta') registraVittoriaGioco('impiccato',newVinc);
 }
 
 function renderImpBoard(p){
@@ -3460,6 +3552,7 @@ async function muoviMorra(partitaId,mossa){
   try{
     await atPatch('Morra',p._recId,{Mossa1:p.mossa1,Mossa2:p.mossa2,Punti1:p.punti1,Punti2:p.punti2,UltimoEsito:p.ultimoEsito,Stato:p.stato,Vincitore:p.vincitore});
   }catch(e){ alert('Errore salvataggio mossa: '+e.message); }
+  if(p.stato==='vinta') registraVittoriaGioco('morra',p.vincitore);
 }
 
 function renderMorraBoard(p){
@@ -3803,7 +3896,10 @@ async function loadIndovinaChi(){
     giocatore2:r.fields.Giocatore2||'',
     personaggioSegreto:r.fields.PersonaggioSegreto||'',
     eliminati:(r.fields.Eliminati||'').split(',').filter(Boolean),
-    stato:r.fields.Stato||'aperta',
+    personaggioSegreto2:r.fields.PersonaggioSegreto2||'',
+    eliminati2:(r.fields.Eliminati2||'').split(',').filter(Boolean),
+    turnoDi:r.fields.TurnoDi||'',
+    stato:r.fields.Stato||'attesa_avversario',
     vincitore:r.fields.Vincitore||'',
     data:r.fields.Data||''
   }));
@@ -3817,7 +3913,8 @@ function openNuovaPartitaIC(){
   const altri=MEMBERS.filter(m=>m.id!==f4Me);
   let opts=altri.map(m=>`<button onclick="apriSceltaPersonaggioIC('${m.id}')" style="width:100%;padding:14px;border-radius:14px;border:1.5px solid var(--border-light);background:var(--card-bg);color:var(--text-main);font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;gap:12px"><span style="font-size:22px">${m.icon}</span><span>${escH(m.name)}</span></button>`).join('');
   document.getElementById('modal-box').innerHTML=`
-    <div class="modal-hdr"><span class="modal-ttl">🕵️ Chi deve indovinare?</span><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="modal-hdr"><span class="modal-ttl">🕵️ Contro chi vuoi giocare?</span><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div style="font-size:12px;color:var(--text-sec);margin-bottom:10px">Entrambi scegliete un personaggio segreto, poi vi alternate a fare domande e tentare la risposta. Vince chi indovina per primo!</div>
     <div style="padding:10px 0">${opts}</div>`;
   showOv();
 }
@@ -3827,8 +3924,8 @@ function apriSceltaPersonaggioIC(avversarioId){
   icAvversarioScelto=avversarioId;
   const grid=IC_ROSTER.map(c=>`<div onclick="creaPartitaIC('${c.id}')" style="cursor:pointer;text-align:center;padding:6px;border-radius:10px;border:1.5px solid var(--border-light);background:var(--card-bg)"><img src="${icUrl(c.seed)}" width="48" height="48" style="border-radius:50%"><div style="font-size:10px;font-weight:700;margin-top:4px;color:var(--text-main)">${c.nome}</div></div>`).join('');
   document.getElementById('modal-box').innerHTML=`
-    <div class="modal-hdr"><span class="modal-ttl">🕵️ Scegli il personaggio segreto</span><button class="modal-close" onclick="closeModal()">✕</button></div>
-    <div style="font-size:12px;color:var(--text-sec);margin-bottom:12px">L'avversario dovrà indovinare chi hai scelto</div>
+    <div class="modal-hdr"><span class="modal-ttl">🕵️ Scegli il tuo personaggio segreto</span><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div style="font-size:12px;color:var(--text-sec);margin-bottom:12px">L'avversario dovrà indovinarlo, e tu dovrai indovinare il suo!</div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-height:340px;overflow-y:auto">${grid}</div>`;
   showOv();
 }
@@ -3837,79 +3934,140 @@ async function creaPartitaIC(personaggioId){
   const avversarioId=icAvversarioScelto; if(!avversarioId) return;
   closeModal();
   const id='ic'+Date.now();
-  const flds={ID:id,Giocatore1:f4Me,Giocatore2:avversarioId,PersonaggioSegreto:personaggioId,Eliminati:'',Stato:'aperta',Vincitore:'',Data:REAL_TODAY};
+  const flds={ID:id,Giocatore1:f4Me,Giocatore2:avversarioId,PersonaggioSegreto:personaggioId,Eliminati:'',PersonaggioSegreto2:'',Eliminati2:'',TurnoDi:'',Stato:'attesa_avversario',Vincitore:'',Data:REAL_TODAY};
   try{
     const res=await atPost('IndovinaChi',flds);
     if(res.error){ alert('Errore Airtable: '+(res.error.message||JSON.stringify(res.error))); return; }
     if(!res.records?.[0]?.id){ alert('Risposta inattesa:\n'+JSON.stringify(res).slice(0,400)); return; }
     const recId=res.records[0].id;
-    icPartite.unshift({_recId:recId,id,giocatore1:f4Me,giocatore2:avversarioId,personaggioSegreto:personaggioId,eliminati:[],stato:'aperta',vincitore:'',data:REAL_TODAY});
+    icPartite.unshift({_recId:recId,id,giocatore1:f4Me,giocatore2:avversarioId,personaggioSegreto:personaggioId,eliminati:[],personaggioSegreto2:'',eliminati2:[],turnoDi:'',stato:'attesa_avversario',vincitore:'',data:REAL_TODAY});
     mostraInvitoWhatsApp('Indovina Chi',avversarioId);
   }catch(e){ alert('Errore: '+e.message); }
 }
 
-async function toggleEliminaIC(partitaId,charId){
-  const p=icPartite.find(x=>x.id===partitaId); if(!p||p.stato!=='aperta'||p.giocatore2!==f4Me) return;
-  if(p.eliminati.includes(charId)) p.eliminati=p.eliminati.filter(c=>c!==charId);
-  else p.eliminati.push(charId);
-  renderView();
-  try{ await atPatch('IndovinaChi',p._recId,{Eliminati:p.eliminati.join(',')}); }catch(e){}
+let icPersonaggio2Scelto=null;
+function apriSceltaPersonaggio2IC(partitaId){
+  icPersonaggio2Scelto=partitaId;
+  const grid=IC_ROSTER.map(c=>`<div onclick="salvaPersonaggio2IC('${c.id}')" style="cursor:pointer;text-align:center;padding:6px;border-radius:10px;border:1.5px solid var(--border-light);background:var(--card-bg)"><img src="${icUrl(c.seed)}" width="48" height="48" style="border-radius:50%"><div style="font-size:10px;font-weight:700;margin-top:4px;color:var(--text-main)">${c.nome}</div></div>`).join('');
+  document.getElementById('modal-box').innerHTML=`
+    <div class="modal-hdr"><span class="modal-ttl">🕵️ Scegli il tuo personaggio segreto</span><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div style="font-size:12px;color:var(--text-sec);margin-bottom:12px">Chi indovina per primo il personaggio dell'altro vince!</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-height:340px;overflow-y:auto">${grid}</div>`;
+  showOv();
 }
 
-function faiDomandaIC(partitaId,domandaIdx){
+async function salvaPersonaggio2IC(personaggioId){
+  const partitaId=icPersonaggio2Scelto; if(!partitaId) return;
   const p=icPartite.find(x=>x.id===partitaId); if(!p) return;
-  const secreto=icChar(p.personaggioSegreto); if(!secreto) return;
+  closeModal();
+  p.personaggioSegreto2=personaggioId; p.stato='aperta'; p.turnoDi=p.giocatore1;
+  renderView();
+  try{ await atPatch('IndovinaChi',p._recId,{PersonaggioSegreto2:personaggioId,Stato:'aperta',TurnoDi:p.giocatore1}); }catch(e){ alert('Errore: '+e.message); }
+}
+
+function icAvversarioDi(p,membroId){ return membroId===p.giocatore1?p.giocatore2:p.giocatore1; }
+function icSegretoDi(p,membroId){ return membroId===p.giocatore1?p.personaggioSegreto2:p.personaggioSegreto; }
+function icEliminatiDi(p,membroId){ return membroId===p.giocatore1?p.eliminati:p.eliminati2; }
+
+async function toggleEliminaIC(partitaId,charId){
+  const p=icPartite.find(x=>x.id===partitaId); if(!p||p.stato!=='aperta'||(p.giocatore1!==f4Me&&p.giocatore2!==f4Me)) return;
+  const campo=f4Me===p.giocatore1?'eliminati':'eliminati2';
+  const lista=p[campo];
+  if(lista.includes(charId)) p[campo]=lista.filter(c=>c!==charId);
+  else lista.push(charId);
+  renderView();
+  const fieldName=f4Me===p.giocatore1?'Eliminati':'Eliminati2';
+  try{ await atPatch('IndovinaChi',p._recId,{[fieldName]:p[campo].join(',')}); }catch(e){}
+}
+
+async function faiDomandaIC(partitaId,domandaIdx){
+  const p=icPartite.find(x=>x.id===partitaId); if(!p||p.stato!=='aperta'||p.turnoDi!==f4Me) return;
+  const secreto=icChar(icSegretoDi(p,f4Me)); if(!secreto) return;
   const d=IC_DOMANDE[domandaIdx];
   const risposta=d.test(secreto)?'Sì ✅':'No ❌';
   alert(`${d.label}\n\n${risposta}`);
+  const prossimoTurno=icAvversarioDi(p,f4Me);
+  p.turnoDi=prossimoTurno;
+  renderView();
+  try{ await atPatch('IndovinaChi',p._recId,{TurnoDi:prossimoTurno}); }catch(e){}
 }
 
 async function tentaRispostaIC(partitaId,charId){
-  const p=icPartite.find(x=>x.id===partitaId); if(!p||p.stato!=='aperta'||p.giocatore2!==f4Me) return;
+  const p=icPartite.find(x=>x.id===partitaId); if(!p||p.stato!=='aperta'||p.turnoDi!==f4Me) return;
   const personaggio=icChar(charId);
   if(!(await confermaCustom(`Confermi di voler indovinare ${personaggio.nome}?`))) return;
-  if(charId===p.personaggioSegreto){
+  const segreto=icSegretoDi(p,f4Me);
+  if(charId===segreto){
     p.stato='vinta'; p.vincitore=f4Me;
     renderView();
     try{ await atPatch('IndovinaChi',p._recId,{Stato:'vinta',Vincitore:f4Me}); }catch(e){}
+    registraVittoriaGioco('indovinachi',f4Me);
   } else {
-    alert(`❌ Sbagliato! Non è ${personaggio.nome}. Continua a indagare...`);
+    const prossimoTurno=icAvversarioDi(p,f4Me);
+    p.turnoDi=prossimoTurno;
+    renderView();
+    try{ await atPatch('IndovinaChi',p._recId,{TurnoDi:prossimoTurno}); }catch(e){}
+    alert(`❌ Sbagliato! Non è ${personaggio.nome}. Ora tocca all'avversario...`);
   }
 }
 
 function renderICBoard(p){
   const me=f4Me;
-  const sonoIndovino=p.giocatore2===me;
   const m1=MEMBERS.find(m=>m.id===p.giocatore1)||{name:p.giocatore1};
   const m2=MEMBERS.find(m=>m.id===p.giocatore2)||{name:p.giocatore2};
   let html=`<div style="background:var(--main-bg);border-radius:16px;padding:12px;max-width:400px;margin:0 auto">`;
-  html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-    <span style="font-size:12px;color:var(--text-sec)">🎭 ${escH(m1.name)}</span>
+  html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+    <span style="font-size:12px;color:var(--text-sec)">${escH(m1.name)}</span>
     <div style="font-size:11px;color:var(--text-sec);font-weight:700">VS</div>
-    <span style="font-size:12px;color:var(--text-sec)">🕵️ ${escH(m2.name)}</span>
+    <span style="font-size:12px;color:var(--text-sec)">${escH(m2.name)}</span>
   </div>`;
+  if(p.stato==='attesa_avversario'){
+    if(p.giocatore2===me){
+      html+=`<div style="text-align:center;padding:14px 0">
+        <div style="font-size:13px;color:var(--text-sec);margin-bottom:10px">${escH(m1.name)} ha già scelto il suo personaggio. Scegli anche tu il tuo per iniziare!</div>
+        <button onclick="apriSceltaPersonaggio2IC('${p.id}')" style="padding:10px 18px;border-radius:14px;border:none;background:#378ADD;color:#fff;font-weight:700;font-size:13px;cursor:pointer">Scegli personaggio</button>
+      </div>`;
+    } else {
+      html+=`<div style="text-align:center;padding:14px 0;font-size:13px;color:var(--text-sec)">In attesa che ${escH(m2.name)} scelga il suo personaggio segreto...</div>`;
+    }
+    if(puoEliminarePartita(p)){
+      html+=`<div style="text-align:right;margin-top:8px"><button onclick="eliminaIC('${p.id}')" style="background:none;border:none;color:#ff3b30;font-size:12px;font-weight:700;cursor:pointer;padding:4px 8px">🗑 Elimina partita</button></div>`;
+    }
+    html+=`</div>`;
+    return html;
+  }
+  if(p.stato==='aperta'){
+    const nomeTurno=(MEMBERS.find(m=>m.id===p.turnoDi)||{name:p.turnoDi}).name;
+    html+=`<div style="text-align:center;font-size:10px;font-weight:800;color:#378ADD;margin-bottom:8px">${p.turnoDi===me?'🎯 Tocca a te!':`In attesa di ${escH(nomeTurno)}...`}</div>`;
+  }
   if(p.stato==='vinta'){
-    const secreto=icChar(p.personaggioSegreto);
-    html+=`<div style="text-align:center;padding:14px 0"><img src="${icUrl(secreto.seed)}" width="64" height="64" style="border-radius:50%"><div style="font-size:15px;font-weight:800;color:#378ADD;margin-top:8px">🏆 ${escH(m2.name)} ha indovinato: ${secreto.nome}!</div></div>`;
-  } else if(sonoIndovino){
+    const s1=icChar(p.personaggioSegreto), s2=icChar(p.personaggioSegreto2);
+    html+=`<div style="text-align:center;padding:10px 0">
+      <div style="display:flex;justify-content:center;gap:18px;margin-bottom:10px">
+        <div><img src="${icUrl(s1.seed)}" width="56" height="56" style="border-radius:50%"><div style="font-size:10px;font-weight:700;margin-top:4px">${s1.nome}<br><span style="color:var(--text-sec)">personaggio di ${escH(m1.name)}</span></div></div>
+        <div><img src="${icUrl(s2.seed)}" width="56" height="56" style="border-radius:50%"><div style="font-size:10px;font-weight:700;margin-top:4px">${s2.nome}<br><span style="color:var(--text-sec)">personaggio di ${escH(m2.name)}</span></div></div>
+      </div>
+      <div style="font-size:15px;font-weight:800;color:#378ADD">🏆 Ha vinto ${escH((MEMBERS.find(m=>m.id===p.vincitore)||{name:p.vincitore}).name)}!</div>
+    </div>`;
+  } else if(p.giocatore1===me||p.giocatore2===me){
+    const eTurnoMio=p.turnoDi===me;
     const domandeOpts=IC_DOMANDE.map((d,i)=>`<option value="${i}">${d.label}</option>`).join('');
+    const eliminatiMiei=icEliminatiDi(p,me);
     html+=`<div style="display:flex;gap:6px;margin-bottom:10px">
-      <select id="ic-domanda-${p.id}" style="flex:1;font-size:12px;padding:8px">${domandeOpts}</select>
-      <button onclick="faiDomandaIC('${p.id}',document.getElementById('ic-domanda-${p.id}').value)" style="padding:8px 12px;border-radius:10px;border:none;background:#378ADD;color:#fff;font-weight:700;font-size:12px;cursor:pointer">Chiedi</button>
+      <select id="ic-domanda-${p.id}" ${eTurnoMio?'':'disabled'} style="flex:1;font-size:12px;padding:8px">${domandeOpts}</select>
+      <button ${eTurnoMio?'':'disabled'} onclick="faiDomandaIC('${p.id}',document.getElementById('ic-domanda-${p.id}').value)" style="padding:8px 12px;border-radius:10px;border:none;background:${eTurnoMio?'#378ADD':'#9ca3af'};color:#fff;font-weight:700;font-size:12px;cursor:${eTurnoMio?'pointer':'default'}">Chiedi</button>
     </div>
-    <div style="font-size:10px;color:var(--text-sec);margin-bottom:8px">Tocca un personaggio per eliminarlo/ripristinarlo. Tocca due volte per tentare la risposta.</div>
+    <div style="font-size:10px;color:var(--text-sec);margin-bottom:8px">Tocca un personaggio per eliminarlo/ripristinarlo (in qualsiasi momento). Usa "È lui/lei!" per tentare la risposta nel tuo turno.</div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">`;
     for(const c of IC_ROSTER){
-      const eliminato=p.eliminati.includes(c.id);
+      const eliminato=eliminatiMiei.includes(c.id);
       html+=`<div style="text-align:center;position:relative">
         <img src="${icUrl(c.seed)}" width="100%" style="border-radius:50%;opacity:${eliminato?'0.2':'1'};cursor:pointer;aspect-ratio:1" onclick="toggleEliminaIC('${p.id}','${c.id}')">
         <div style="font-size:9px;font-weight:700;color:${eliminato?'var(--text-sec)':'var(--text-main)'};text-decoration:${eliminato?'line-through':'none'}">${c.nome}</div>
-        ${eliminato?'':`<button onclick="tentaRispostaIC('${p.id}','${c.id}')" style="font-size:8px;padding:2px 4px;border-radius:6px;border:none;background:#378ADD;color:#fff;cursor:pointer;margin-top:2px">È lui/lei!</button>`}
+        ${eliminato?'':`<button ${eTurnoMio?'':'disabled'} onclick="tentaRispostaIC('${p.id}','${c.id}')" style="font-size:8px;padding:2px 4px;border-radius:6px;border:none;background:${eTurnoMio?'#378ADD':'#9ca3af'};color:#fff;cursor:${eTurnoMio?'pointer':'default'};margin-top:2px">È lui/lei!</button>`}
       </div>`;
     }
     html+=`</div>`;
-  } else {
-    html+=`<div style="text-align:center;padding:14px 0;font-size:13px;color:var(--text-sec)">Hai scelto un personaggio segreto.<br>In attesa che ${escH(m2.name)} indovini...</div>`;
   }
   if(puoEliminarePartita(p)){
     html+=`<div style="text-align:right;margin-top:8px"><button onclick="eliminaIC('${p.id}')" style="background:none;border:none;color:#ff3b30;font-size:12px;font-weight:700;cursor:pointer;padding:4px 8px">🗑 Elimina partita</button></div>`;
@@ -4021,6 +4179,7 @@ async function muoviWordle(partitaId){
   try{
     await atPatch('Wordle',p._recId,{Tentativi:p.tentativi.join(','),ParolaSegreta:p.parolaSegreta,RoundAttuale:p.roundAttuale,Punti1:p.punti1,Punti2:p.punti2,Stato:p.stato,Vincitore:p.vincitore});
   }catch(e){ alert('Errore salvataggio tentativo: '+e.message); }
+  if(p.stato==='conclusa'&&p.vincitore) registraVittoriaGioco('wordle',p.vincitore);
 }
 
 function apriProssimaParolaWordle(partitaId){
@@ -4428,7 +4587,7 @@ async function deleteCanzone(id){
 }
 
 async function init(){
-  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle(),loadSegreteria(),loadJukebox()]);
+  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle(),loadSegreteria(),loadJukebox(),loadVittorieGiochi()]);
   render(); loadWeather();
   aggiornaBottoneNotifiche();
   aggiornaBadgeNovita();
@@ -4441,7 +4600,7 @@ async function init(){
   controllaSegreteriaUrgenti();
 }
 async function reloadAll(){
-  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle(),loadSegreteria(),loadJukebox()]);
+  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle(),loadSegreteria(),loadJukebox(),loadVittorieGiochi()]);
   render();
   controllaSegreteriaUrgenti();
   aggiornaBadgeNovita();
