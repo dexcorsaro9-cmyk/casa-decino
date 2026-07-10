@@ -839,7 +839,7 @@
         <button class="tab" id="t-month"      data-macro="agenda"  onclick="switchView('month')">📆 Mese</button>
         <button class="tab" id="t-trasporti"  data-macro="agenda"  onclick="switchView('trasporti')">🚗 Trasporti</button>
         <button class="tab" id="t-ricorrenze" data-macro="agenda"  onclick="switchView('ricorrenze')">🎂 Ricorrenze</button>
-        <button class="tab" id="t-challenge"  data-macro="ricordi" onclick="switchView('challenge')">🏆 Challenge</button>
+        <button class="tab" id="t-challenge"  data-macro="svago" onclick="switchView('challenge')">🏆 Challenge</button>
         <button class="tab" id="t-bacheca"    data-macro="liste"   onclick="switchView('bacheca')">📌 Bacheca</button>
         <button class="tab" id="t-segreteria" data-macro="liste"   onclick="switchView('segreteria')">📞 Segreteria</button>
         <button class="tab" id="t-dispensa"   data-macro="liste"   onclick="switchView('dispensa')">🛒 Dispensa</button>
@@ -864,7 +864,7 @@
   <div class="bottom-nav">
     <button class="bn-btn active" id="bn-home"    onclick="switchMacro('home')"><span class="bn-icon">🏠</span>Home</button>
     <button class="bn-btn" id="bn-agenda"  onclick="switchMacro('agenda')"><span class="bn-icon">🗓️</span>Agenda</button>
-    <button class="bn-btn" id="bn-liste"   onclick="switchMacro('liste')"><span class="bn-icon">🛒</span>Liste</button>
+    <button class="bn-btn" id="bn-liste"   onclick="switchMacro('liste')"><span class="bn-icon">📌</span>Bacheca</button>
     <button class="bn-btn" id="bn-svago"   onclick="switchMacro('svago')"><span class="bn-icon">🎮</span>Svago</button>
     <button class="bn-btn" id="bn-ricordi" onclick="switchMacro('ricordi')"><span class="bn-icon">📸</span>Ricordi</button>
   </div>
@@ -912,14 +912,13 @@ let events=[],ricorrenze=[];
 let view='today',filters=MEMBERS.map(m=>m.id);
 let viewHistory=[];
 
-const VIEW_MACRO={today:'home',week:'agenda',month:'agenda',trasporti:'agenda',ricorrenze:'agenda',bacheca:'liste',segreteria:'liste',dispensa:'liste',sondaggi:'liste',giochi:'svago',jukebox:'svago',film:'svago',viaggi:'ricordi',ricordi:'ricordi',challenge:'ricordi'};
-const MACRO_TABS={home:['today'],agenda:['week','month','trasporti','ricorrenze'],liste:['bacheca','segreteria','dispensa','sondaggi'],svago:['giochi','jukebox','film'],ricordi:['viaggi','ricordi','challenge']};
+const VIEW_MACRO={today:'home',week:'agenda',month:'agenda',trasporti:'agenda',ricorrenze:'agenda',bacheca:'liste',segreteria:'liste',dispensa:'liste',sondaggi:'liste',giochi:'svago',jukebox:'svago',film:'svago',challenge:'svago',viaggi:'ricordi',ricordi:'ricordi'};
+const MACRO_TABS={home:['today'],agenda:['week','month','trasporti','ricorrenze'],liste:['bacheca','segreteria','dispensa','sondaggi'],svago:['giochi','jukebox','film','challenge'],ricordi:['ricordi','viaggi']};
 let macroArea='home';
-let ultimaViewPerMacro={};
 
 function switchMacro(m){
-  const target=ultimaViewPerMacro[m]||MACRO_TABS[m][0];
-  switchView(target);
+  if(m==='svago'&&typeof giochiTab!=='undefined') giochiTab='forza4';
+  switchView(MACRO_TABS[m][0]);
 }
 
 function aggiornaMacroUI(){
@@ -1120,7 +1119,6 @@ function switchView(v,daHistory){
   view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge','t-bacheca','t-dispensa','t-ricordi','t-viaggi','t-film','t-sondaggi','t-giochi','t-segreteria','t-jukebox'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
   const tab=document.getElementById('t-'+v); if(tab){ tab.classList.add('active'); tab.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'}); }
   macroArea=VIEW_MACRO[v]||macroArea;
-  ultimaViewPerMacro[macroArea]=v;
   aggiornaMacroUI();
   const fab=document.getElementById('fab-add'); const fabTxt=document.getElementById('fab-text');
   if(v==='challenge'){ fab.style.display='none'; }
