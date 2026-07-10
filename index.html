@@ -53,6 +53,7 @@
       }
     }
 
+    html, body { overflow-x: hidden; max-width: 100%; }
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--main-bg);
@@ -87,6 +88,7 @@
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-md);
       padding: 16px 16px 10px;
+      position: relative;
       z-index: 10;
       margin-top: 12px;
       margin-bottom: 20px;
@@ -728,6 +730,44 @@
       transition: opacity 0.15s; font-weight: bold; line-height: 1;
     }
     .postit:hover .postit-del { opacity: 1; }
+    .postit-gold {
+      background: linear-gradient(135deg, #fff6d8 0%, #fde68a 35%, #f3c748 65%, #fde68a 100%);
+      border: 2px solid #e8b923;
+      box-shadow: 4px 5px 14px rgba(180,130,0,0.35), 0 0 0 3px rgba(253,230,138,0.35), inset 0 -2px 4px rgba(0,0,0,0.06);
+    }
+    .postit-gold:hover { box-shadow: 6px 8px 20px rgba(180,130,0,0.45), 0 0 0 3px rgba(253,230,138,0.45); }
+    .postit-gold .postit-pin { background: radial-gradient(circle at 38% 32%, #fff3b0, #d4a017); }
+
+    .postit-bday {
+      background: linear-gradient(135deg, #ffe0f0 0%, #ffc2e0 35%, #ff8fc7 65%, #ffc2e0 100%);
+      border: 2px solid #ff5fa8;
+      box-shadow: 4px 5px 14px rgba(255,95,168,0.35), 0 0 0 3px rgba(255,194,224,0.4), inset 0 -2px 4px rgba(0,0,0,0.06);
+    }
+    .postit-bday:hover { box-shadow: 6px 8px 20px rgba(255,95,168,0.45), 0 0 0 3px rgba(255,194,224,0.5); }
+    .postit-bday .postit-pin { background: radial-gradient(circle at 38% 32%, #ffd0e8, #ff2d8f); }
+
+    .postit-love {
+      background: linear-gradient(135deg, #ffe4e6 0%, #ffc4c9 35%, #ff8a93 65%, #ffc4c9 100%);
+      border: 2px solid #ff4d5e;
+      box-shadow: 4px 5px 14px rgba(255,77,94,0.35), 0 0 0 3px rgba(255,196,201,0.4), inset 0 -2px 4px rgba(0,0,0,0.06);
+    }
+    .postit-love:hover { box-shadow: 6px 8px 20px rgba(255,77,94,0.45), 0 0 0 3px rgba(255,196,201,0.5); }
+    .postit-love .postit-pin { background: radial-gradient(circle at 38% 32%, #ffcdd2, #e6273a); }
+
+    .postit-scuola {
+      background: linear-gradient(135deg, #e0eefe 0%, #bfdcfd 35%, #7fb4f7 65%, #bfdcfd 100%);
+      border: 2px solid #2f7de0;
+      box-shadow: 4px 5px 14px rgba(47,125,224,0.35), 0 0 0 3px rgba(191,220,253,0.4), inset 0 -2px 4px rgba(0,0,0,0.06);
+    }
+    .postit-scuola:hover { box-shadow: 6px 8px 20px rgba(47,125,224,0.45), 0 0 0 3px rgba(191,220,253,0.5); }
+    .postit-scuola .postit-pin { background: radial-gradient(circle at 38% 32%, #d6e8fe, #1a5cc0); }
+
+    .postit-badge {
+      position: absolute; top: -16px; left: 50%; transform: translateX(-50%);
+      font-size: 22px; filter: drop-shadow(0 3px 3px rgba(0,0,0,0.3));
+      animation: crownBob 2.4s ease-in-out infinite;
+    }
+    @keyframes crownBob { 0%,100%{ transform: translateX(-50%) rotate(-6deg); } 50%{ transform: translateX(-50%) rotate(6deg); } }
     @media (hover: none) { .postit-del { opacity: 1; } }
     .postit-slide {
       display: block; width: 100%; aspect-ratio: 4/3; object-fit: cover;
@@ -1304,12 +1344,12 @@ function gestisciPollingGiochi(){
       const attivo=document.activeElement?.tagName;
       if(attivo==='INPUT'||attivo==='TEXTAREA'||attivo==='SELECT') return;
       await Promise.all([loadForza4(),loadTris(),loadImpiccato(),loadMorra()]);
-      if(view==='giochi') renderView();
+      if(view==='giochi') renderView(true);
     },5000);
   }
 }
 
-function renderView(){ const el=document.getElementById('view'); el.classList.remove('view-animate'); void el.offsetWidth; el.classList.add('view-animate'); if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else if(view==='sondaggi')el.innerHTML=sondaggiView(); else if(view==='giochi'){el.innerHTML=giochiView();ripristinaScrollGiochiSubnav();} else if(view==='segreteria'){el.innerHTML=segreteriaView();setTimeout(attivaSwipeSegreteria,50);} else if(view==='jukebox')el.innerHTML=jukeboxView(); else if(view==='record')el.innerHTML=recordView(); else el.innerHTML=ricorrenzeView(); updateGiochiBadge(); }
+function renderView(silenzioso){ const el=document.getElementById('view'); if(!silenzioso){ el.classList.remove('view-animate'); void el.offsetWidth; el.classList.add('view-animate'); } if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else if(view==='sondaggi')el.innerHTML=sondaggiView(); else if(view==='giochi'){el.innerHTML=giochiView();ripristinaScrollGiochiSubnav();} else if(view==='segreteria'){el.innerHTML=segreteriaView();setTimeout(attivaSwipeSegreteria,50);} else if(view==='jukebox')el.innerHTML=jukeboxView(); else if(view==='record')el.innerHTML=recordView(); else el.innerHTML=ricorrenzeView(); updateGiochiBadge(); }
 
 function updateGiochiBadge(){
   const tab=document.getElementById('t-giochi'); if(!tab) return;
@@ -1411,7 +1451,9 @@ function bachecaWidget(){
       const txc = POSTIT_TEXT_COLORS.find(c=>c.id===n.textColor)||POSTIT_TEXT_COLORS[0];
       const rot = noteRotation(n.id);
       const m = M(n.author);
-      return `<div class="mini-postit" style="background:${col.hex};transform:rotate(${rot}deg)">
+      const spec = POSTIT_SPECIALI[n.color];
+      return `<div class="mini-postit${spec?' postit-'+n.color:''}" style="${spec?'':'background:'+col.hex+';'}transform:rotate(${rot}deg)">
+        ${spec?`<div class="postit-badge" style="font-size:16px;top:-12px">${spec.icon}</div>`:''}
         <div class="mini-postit-pin"></div>
         <div class="mini-postit-text" style="font-family:${fnt.family};color:${txc.hex}">${escH(n.text)}</div>
         <div class="mini-postit-author" style="color:${m.dot}">${getIcon(m.id)} ${m.name}</div>
@@ -1467,7 +1509,7 @@ function segreteriaWidget(){
       ${recent.map(msg=>{
         const m=M(msg.autore);
         return `<div class="mini-phone" id="seg-card-${msg.id}">
-          ${msg.urgente?'<span class="mini-phone-urgente">URGENTE</span>':''}
+          ${msg.urgente?'<span class="mini-phone-urgente">🚨</span>':''}
           <div class="mini-phone-icon">☎️</div>
           <button id="seg-playbtn-${msg.id}" class="mini-phone-playbtn" onclick="togglePlaySegreteria('${msg.id}')">▶️</button>
           <div id="seg-listeners-${msg.id}" style="display:flex;margin-top:4px">${typeof segAscoltatoriHtml==='function'?segAscoltatoriHtml(msg):''}</div>
@@ -1954,7 +1996,17 @@ const POSTIT_COLORS = [
   { id:'blue',    hex:'#bae6fd', label:'Azzurro' },
   { id:'orange',  hex:'#fed7aa', label:'Arancio' },
   { id:'purple',  hex:'#e9d5ff', label:'Lilla'   },
+  { id:'gold',    hex:'#fde68a', label:'👑 Dorato speciale' },
+  { id:'bday',    hex:'#ffc2e0', label:'🎉 Compleanno' },
+  { id:'love',    hex:'#ffc4c9', label:'💖 Amore' },
+  { id:'scuola',  hex:'#bfdcfd', label:'🎓 Promozione' },
 ];
+const POSTIT_SPECIALI = {
+  gold:   { icon:'👑', gradient:'linear-gradient(135deg,#fff6d8,#f3c748)', border:'#e8b923' },
+  bday:   { icon:'🎉', gradient:'linear-gradient(135deg,#ffe0f0,#ff8fc7)', border:'#ff5fa8' },
+  love:   { icon:'💖', gradient:'linear-gradient(135deg,#ffe4e6,#ff8a93)', border:'#ff4d5e' },
+  scuola: { icon:'🎓', gradient:'linear-gradient(135deg,#e0eefe,#7fb4f7)', border:'#2f7de0' },
+};
 const POSTIT_FONTS = [
   { id:'caveat',    label:'Corsivo',    family:"'Caveat', cursive"        },
   { id:'patrick',   label:'Handwriting',family:"'Patrick Hand', cursive"  },
@@ -1999,7 +2051,9 @@ function bachecaView(){
     const col = POSTIT_COLORS.find(c=>c.id===n.color)||POSTIT_COLORS[0];
     const fnt = POSTIT_FONTS.find(f=>f.id===n.font)||POSTIT_FONTS[0];
     const txc = POSTIT_TEXT_COLORS.find(c=>c.id===n.textColor)||POSTIT_TEXT_COLORS[0];
-    return `<div class="postit" style="transform:rotate(${rot}deg);background:${col.hex}">
+    const spec = POSTIT_SPECIALI[n.color];
+    return `<div class="postit${spec?' postit-'+n.color:''}" style="transform:rotate(${rot}deg);${spec?'':'background:'+col.hex}">
+      ${spec?`<div class="postit-badge">${spec.icon}</div>`:''}
       <div class="postit-pin"></div>
       <button class="postit-del" onclick="event.stopPropagation();deleteBachecaNote('${n.id}')">✕</button>
       ${n.fotoUrl?`<img src="${n.fotoUrl}" class="postit-slide" onclick="event.stopPropagation();openFotoLightboxUrl('${n.fotoUrl}')">`:''}
@@ -2041,18 +2095,23 @@ function bachecaAnteprimaFoto(){
 
 function renderBachecaModal(){
   const mbrBtns = MEMBERS.map(m=>`<button class="tr-btn${bachecaForm.author===m.id?' sel':''}" onclick="bachecaForm.author='${m.id}';renderBachecaModal()" style="${bachecaForm.author===m.id?ms(m):''}">${getIcon(m.id)} ${m.name}</button>`).join('');
-  const colorBtns = POSTIT_COLORS.map(c=>`<button onclick="bachecaForm.color='${c.id}';renderBachecaModal()" title="${c.label}" style="width:32px;height:32px;border-radius:50%;background:${c.hex};border:${bachecaForm.color===c.id?'3px solid #378ADD':'2px solid rgba(0,0,0,0.15)'};cursor:pointer;transition:transform 0.1s;${bachecaForm.color===c.id?'transform:scale(1.2)':''}"></button>`).join('');
+  const colorBtns = POSTIT_COLORS.map(c=>{
+    const spec=POSTIT_SPECIALI[c.id];
+    const bg=spec?spec.gradient:c.hex;
+    return `<button onclick="bachecaForm.color='${c.id}';renderBachecaModal()" title="${c.label}" style="width:32px;height:32px;border-radius:50%;background:${bg};border:${bachecaForm.color===c.id?'3px solid #378ADD':spec?'2px solid '+spec.border:'2px solid rgba(0,0,0,0.15)'};cursor:pointer;transition:transform 0.1s;${bachecaForm.color===c.id?'transform:scale(1.2)':''}">${spec?spec.icon:''}</button>`;
+  }).join('');
   const textColorBtns = POSTIT_TEXT_COLORS.map(c=>`<button onclick="bachecaForm.textColor='${c.id}';renderBachecaModal()" title="${c.label}" style="width:32px;height:32px;border-radius:50%;background:${c.hex};border:${bachecaForm.textColor===c.id?'3px solid #378ADD':'2px solid rgba(0,0,0,0.15)'};cursor:pointer;transition:transform 0.1s;${bachecaForm.textColor===c.id?'transform:scale(1.2)':''}"></button>`).join('');
   const curFont = POSTIT_FONTS.find(f=>f.id===bachecaForm.font)||POSTIT_FONTS[0];
   const curCol = POSTIT_COLORS.find(c=>c.id===bachecaForm.color)||POSTIT_COLORS[0];
+  const curSpec = POSTIT_SPECIALI[bachecaForm.color];
   const curTxc = POSTIT_TEXT_COLORS.find(c=>c.id===bachecaForm.textColor)||POSTIT_TEXT_COLORS[0];
   const fontBtns = POSTIT_FONTS.map(f=>`<button class="tr-btn${bachecaForm.font===f.id?' sel':''}" onclick="bachecaForm.font='${f.id}';renderBachecaModal()" style="font-family:${f.family};${bachecaForm.font===f.id?'background:#378ADD;color:#fff;':''}">${f.label}</button>`).join('');
   document.getElementById('modal-box').innerHTML=`
     <div class="modal-hdr"><div class="modal-ttl">📌 Nuovo Post-it</div><button class="cl-btn" onclick="closeModal()">✕</button></div>
     <div class="fgrp"><label class="flbl">Messaggio</label>
-      <textarea id="bacheca-text" rows="4" placeholder="Scrivi il tuo pensiero…" style="width:100%;resize:none;background:${curCol.hex};color:${curTxc.hex};font-family:${curFont.family};font-size:15px" oninput="bachecaForm.text=this.value">${escH(bachecaForm.text)}</textarea>
+      <textarea id="bacheca-text" rows="4" placeholder="Scrivi il tuo pensiero…" style="width:100%;resize:none;background:${curSpec?curSpec.gradient:curCol.hex};color:${curTxc.hex};font-family:${curFont.family};font-size:15px" oninput="bachecaForm.text=this.value">${escH(bachecaForm.text)}</textarea>
     </div>
-    <div class="fgrp"><label class="flbl">Colore sfondo</label><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">${colorBtns}</div></div>
+    <div class="fgrp"><label class="flbl">Colore sfondo</label><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">${colorBtns}</div>${curSpec?`<div style="font-size:12px;font-weight:700;color:${curSpec.border};margin-top:8px">${curSpec.icon} Cornice speciale — ${curCol.label.replace(/^\S+\s/,'')}!</div>`:''}</div>
     <div class="fgrp"><label class="flbl">Colore testo</label><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">${textColorBtns}</div></div>
     <div class="fgrp"><label class="flbl">Font</label><div class="tr-opts">${fontBtns}</div></div>
     <div class="fgrp"><label class="flbl">Foto (opzionale)</label>
@@ -2424,8 +2483,10 @@ function ricordiView(){
 }
 
 let fotoForm={autore:'antonio',didascalia:'',cornice:'cream',fontDidascalia:'caveat',viaggioId:''};
+let fotoSelectedFile=null;
 function openFotoModal(preViaggioId=''){
   fotoForm={autore:'antonio',didascalia:'',cornice:'cream',fontDidascalia:'caveat',viaggioId:preViaggioId};
+  fotoSelectedFile=null;
   renderFotoModal(); showOv();
 }
 
@@ -2438,7 +2499,7 @@ function renderFotoModal(){
   document.getElementById('modal-box').innerHTML=`
     <div class="modal-hdr"><div class="modal-ttl">📸 Nuovo Ricordo</div><button class="cl-btn" onclick="closeModal()">✕</button></div>
     <div class="fgrp"><label class="flbl">Foto</label>
-      <input type="file" id="foto-file" accept="image/*" style="width:100%;padding:10px;border:1px solid var(--border-light);border-radius:10px;background:var(--main-bg)">
+      <input type="file" id="foto-file" accept="image/*" onchange="fotoSelectedFile=this.files[0]||null" style="width:100%;padding:10px;border:1px solid var(--border-light);border-radius:10px;background:var(--main-bg)">
     </div>
     <div class="fgrp"><label class="flbl">Didascalia (opzionale)</label>
       <input type="text" id="foto-did" placeholder="Es. Estate 2025…" value="${escH(fotoForm.didascalia)}" oninput="fotoForm.didascalia=this.value" style="width:100%;font-family:${previewFont.family}">
@@ -2452,15 +2513,23 @@ function renderFotoModal(){
         ${[...viaggi].sort((a,b)=>b.data.localeCompare(a.data)).map(v=>`<option value="${v.id}"${fotoForm.viaggioId===v.id?' selected':''}>${escH(v.luogo)}${v.data?' ('+fmtDateShort(v.data)+')':''}</option>`).join('')}
       </select></div>`:''}
     <div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Annulla</button><button class="btn-save" onclick="uploadFoto()">Carica foto</button></div>`;
+  if(fotoSelectedFile){
+    try{
+      const dt=new DataTransfer();
+      dt.items.add(fotoSelectedFile);
+      document.getElementById('foto-file').files=dt.files;
+    }catch(e){}
+  }
 }
 
 async function uploadFoto(){
   const fileInput=document.getElementById('foto-file');
+  const file=fileInput?.files?.[0]||fotoSelectedFile;
   const did=document.getElementById('foto-did')?.value.trim()||fotoForm.didascalia;
-  if(!fileInput?.files?.[0]){ alert('Seleziona una foto'); return; }
+  if(!file){ alert('Seleziona una foto'); return; }
   document.getElementById('modal-box').innerHTML=`<div class="foto-upload-progress">⏳ Caricamento in corso…</div>`;
   const formData=new FormData();
-  formData.append('file', fileInput.files[0]);
+  formData.append('file', file);
   formData.append('upload_preset', CL_PRESET);
   try{
     const res=await fetch(`https://api.cloudinary.com/v1_1/${CL_CLOUD}/image/upload`,{method:'POST',body:formData});
@@ -2615,7 +2684,7 @@ function viaggiView(){
   const sorted=[...viaggi].sort((a,b)=>b.data.localeCompare(a.data));
   const listHtml = sorted.length ? sorted.map(v=>{
     const m=v.membri.length?M(v.membri[0]):MEMBERS[0];
-    return `<div class="ev-card" style="${ms(m)}">
+    return `<div class="ev-card" style="${ms(m)};cursor:pointer" onclick="openViaggioDetail(viaggi.find(x=>x.id==='${v.id}'))">
       <div class="ev-strip" style="background:${m.dot}"></div>
       <div style="font-size:22px;margin-right:2px">📍</div>
       <div class="ev-info">
@@ -4400,8 +4469,8 @@ function renderICBoard(p){
     const eTurnoMio=p.turnoDi===me;
     const eliminatiMiei=icEliminatiDi(p,me);
     html+=`<div style="display:flex;gap:6px;margin-bottom:10px">
-      <input type="text" id="ic-domanda-${p.id}" ${eTurnoMio?'':'disabled'} placeholder="Scrivi una domanda…" style="flex:1;font-size:12px;padding:8px;border-radius:8px;border:1px solid var(--border-light)">
-      <button ${eTurnoMio?'':'disabled'} onclick="inviaDomandaIC('${p.id}')" style="padding:8px 12px;border-radius:10px;border:none;background:${eTurnoMio?'#378ADD':'#9ca3af'};color:#fff;font-weight:700;font-size:12px;cursor:${eTurnoMio?'pointer':'default'}">Invia</button>
+      <input type="text" id="ic-domanda-${p.id}" ${eTurnoMio?'':'disabled'} placeholder="Scrivi una domanda…" style="flex:1;min-width:0;font-size:12px;padding:8px;border-radius:8px;border:1px solid var(--border-light)">
+      <button ${eTurnoMio?'':'disabled'} onclick="inviaDomandaIC('${p.id}')" style="flex-shrink:0;padding:8px 12px;border-radius:10px;border:none;background:${eTurnoMio?'#378ADD':'#9ca3af'};color:#fff;font-weight:700;font-size:12px;cursor:${eTurnoMio?'pointer':'default'}">Invia</button>
     </div>
     <div style="font-size:10px;color:var(--text-sec);margin-bottom:8px">Tocca un personaggio per eliminarlo/ripristinarlo (in qualsiasi momento). Usa "È lui/lei!" per tentare la risposta nel tuo turno.</div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">`;
@@ -4595,9 +4664,9 @@ function renderWordleBoard(p){
     }
     html+=`</div>`;
     if(guesser===me){
-      html+=`<div style="display:flex;gap:6px">
-        <input id="wordle-input-${p.id}" maxlength="5" style="flex:1;text-transform:uppercase;text-align:center;font-weight:800;letter-spacing:2px" placeholder="?????">
-        <button onclick="muoviWordle('${p.id}')" style="padding:10px 16px;border-radius:10px;border:none;background:#378ADD;color:#fff;font-weight:700;cursor:pointer">Prova</button>
+      html+=`<div style="display:flex;gap:6px;max-width:100%">
+        <input id="wordle-input-${p.id}" maxlength="5" style="flex:1;min-width:0;width:0;text-transform:uppercase;text-align:center;font-weight:800;letter-spacing:2px" placeholder="?????">
+        <button onclick="muoviWordle('${p.id}')" style="flex-shrink:0;padding:10px 16px;border-radius:10px;border:none;background:#378ADD;color:#fff;font-weight:700;cursor:pointer">Prova</button>
       </div>
       <div style="font-size:10px;color:var(--text-sec);margin-top:6px;text-align:center">Tentativo ${p.tentativi.length+1} di ${WORDLE_MAX_TENTATIVI}</div>`;
     } else {
@@ -4805,7 +4874,7 @@ function segreteriaView(){
         <div id="seg-bars-${msg.id}" class="seg-bars">
           ${Array.from({length:14}).map((_,i)=>`<span style="width:3px;height:${6+((i*7)%14)}px"></span>`).join('')}
         </div>
-        ${msg.urgente?'<span style="background:#ff3b30;color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:8px;flex-shrink:0">🚨 URGENTE</span>':''}
+        ${msg.urgente?'<span style="font-size:15px;flex-shrink:0" title="Urgente">🚨</span>':''}
         ${msg.destinatario!=='tutti'?`<span style="background:var(--main-bg);color:#5c4a2a;font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;flex-shrink:0">✉️ Per ${escH(M(msg.destinatario).name)}</span>`:''}
         <div id="seg-listeners-${msg.id}" style="display:flex;flex-shrink:0">${segAscoltatoriHtml(msg)}</div>
         <div class="seg-meta">
