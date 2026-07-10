@@ -4042,10 +4042,11 @@ function renderICBoard(p){
   }
   if(p.stato==='vinta'){
     const s1=icChar(p.personaggioSegreto), s2=icChar(p.personaggioSegreto2);
+    const cardChar=(s,nomeGiocatore)=>s?`<div><img src="${icUrl(s.seed)}" width="56" height="56" style="border-radius:50%"><div style="font-size:10px;font-weight:700;margin-top:4px">${s.nome}<br><span style="color:var(--text-sec)">personaggio di ${escH(nomeGiocatore)}</span></div></div>`:'';
     html+=`<div style="text-align:center;padding:10px 0">
       <div style="display:flex;justify-content:center;gap:18px;margin-bottom:10px">
-        <div><img src="${icUrl(s1.seed)}" width="56" height="56" style="border-radius:50%"><div style="font-size:10px;font-weight:700;margin-top:4px">${s1.nome}<br><span style="color:var(--text-sec)">personaggio di ${escH(m1.name)}</span></div></div>
-        <div><img src="${icUrl(s2.seed)}" width="56" height="56" style="border-radius:50%"><div style="font-size:10px;font-weight:700;margin-top:4px">${s2.nome}<br><span style="color:var(--text-sec)">personaggio di ${escH(m2.name)}</span></div></div>
+        ${cardChar(s1,m1.name)}
+        ${cardChar(s2,m2.name)}
       </div>
       <div style="font-size:15px;font-weight:800;color:#378ADD">🏆 Ha vinto ${escH((MEMBERS.find(m=>m.id===p.vincitore)||{name:p.vincitore}).name)}!</div>
     </div>`;
