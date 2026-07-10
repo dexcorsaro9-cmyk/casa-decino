@@ -4895,8 +4895,11 @@ function avviaVideo(idContenitore,videoId){
     if(ytPlayerCorrente){ try{ ytPlayerCorrente.destroy(); }catch(e){} ytPlayerCorrente=null; }
     ytPlayerCorrente=new YT.Player(div.id,{
       width:'100%', height:'100%', videoId:videoId,
-      playerVars:{playsinline:1,controls:1},
-      events:{ onStateChange:(e)=>{ if(e.data===0&&jukeboxShuffleAttivo) suonaVinileCasuale(); } }
+      playerVars:{playsinline:1,controls:1,autoplay:1},
+      events:{
+        onReady:(e)=>{ try{ e.target.playVideo(); }catch(err){} },
+        onStateChange:(e)=>{ if(e.data===0&&jukeboxShuffleAttivo) suonaVinileCasuale(); }
+      }
     });
   };
   if(window.YT&&window.YT.Player){ ytApiReady=true; crea(); }
