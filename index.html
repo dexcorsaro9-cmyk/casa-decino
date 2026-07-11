@@ -1013,11 +1013,13 @@ const VIEW_MACRO={today:'home',week:'agenda',month:'agenda',trasporti:'agenda',r
 const MACRO_TABS={home:['today'],agenda:['week','month','trasporti','ricorrenze'],liste:['bacheca','segreteria','dispensa','sondaggi'],svago:['giochi','jukebox','film','challenge','record'],ricordi:['ricordi','viaggi']};
 let macroArea='home';
 
+const MEMBRI_FEMMINILI=['pamela','sara'];
 function mostraSaluto(){
   const el=document.getElementById('saluto-header'); if(!el) return;
   const oggi=new Date();
   const ora=oggi.getHours();
-  const testo=ora<6?'Ancora sveglio':ora<12?'Buongiorno':ora<18?'Buon pomeriggio':ora<22?'Buonasera':'Buonanotte';
+  const svegliaTxt=MEMBRI_FEMMINILI.includes(f4Me)?'Ancora sveglia':'Ancora sveglio';
+  const testo=ora<6?svegliaTxt:ora<12?'Buongiorno':ora<18?'Buon pomeriggio':ora<22?'Buonasera':'Buonanotte';
   const m=M(f4Me);
   const giorno=['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'][oggi.getDay()];
   const data=`${giorno} ${oggi.getDate()} ${MONTHS_IT[oggi.getMonth()]}`;
