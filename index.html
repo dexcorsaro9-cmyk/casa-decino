@@ -1087,17 +1087,14 @@ let wkStart=weekStart(new Date(REAL_TODAY)),curMonth=new Date(REAL_TODAY);
 var editId=null,form={},ricEditId=null,ricForm={};
 let weatherCacheData = null;
 
-/* ── AIRTABLE API ── */
-const AT_BASE  = 'https://api.airtable.com/v0/appmfStiVB53NEKoY';
-const AT_TOKEN = 'pat9K6W2IgOxx75Pm.87d40a4670ab4f23c24095ad8cb924e5f54ed89c2f5ee2e4c011aa777d3b5e2c';
-const AT_H     = { 'Authorization': `Bearer ${AT_TOKEN}`, 'Content-Type': 'application/json' };
-const AT_HR    = { 'Authorization': `Bearer ${AT_TOKEN}` };
+/* ── AIRTABLE API (via proxy serverless /api/airtable, il token resta sul server) ── */
+const AT_PROXY = '/api/airtable';
 
 async function atGetAll(table){
   let records=[], offset=null;
   do {
-    const url=`${AT_BASE}/${encodeURIComponent(table)}`+(offset?`?offset=${offset}`:'');
-    const res=await fetch(url,{headers:AT_H});
+    const url=`${AT_PROXY}?table=${encodeURIComponent(table)}`+(offset?`&offset=${offset}`:'');
+    const res=await fetch(url);
     const d=await res.json();
     if(d.records) records=records.concat(d.records);
     offset=d.offset||null;
@@ -1105,14 +1102,14 @@ async function atGetAll(table){
   return records;
 }
 async function atPost(table,fields){
-  const res=await fetch(`${AT_BASE}/${encodeURIComponent(table)}`,{method:'POST',headers:AT_H,body:JSON.stringify({records:[{fields}]})});
+  const res=await fetch(`${AT_PROXY}?table=${encodeURIComponent(table)}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({records:[{fields}]})});
   return res.json();
 }
 function atPatch(table,recId,fields){
-  return fetch(`${AT_BASE}/${encodeURIComponent(table)}/${recId}`,{method:'PATCH',headers:AT_H,body:JSON.stringify({fields})});
+  return fetch(`${AT_PROXY}?table=${encodeURIComponent(table)}&id=${encodeURIComponent(recId)}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});
 }
 function atDelete(table,recId){
-  fetch(`${AT_BASE}/${encodeURIComponent(table)}/${recId}`,{method:'DELETE',headers:AT_HR});
+  fetch(`${AT_PROXY}?table=${encodeURIComponent(table)}&id=${encodeURIComponent(recId)}`,{method:'DELETE'});
 }
 
 function weekStart(d){const dt=new Date(d);const dy=dt.getDay();dt.setDate(dt.getDate()+(dy===0?-6:1-dy));dt.setHours(0,0,0,0);return dt;}
