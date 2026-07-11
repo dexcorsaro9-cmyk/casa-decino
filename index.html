@@ -909,10 +909,10 @@
             <div id="weather-widget" class="weather-box" onclick="openWeatherPopup()"></div>
           </div>
         </div>
-        <button id="notif-btn" onclick="attivaNotifiche()" style="display:none;background:#378ADD;color:#fff;border:none;padding:8px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">🔔 Attiva notifiche</button>
-        <div style="position:relative">
-          <button id="novita-btn" onclick="toggleNovitaPanel()" style="display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.05);border:none;width:38px;height:38px;padding:0;border-radius:50%;font-size:18px;line-height:1;cursor:pointer;position:relative">🔔<span id="novita-badge" style="display:none;position:absolute;top:-2px;right:-2px;background:#e0422a;color:#fff;font-size:10px;font-weight:800;min-width:16px;height:16px;border-radius:8px;line-height:16px;text-align:center;padding:0 3px"></span></button>
-          <div id="novita-panel" style="display:none;position:absolute;top:44px;right:0;width:280px;max-height:340px;overflow-y:auto;background:var(--card-bg,#fff);border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,0.25);z-index:1000;padding:8px"></div>
+        <div style="position:relative;display:flex;flex-direction:column;gap:6px">
+          <button id="settings-btn" onclick="apriImpostazioni()" title="Impostazioni" style="display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.05);border:none;width:32px;height:32px;padding:0;border-radius:50%;font-size:15px;line-height:1;cursor:pointer">⚙️</button>
+          <button id="novita-btn" onclick="toggleNovitaPanel()" style="display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.05);border:none;width:32px;height:32px;padding:0;border-radius:50%;font-size:16px;line-height:1;cursor:pointer;position:relative">🔔<span id="novita-badge" style="display:none;position:absolute;top:-2px;right:-2px;background:#e0422a;color:#fff;font-size:10px;font-weight:800;min-width:16px;height:16px;border-radius:8px;line-height:16px;text-align:center;padding:0 3px"></span></button>
+          <div id="novita-panel" style="display:none;position:absolute;top:76px;right:0;width:280px;max-height:340px;overflow-y:auto;background:var(--card-bg,#fff);border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,0.25);z-index:1000;padding:8px"></div>
         </div>
       </div>
       <div class="tabs" id="tabs-bar">
@@ -959,6 +959,22 @@
 </div>
 
 <script>
+const TEMA_DARK_VARS={'--a-bg':'#0C2440','--a-txt':'#B5D4F4','--p-bg':'#3A150A','--p-txt':'#F5C4B3','--v-bg':'#052620','--v-txt':'#9FE1CB','--f-bg':'#051A26','--f-txt':'#9DD9F0','--s-bg':'#1A163B','--s-txt':'#CECBF6','--main-bg':'#0B132B','--card-bg':'#1C2541','--text-main':'#F4F6F9','--text-sec':'#8A99AD','--border-light':'rgba(255, 255, 255, 0.06)','--shadow-sm':'0 4px 12px rgba(0, 0, 0, 0.2)','--shadow-md':'0 12px 32px rgba(0, 0, 0, 0.35)'};
+const TEMA_LIGHT_VARS={'--a-bg':'#E6F1FB','--a-txt':'#0C447C','--p-bg':'#FAECE7','--p-txt':'#712B13','--v-bg':'#E1F5EE','--v-txt':'#085041','--f-bg':'#DAEEFF','--f-txt':'#0B5A7A','--s-bg':'#EEEDFE','--s-txt':'#3C3489','--main-bg':'#F0F4F8','--card-bg':'#FFFFFF','--text-main':'#1C2541','--text-sec':'#657786','--border-light':'rgba(55, 138, 221, 0.08)','--shadow-sm':'0 4px 12px rgba(28, 37, 65, 0.04)','--shadow-md':'0 8px 24px rgba(28, 37, 65, 0.08)'};
+function applyTema(){
+  const tema=localStorage.getItem('casaDecino_tema')||'auto';
+  const root=document.documentElement.style;
+  if(tema==='auto'){
+    Object.keys(TEMA_DARK_VARS).forEach(k=>root.removeProperty(k));
+    document.documentElement.removeAttribute('data-tema');
+    return;
+  }
+  const vars=tema==='scuro'?TEMA_DARK_VARS:TEMA_LIGHT_VARS;
+  Object.entries(vars).forEach(([k,v])=>root.setProperty(k,v));
+  document.documentElement.setAttribute('data-tema',tema);
+}
+applyTema();
+
 const d_now = new Date();
 const REAL_TODAY = `${d_now.getFullYear()}-${String(d_now.getMonth() + 1).padStart(2, '0')}-${String(d_now.getDate()).padStart(2, '0')}`;
 let viewDate = REAL_TODAY; 
@@ -1174,11 +1190,11 @@ const METEO_DESC = {
 
 async function loadWeather() {
   try {
-    const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=41.99&longitude=12.72&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=Europe%2FRome&forecast_days=3');
+    const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=41.9661&longitude=12.6600&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=Europe%2FRome&forecast_days=3');
     if (!res.ok) return; const data = await res.json(); if (!data.daily) return;
     weatherCacheData = data.daily; const condOggi = METEO_DESC[weatherCacheData.weathercode[0]] || {txt:'Nuvoloso', ico:'☁️'};
     const widget = document.getElementById('weather-widget');
-    widget.innerHTML = `<span class="w-loc">📍 Guidonia</span> ${condOggi.ico} Oggi ${Math.round(weatherCacheData.temperature_2m_max[0])}° / ${Math.round(weatherCacheData.temperature_2m_min[0])}°`;
+    widget.innerHTML = `<span class="w-loc">📍 Marco Simone</span> ${condOggi.ico} Oggi ${Math.round(weatherCacheData.temperature_2m_max[0])}° / ${Math.round(weatherCacheData.temperature_2m_min[0])}°`;
     widget.style.display = 'inline-block';
   } catch (e) { document.getElementById('weather-widget').style.display = 'none'; }
 }
@@ -1186,7 +1202,7 @@ async function loadWeather() {
 function openWeatherPopup() {
   if(!weatherCacheData) return;
   const lbls = ['Oggi', 'Domani', 'Dopodomani'];
-  let html = `<div class="modal-hdr"><div class="modal-ttl">📍 Previsioni — Guidonia Montecelio</div><button class="cl-btn" onclick="closeModal()">✕</button></div><div style="margin-bottom: 14px; font-size: 12px; color: var(--text-sec); font-weight: 600;">PROSPETTO DEI PROSSIMI 3 GIORNI:</div>`;
+  let html = `<div class="modal-hdr"><div class="modal-ttl">📍 Previsioni — Marco Simone</div><button class="cl-btn" onclick="closeModal()">✕</button></div><div style="margin-bottom: 14px; font-size: 12px; color: var(--text-sec); font-weight: 600;">PROSPETTO DEI PROSSIMI 3 GIORNI:</div>`;
   for(let i=0; i<3; i++) {
     const code = weatherCacheData.weathercode[i]; const cond = METEO_DESC[code] || {txt:'Variabile', ico:'☁️'};
     const max = Math.round(weatherCacheData.temperature_2m_max[i]); const min = Math.round(weatherCacheData.temperature_2m_min[i]);
@@ -1295,6 +1311,7 @@ function tornaIndietro(){
 })();
 
 function vibra(pattern){
+  if(localStorage.getItem('casaDecino_vibrazione')==='off') return;
   if(navigator.vibrate){ try{ navigator.vibrate(pattern); }catch(e){} }
 }
 
@@ -4244,17 +4261,94 @@ document.addEventListener('click',(e)=>{
   }
 });
 
-function aggiornaBottoneNotifiche(){
-  const btn=document.getElementById('notif-btn'); if(!btn) return;
-  if('Notification' in window && Notification.permission==='default'){ btn.style.display='inline-block'; }
-  else { btn.style.display='none'; }
-}
 async function attivaNotifiche(){
   if(!('Notification' in window)){ alert('Il tuo browser non supporta le notifiche.'); return; }
   const perm=await Notification.requestPermission();
   if(perm==='granted'){ alert('Notifiche attivate! 🔔'); }
   else if(perm==='denied'){ alert('Notifiche bloccate. Per riattivarle dovrai andare nelle impostazioni del telefono/browser.'); }
-  aggiornaBottoneNotifiche();
+  renderImpostazioni();
+}
+
+/* ── IMPOSTAZIONI ── */
+function apriImpostazioni(){
+  renderImpostazioni();
+  showOv();
+}
+
+function renderImpostazioni(){
+  if(!document.getElementById('modal-box')) return;
+  const memberBtns=MEMBERS.map(m=>`<button onclick="f4SetMe('${m.id}');renderImpostazioni()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:20px;border:2px solid ${f4Me===m.id?m.dot:'var(--border-light)'};background:${f4Me===m.id?m.bg:'var(--card-bg)'};color:${f4Me===m.id?m.txt:'var(--text-sec)'};font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap"><span>${getIcon(m.id)}</span>${escH(m.name)}</button>`).join('');
+
+  const notifSupportate='Notification' in window;
+  const notifPerm=notifSupportate?Notification.permission:'unsupported';
+  const notifStatoLabel=notifPerm==='granted'?'✅ Attive':notifPerm==='denied'?'🚫 Bloccate (da riattivare nelle impostazioni del telefono)':notifSupportate?'⚪️ Non attivate':'Non supportate su questo browser';
+  const notifBtn=(notifSupportate&&notifPerm==='default')?`<button onclick="attivaNotifiche()" style="width:100%;padding:10px;border-radius:12px;border:none;background:#378ADD;color:#fff;font-weight:700;font-size:13px;cursor:pointer;margin-top:8px">🔔 Attiva notifiche</button>`:'';
+
+  const vibrazioneOn=localStorage.getItem('casaDecino_vibrazione')!=='off';
+  const temaAttuale=localStorage.getItem('casaDecino_tema')||'auto';
+  const temaOpts=[['auto','🌓 Automatico'],['chiaro','☀️ Chiaro'],['scuro','🌙 Scuro']].map(([id,label])=>
+    `<button onclick="localStorage.setItem('casaDecino_tema','${id}');applyTema();renderImpostazioni()" style="flex:1;padding:8px 4px;border-radius:12px;border:2px solid ${temaAttuale===id?'#378ADD':'var(--border-light)'};background:${temaAttuale===id?'#378ADD':'var(--card-bg)'};color:${temaAttuale===id?'#fff':'var(--text-sec)'};font-weight:700;font-size:12px;cursor:pointer">${label}</button>`
+  ).join('');
+
+  document.getElementById('modal-box').innerHTML=`
+    <div class="modal-hdr"><div class="modal-ttl">⚙️ Impostazioni</div><button class="cl-btn" onclick="closeModal()">✕</button></div>
+
+    <div class="fgrp"><label class="flbl">Chi sei tu su questo dispositivo</label>
+      <div class="tr-opts" style="margin-top:6px">${memberBtns}</div>
+      <button onclick="openIconPicker(f4Me)" style="margin-top:8px;background:none;border:none;color:#378ADD;font-weight:700;font-size:12px;cursor:pointer;padding:0">✏️ Cambia la tua icona</button>
+    </div>
+
+    <div class="fgrp"><label class="flbl">Notifiche</label>
+      <div style="font-size:13px;font-weight:600;color:var(--text-sec)">${notifStatoLabel}</div>
+      ${notifBtn}
+    </div>
+
+    <div class="fgrp"><label class="flbl">Suoni e vibrazione</label>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px">
+        <span style="font-size:13px;font-weight:600;color:var(--text-sec)">Feedback aptico ai tocchi</span>
+        <button onclick="localStorage.setItem('casaDecino_vibrazione','${vibrazioneOn?'off':'on'}');renderImpostazioni()" style="width:46px;height:26px;border-radius:16px;border:none;cursor:pointer;background:${vibrazioneOn?'#378ADD':'var(--border-light)'};position:relative;transition:background 0.15s">
+          <span style="position:absolute;top:2px;left:${vibrazioneOn?'22px':'2px'};width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.3);transition:left 0.15s"></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="fgrp"><label class="flbl">Tema</label>
+      <div style="display:flex;gap:8px;margin-top:6px">${temaOpts}</div>
+    </div>
+
+    <div class="fgrp"><label class="flbl">Manutenzione</label>
+      <button onclick="scaricaBackupDati()" style="width:100%;padding:10px;border-radius:12px;border:1.5px solid var(--border-light);background:var(--card-bg);color:var(--text-main);font-weight:700;font-size:13px;cursor:pointer;margin-top:4px">💾 Scarica backup dei dati</button>
+      <button onclick="svuotaCacheApp()" style="width:100%;padding:10px;border-radius:12px;border:1.5px solid var(--border-light);background:var(--card-bg);color:var(--text-main);font-weight:700;font-size:13px;cursor:pointer;margin-top:8px">🔄 Svuota cache e aggiorna app</button>
+    </div>
+  `;
+}
+
+function scaricaBackupDati(){
+  try{
+    const dati={
+      generatoIl:new Date().toISOString(),
+      eventi:events, ricorrenze:ricorrenze, bacheca:bachecaNotes, dispensa:dispensaItems,
+      ricordiFoto:fotoRicordi.map(f=>({...f})), viaggi:viaggi, film:film, sondaggi:sondaggi,
+      segreteria:segreteriaMsgs.map(m=>({autore:m.autore,data:m.data,ora:m.ora,urgente:m.urgente})),
+      jukebox:jukebox
+    };
+    const blob=new Blob([JSON.stringify(dati,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=`casa-decino-backup-${REAL_TODAY}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    mostraToast('Backup scaricato ✓');
+  }catch(e){ mostraErrore('Errore nel backup: '+e.message); }
+}
+
+async function svuotaCacheApp(){
+  if(!(await confermaCustom('Svuotare la cache e ricaricare l\'app? Utile se qualcosa non si aggiorna.','Svuota cache'))) return;
+  try{
+    if('caches' in window){ const keys=await caches.keys(); await Promise.all(keys.map(k=>caches.delete(k))); }
+    if('serviceWorker' in navigator){ const regs=await navigator.serviceWorker.getRegistrations(); await Promise.all(regs.map(r=>r.unregister())); }
+  }catch(e){}
+  location.reload(true);
 }
 
 const GIOCHI_NOMI={forza4:'Forza 4',tris:'Tris',impiccato:'Impiccato',morra:'Morra Cinese',indovinachi:'Indovina Chi',wordle:'Wordle'};
@@ -5120,7 +5214,6 @@ async function init(){
   aggiornaMacroUI();
   aggiornaFab();
   mostraSaluto();
-  aggiornaBottoneNotifiche();
   aggiornaBadgeNovita();
   controllaSorpassiHallOfFame();
   const primaPartite=[...f4Partite.map(p=>p.id),...trisPartite.map(p=>p.id),...impPartite.map(p=>p.id),...morraPartite.map(p=>p.id),...icPartite.map(p=>p.id),...wordlePartite.map(p=>p.id)];
