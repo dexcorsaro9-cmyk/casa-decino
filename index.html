@@ -2426,16 +2426,27 @@ function dispensaWidget(){
       <div class="fridge-magnets">${magnets}</div>
       <div class="fridge-add-row">
         ${extraBtn}
+        ${daCom.length?`<button class="fridge-freezer-link" style="background:#25D366;color:#fff" onclick="condividiListaSpesa()">📲 WhatsApp</button>`:''}
         <button class="fridge-freezer-link" style="background:rgba(0,0,0,0.13);color:#3a3a3a" onclick="openDispensaModal()">＋ Aggiungi</button>
       </div>
     </div>
   </div>`;
 }
 
+function condividiListaSpesa(){
+  const daCom=dispensaItems.filter(i=>!i.comprato).sort((a,b)=>b.data.localeCompare(a.data));
+  if(!daCom.length){ mostraToast('Lista della spesa vuota!'); return; }
+  let testo=`🛒 Lista della spesa — Casa Decino\n\n`;
+  testo+=daCom.map(it=>`• ${it.articolo} (${M(it.autore).name})`).join('\n');
+  testo+=`\n\n${daCom.length} articoli — ${fmtDateShort(REAL_TODAY)}`;
+  const url=`https://wa.me/?text=${encodeURIComponent(testo)}`;
+  window.open(url,'_blank');
+}
+
 function dispensaView(){
   const daCom=dispensaItems.filter(i=>!i.comprato).sort((a,b)=>b.data.localeCompare(a.data));
   const comprati=dispensaItems.filter(i=>i.comprato).sort((a,b)=>b.data.localeCompare(a.data));
-  let h=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="sec-lbl" style="margin:0">🛒 Da comprare (${daCom.length})</div><button class="pulisci-btn" style="background:var(--main-bg);color:var(--text-sec);border:1px solid var(--border-light)" onclick="pulisciComprati()">🗑 Pulisci comprati</button></div>`;
+  let h=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:6px"><div class="sec-lbl" style="margin:0">🛒 Da comprare (${daCom.length})</div><div style="display:flex;gap:6px">${daCom.length?`<button class="pulisci-btn" style="background:#25D366;color:#fff;border:none" onclick="condividiListaSpesa()">📲 Condividi</button>`:''}<button class="pulisci-btn" style="background:var(--main-bg);color:var(--text-sec);border:1px solid var(--border-light)" onclick="pulisciComprati()">🗑 Pulisci comprati</button></div></div>`;
   if(!daCom.length) h+=`<div class="empty-state"><span class="big">✅</span><div style="font-size:15px;font-weight:700">Lista vuota — ottimo!</div></div>`;
   else h+=daCom.map(it=>{
     const m=M(it.autore);
