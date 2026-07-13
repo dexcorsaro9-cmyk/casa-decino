@@ -1486,7 +1486,7 @@ function challengeWidget(){
 }
 
 function bachecaWidget(){
-  const recent = [...bachecaNotes].sort((a,b)=>(b._created||'').localeCompare(a._created||'')).slice(0,3);
+  const recent = [...bachecaNotes].sort((a,b)=>(b._created||'').localeCompare(a._created||'')).slice(0,6);
   let inner = '';
   if(!recent.length){
     inner = `<div class="bacheca-widget-empty">Nessun messaggio ancora 📝</div>`;
@@ -1547,7 +1547,7 @@ function suonaVinileWidget(id,videoId,titolo,autoreName){
 
 function segreteriaWidget(){
   const visibili=typeof segreteriaVisibiliPerMe==='function'?segreteriaVisibiliPerMe():(typeof segreteriaMsgs!=='undefined'?segreteriaMsgs:[]);
-  const recent=[...visibili].sort((a,b)=>(b.data+b.ora).localeCompare(a.data+a.ora)).slice(0,3);
+  const recent=[...visibili].sort((a,b)=>(b.data+b.ora).localeCompare(a.data+a.ora)).slice(0,6);
   let inner='';
   if(!recent.length){
     inner=`<div class="bacheca-widget-empty">Nessun messaggio vocale ancora 🎤</div>`;
@@ -2561,11 +2561,21 @@ function apriMenuSpostaFoto(id){
 
 async function spostaFotoInCartella(id,catId){
   const f=fotoRicordi.find(f=>f.id===id); if(!f) return;
+  const categoriaPrecedente=f.categoria;
   f.categoria=catId;
   closeModal();
   renderView();
-  mostraToast('Spostata in '+fotoCategoria(catId).label+' ✓');
-  try{ if(f._recId) await atPatch('FotoRicordi',f._recId,{Categoria:catId}); }catch(e){}
+  try{
+    if(!f._recId) throw new Error('Foto senza record Airtable collegato');
+    const res=await atPatch('FotoRicordi',f._recId,{Categoria:catId});
+    const body=await res.json();
+    if(!res.ok||body.error) throw new Error(body.error?.message||('HTTP '+res.status)+' — probabilmente manca il campo "Categoria" nella tabella FotoRicordi su Airtable');
+    mostraToast('Spostata in '+fotoCategoria(catId).label+' ✓');
+  } catch(e){
+    f.categoria=categoriaPrecedente;
+    renderView();
+    mostraErrore('Spostamento non salvato: '+e.message);
+  }
 }
 
 function ricordiView(){
