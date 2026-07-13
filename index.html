@@ -3733,6 +3733,103 @@ function calcolaRecordCasa(){
   let serC=null,serCM=0; Object.entries(seraleCount).forEach(([k,n])=>{ if(n>serCM){serCM=n;serC=k;} });
   if(serC) cats.push({icona:'🌆',titolo:'Il DJ Serale',sub:'brani aggiunti tra le 18 e le 22',vincitore:serC,conteggio:serCM});
 
+  const anticipoPerAutore={};
+  events.forEach(e=>{ if(!e.autore||!e.date||!e._created) return; const diff=(new Date(e.date)-new Date(e._created))/86400000; if(diff<0) return; const t=(anticipoPerAutore[e.autore]=anticipoPerAutore[e.autore]||{tot:0,n:0}); t.tot+=diff; t.n++; });
+  let puntV=null,puntM=0;
+  Object.entries(anticipoPerAutore).forEach(([mid,t])=>{ if(t.n>=2){ const media=t.tot/t.n; if(media>puntM){ puntM=media; puntV=mid; } } });
+  if(puntV) cats.push({icona:'⏰',titolo:'Il Puntuale',sub:'giorni di anticipo medio negli eventi',vincitore:puntV,conteggio:Math.round(puntM)});
+
+  const talentPerAutore={};
+  film.forEach(f=>{ Object.values(f.voti||{}).forEach(v=>{ if(!v) return; const t=(talentPerAutore[f.consigliatoDa]=talentPerAutore[f.consigliatoDa]||{tot:0,n:0}); t.tot+=v; t.n++; }); });
+  let talV=null,talM=0;
+  Object.entries(talentPerAutore).forEach(([mid,t])=>{ if(t.n>=2){ const media=t.tot/t.n; if(media>talM){ talM=media; talV=mid; } } });
+  if(talV) cats.push({icona:'🌟',titolo:'Il Talent Scout',sub:'voto medio dei film consigliati',vincitore:talV,conteggio:Math.round(talM*10)/10});
+
+  const fontPerAutore={};
+  bachecaNotes.forEach(n=>{ (fontPerAutore[n.author]=fontPerAutore[n.author]||new Set()).add(n.font); });
+  fotoRicordi.forEach(f=>{ (fontPerAutore[f.autore]=fontPerAutore[f.autore]||new Set()).add(f.fontDidascalia); });
+  let callV=null,callM=0;
+  Object.entries(fontPerAutore).forEach(([mid,set])=>{ if(set.size>callM){ callM=set.size; callV=mid; } });
+  if(callV&&callM>1) cats.push({icona:'🖋️',titolo:'Il Calligrafo',sub:'font diversi usati',vincitore:callV,conteggio:callM});
+
+  const colorPerAutore={};
+  bachecaNotes.forEach(n=>{ (colorPerAutore[n.author]=colorPerAutore[n.author]||new Set()).add(n.color); });
+  let colV=null,colM=0;
+  Object.entries(colorPerAutore).forEach(([mid,set])=>{ if(set.size>colM){ colM=set.size; colV=mid; } });
+  if(colV&&colM>1) cats.push({icona:'🎨',titolo:'Il Colorato',sub:'colori diversi di post-it usati',vincitore:colV,conteggio:colM});
+
+  const richiestoCount={};
+  segreteriaMsgs.forEach(m=>{ if(m.destinatario&&m.destinatario!=='tutti') richiestoCount[m.destinatario]=(richiestoCount[m.destinatario]||0)+1; });
+  let richV=null,richM=0; Object.entries(richiestoCount).forEach(([k,n])=>{ if(n>richM){richM=n;richV=k;} });
+  if(richV) cats.push({icona:'📥',titolo:'Il Richiesto',sub:'messaggi ricevuti direttamente',vincitore:richV,conteggio:richM});
+
+  const luoghiPerAutore={};
+  viaggi.forEach(v=>{ if(v.luogo) (luoghiPerAutore[v.autore]=luoghiPerAutore[v.autore]||new Set()).add(v.luogo.toLowerCase()); });
+  let cartV=null,cartM=0;
+  Object.entries(luoghiPerAutore).forEach(([mid,set])=>{ if(set.size>cartM){ cartM=set.size; cartV=mid; } });
+  if(cartV&&cartM>1) cats.push({icona:'🗺️',titolo:'Il Cartografo',sub:'luoghi diversi visitati',vincitore:cartV,conteggio:cartM});
+
+  let sprintV=null,sprintM=Infinity;
+  Object.entries(anticipoPerAutore).forEach(([mid,t])=>{ if(t.n>=2){ const media=t.tot/t.n; if(media<sprintM){ sprintM=media; sprintV=mid; } } });
+  if(sprintV&&sprintM<Infinity) cats.push({icona:'⚡',titolo:'Lo Sprint',sub:'giorni di anticipo medio più bassi',vincitore:sprintV,conteggio:Math.round(sprintM)});
+
+  const regista=calcolaRecord(film.filter(f=>f.tipo==='series'),'consigliatoDa');
+  if(regista) cats.push({icona:'📺',titolo:'Il Regista',sub:'serie TV consigliate',...regista});
+
+  const selFilm=calcolaRecord(film.filter(f=>f.tipo!=='series'),'consigliatoDa');
+  if(selFilm) cats.push({icona:'🎬',titolo:'Il Selezionatore di Film',sub:'film consigliati',...selFilm});
+
+  const membriPerAutore={};
+  events.forEach(e=>{ if(!e.autore) return; const t=(membriPerAutore[e.autore]=membriPerAutore[e.autore]||{tot:0,n:0}); t.tot+=(e.members||[]).length; t.n++; });
+  let famV=null,famM=0;
+  Object.entries(membriPerAutore).forEach(([mid,t])=>{ if(t.n>=2){ const media=t.tot/t.n; if(media>famM){ famM=media; famV=mid; } } });
+  if(famV) cats.push({icona:'👨‍👩‍👧‍👦',titolo:'Il Family Planner',sub:'partecipanti medi per evento',vincitore:famV,conteggio:Math.round(famM*10)/10});
+
+  const solitario=calcolaRecord(events.filter(e=>(e.members||[]).length===1),'autore');
+  if(solitario) cats.push({icona:'🧍',titolo:'Il Solitario',sub:'eventi organizzati da solo',...solitario});
+
+  const nostalgico=calcolaRecord(ricorrenze.filter(r=>r.type==='birthday'),'autore');
+  if(nostalgico) cats.push({icona:'🎂',titolo:'Il Nostalgico',sub:'compleanni segnati',...nostalgico});
+
+  const feste=calcolaRecord(ricorrenze.filter(r=>r.type!=='birthday'),'autore');
+  if(feste) cats.push({icona:'🎉',titolo:"L'Organizzatore di Feste",sub:'altre ricorrenze aggiunte',...feste});
+
+  const opzPerAutore={};
+  sondaggi.forEach(s=>{ if(!s.autore) return; const t=(opzPerAutore[s.autore]=opzPerAutore[s.autore]||{tot:0,n:0}); t.tot+=(s.opzioni||[]).length; t.n++; });
+  let demV=null,demM=0;
+  Object.entries(opzPerAutore).forEach(([mid,t])=>{ if(t.n>=1){ const media=t.tot/t.n; if(media>demM){ demM=media; demV=mid; } } });
+  if(demV) cats.push({icona:'📊',titolo:'Il Democratico',sub:'opzioni medie proposte nei sondaggi',vincitore:demV,conteggio:Math.round(demM*10)/10});
+
+  const autonomoCount={};
+  events.forEach(e=>{ if(e.transport?.type==='autonomous'){ (e.members||[]).forEach(mid=>{ autonomoCount[mid]=(autonomoCount[mid]||0)+1; }); } });
+  let indV=null,indM=0; Object.entries(autonomoCount).forEach(([k,n])=>{ if(n>indM){indM=n;indV=k;} });
+  if(indV) cats.push({icona:'🚶',titolo:"L'Indipendente",sub:'spostamenti autonomi',vincitore:indV,conteggio:indM});
+
+  const recensoreCount={};
+  film.forEach(f=>{ Object.keys(f.voti||{}).forEach(mid=>{ recensoreCount[mid]=(recensoreCount[mid]||0)+1; }); });
+  let recV=null,recM=0; Object.entries(recensoreCount).forEach(([k,n])=>{ if(n>recM){recM=n;recV=k;} });
+  if(recV) cats.push({icona:'📝',titolo:'Il Recensore',sub:'voti dati ai film',vincitore:recV,conteggio:recM});
+
+  const titoliPerAutore={};
+  jukebox.forEach(j=>{ if(!j.autore||!j.titolo) return; const t=(titoliPerAutore[j.autore]=titoliPerAutore[j.autore]||{tot:0,n:0}); t.tot+=j.titolo.length; t.n++; });
+  let fanV=null,fanM=0;
+  Object.entries(titoliPerAutore).forEach(([mid,t])=>{ if(t.n>=2){ const media=t.tot/t.n; if(media>fanM){ fanM=media; fanV=mid; } } });
+  if(fanV) cats.push({icona:'🎼',titolo:'Il Fantasista',sub:'lunghezza media titoli canzoni',vincitore:fanV,conteggio:Math.round(fanM)});
+
+  const united=calcolaRecord(events.filter(e=>(e.members||[]).length===MEMBERS.length&&MEMBERS.length>1),'autore');
+  if(united) cats.push({icona:'🤝',titolo:'Lo United',sub:'eventi con tutta la famiglia',...united});
+
+  const articoliPerAutore={};
+  dispensaItems.forEach(i=>{ if(i.articolo) (articoliPerAutore[i.autore]=articoliPerAutore[i.autore]||new Set()).add(i.articolo.toLowerCase()); });
+  let buonV=null,buonM=0;
+  Object.entries(articoliPerAutore).forEach(([mid,set])=>{ if(set.size>buonM){ buonM=set.size; buonV=mid; } });
+  if(buonV&&buonM>1) cats.push({icona:'🍽️',titolo:'Il Buongustaio',sub:'articoli diversi aggiunti in dispensa',vincitore:buonV,conteggio:buonM});
+
+  const puntiPerMembro={};
+  challengeLog.filter(l=>l.status==='approved').forEach(l=>{ puntiPerMembro[l.member]=(puntiPerMembro[l.member]||0)+(l.points||0); });
+  let starV=null,starM=0; Object.entries(puntiPerMembro).forEach(([k,n])=>{ if(n>starM){starM=n;starV=k;} });
+  if(starV) cats.push({icona:'🌠',titolo:'La Superstar',sub:'punti totali dalle sfide',vincitore:starV,conteggio:starM});
+
   return cats;
 }
 
