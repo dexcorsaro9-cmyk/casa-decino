@@ -5504,6 +5504,14 @@ const VIDEO_DECORAZIONI=[
   { id:'clown',    emoji:'🔴', label:'Naso da clown',      tipo:'center-mid' },
   { id:'orecchie', emoji:'🐰', label:'Orecchie coniglio',  tipo:'ears' },
   { id:'cornette', emoji:'😈', label:'Corna',              tipo:'ears' },
+  { id:'antenne',  emoji:'👽', label:'Antenne aliene',     tipo:'ears' },
+  { id:'sirena',   emoji:'🧜‍♀️', label:'Coda da sirena',    tipo:'bottom' },
+  { id:'unicorno', emoji:'🦄', label:'Corno di unicorno',  tipo:'top' },
+  { id:'pirata',   emoji:'🏴‍☠️', label:'Bandana pirata',    tipo:'top' },
+  { id:'natale',   emoji:'🎅', label:'Cappello di Natale', tipo:'top' },
+  { id:'supereroe',emoji:'🦸', label:'Supereroe',          tipo:'center-upper' },
+  { id:'saturno',  emoji:'🪐', label:'Anelli di Saturno',  tipo:'ring', count:12 },
+  { id:'arcobaleno',emoji:'🌈', label:'Arcobaleno',        tipo:'top' },
 ];
 function videoDecorazione(id){ return VIDEO_DECORAZIONI.find(d=>d.id===id)||VIDEO_DECORAZIONI[0]; }
 
@@ -5515,6 +5523,7 @@ function decorazioneOverlayHtml(decId,sizePx){
   if(dec.tipo==='ears') return `<span style="position:absolute;top:-4%;left:16%;${fs(0.26)};z-index:3;pointer-events:none">${dec.emoji}</span><span style="position:absolute;top:-4%;right:16%;transform:scaleX(-1);${fs(0.26)};z-index:3;pointer-events:none">${dec.emoji}</span>`;
   if(dec.tipo==='center-upper') return `<span style="position:absolute;top:30%;left:50%;transform:translateX(-50%);${fs(0.3)};z-index:3;pointer-events:none">${dec.emoji}</span>`;
   if(dec.tipo==='center-mid') return `<span style="position:absolute;top:52%;left:50%;transform:translateX(-50%);${fs(0.16)};z-index:3;pointer-events:none">${dec.emoji}</span>`;
+  if(dec.tipo==='bottom') return `<span style="position:absolute;bottom:-10%;left:50%;transform:translateX(-50%);${fs(0.32)};z-index:3;pointer-events:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.3))">${dec.emoji}</span>`;
   if(dec.tipo==='ring'){
     const n=dec.count||8;
     let out='';
@@ -5531,7 +5540,14 @@ function decorazioneOverlayHtml(decId,sizePx){
 async function loadVideoMsg(){
   try{
     const records=await atGetAll('VideoMessaggi');
-    videoMsgs=records.map(r=>({_recId:r.id,id:r.fields.ID||r.id,autore:r.fields.Autore||'antonio',videoUrl:r.fields.VideoURL||'',data:r.fields.Data||'',ora:r.fields.Ora||'',decorazione:r.fields.Decorazione||'nessuna',_created:r.createdTime}));
+    videoMsgs=records.map(r=>{
+      const reazioni={};
+      (r.fields.Reazioni||'').split(',').forEach(pair=>{
+        const [mid,emoji]=pair.split(':');
+        if(mid&&emoji) reazioni[mid]=emoji;
+      });
+      return {_recId:r.id,id:r.fields.ID||r.id,autore:r.fields.Autore||'antonio',videoUrl:r.fields.VideoURL||'',data:r.fields.Data||'',ora:r.fields.Ora||'',decorazione:r.fields.Decorazione||'nessuna',reazioni,_created:r.createdTime};
+    });
   }catch(e){ videoMsgs=[]; }
 }
 
@@ -5644,7 +5660,7 @@ async function inviaVideoMsg(){
     const flds={ID:id,Autore:f4Me,VideoURL:data.secure_url,Data:REAL_TODAY,Ora:ora,Decorazione:videoMsgForm.decorazione};
     const rec=await atPost('VideoMessaggi',flds);
     if(rec.error||!rec.records?.[0]?.id) throw new Error(rec.error?.message||'Salvataggio su Airtable fallito — controlla che la tabella "VideoMessaggi" e i suoi campi esistano esattamente come richiesto');
-    videoMsgs.unshift({_recId:rec.records[0].id,id,autore:f4Me,videoUrl:data.secure_url,data:REAL_TODAY,ora,decorazione:videoMsgForm.decorazione});
+    videoMsgs.unshift({_recId:rec.records[0].id,id,autore:f4Me,videoUrl:data.secure_url,data:REAL_TODAY,ora,decorazione:videoMsgForm.decorazione,reazioni:{}});
     if(vmBlobUrl){ URL.revokeObjectURL(vmBlobUrl); vmBlobUrl=null; }
     closeModal(); renderView();
     mostraToast('Salvato ✓');
@@ -5665,6 +5681,37 @@ function toggleVideoMsgPlay(id){
   if(v.paused) v.play(); else v.pause();
 }
 
+function renderVideoMsgReazioni(vm){
+  const mia=vm.reazioni?.[f4Me];
+  const conteggi={};
+  Object.values(vm.reazioni||{}).forEach(e=>{ conteggi[e]=(conteggi[e]||0)+1; });
+  const riepilogo=Object.keys(conteggi).length?`<div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;justify-content:center">${Object.entries(conteggi).map(([e,c])=>`<span style="background:rgba(0,0,0,0.08);border-radius:10px;padding:1px 6px;font-size:11px">${e} ${c}</span>`).join('')}</div>`:'';
+  return `<div style="display:flex;gap:4px;justify-content:center;margin-top:6px;flex-wrap:wrap">
+      ${FOTO_EMOJI_REAZIONI.map(e=>`<button onclick="toggleReazioneVideoMsg('${vm.id}','${e}')" style="background:${mia===e?'#378ADD':'rgba(0,0,0,0.06)'};border:none;border-radius:50%;width:24px;height:24px;font-size:12px;cursor:pointer">${e}</button>`).join('')}
+    </div>${riepilogo}`;
+}
+
+async function toggleReazioneVideoMsg(id,emoji){
+  const vm=videoMsgs.find(v=>v.id===id); if(!vm) return;
+  if(!vm.reazioni) vm.reazioni={};
+  const precedente={...vm.reazioni};
+  if(vm.reazioni[f4Me]===emoji) delete vm.reazioni[f4Me];
+  else vm.reazioni[f4Me]=emoji;
+  const box=document.getElementById(`vm-reaz-${id}`);
+  if(box) box.innerHTML=renderVideoMsgReazioni(vm);
+  try{
+    if(!vm._recId) throw new Error('Videomessaggio senza record Airtable collegato');
+    const serial=Object.entries(vm.reazioni).map(([mid,e])=>`${mid}:${e}`).join(',');
+    const res=await atPatch('VideoMessaggi',vm._recId,{Reazioni:serial});
+    const body=await res.json();
+    if(!res.ok||body.error) throw new Error(body.error?.message||('HTTP '+res.status)+' — probabilmente manca il campo "Reazioni" nella tabella VideoMessaggi su Airtable');
+  } catch(e){
+    vm.reazioni=precedente;
+    if(box) box.innerHTML=renderVideoMsgReazioni(vm);
+    mostraErrore('Reazione non salvata: '+e.message);
+  }
+}
+
 function videoMsgView(){
   const sorted=[...videoMsgs].sort((a,b)=>(b.data+b.ora).localeCompare(a.data+a.ora));
   let h=`<div class="section-wrap"><div class="section-hdr"><span class="section-ttl">🎥 Videomessaggi di famiglia</span></div><div style="padding:0 16px 16px">`;
@@ -5682,6 +5729,7 @@ function videoMsgView(){
         </div>
         <div style="font-size:11px;font-weight:700;margin-top:6px">${escH(m.name)}</div>
         <div style="font-size:10px;color:var(--text-sec)">${fmtDateShort(vm.data)} ${vm.ora}</div>
+        <div id="vm-reaz-${vm.id}">${renderVideoMsgReazioni(vm)}</div>
       </div>`;
     });
     h+=`</div>`;
