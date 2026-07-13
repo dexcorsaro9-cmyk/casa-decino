@@ -174,6 +174,38 @@
       0%   { filter: hue-rotate(0deg); }
       100% { filter: hue-rotate(360deg); }
     }
+    .medaglia-hof {
+      position: relative;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #fff3c4, #ffd54a 45%, #f5a623 85%);
+      box-shadow: 0 2px 6px rgba(245,166,35,0.5), inset 0 1px 1px rgba(255,255,255,0.7), inset 0 -1px 2px rgba(139,94,60,0.35);
+      vertical-align: middle;
+      cursor: pointer;
+      overflow: hidden;
+      animation: medaglia-pop 0.5s cubic-bezier(.22,1.6,.5,1) both;
+    }
+    .medaglia-hof:active { transform: scale(0.85); }
+    .medaglia-hof-num {
+      font-size: 11px; font-weight: 800; color: #3a2a00;
+      line-height: 1;
+    }
+    .medaglia-hof-shine {
+      position: absolute; top: 0; left: -60%;
+      width: 40%; height: 100%;
+      background: linear-gradient(115deg, transparent, rgba(255,255,255,0.85), transparent);
+      animation: medaglia-shine 3.5s ease-in-out infinite;
+    }
+    @keyframes medaglia-pop {
+      0%   { transform: scale(0); opacity: 0; }
+      60%  { transform: scale(1.15); opacity: 1; }
+      100% { transform: scale(1); }
+    }
+    @keyframes medaglia-shine {
+      0%, 40% { left: -60%; }
+      100% { left: 130%; }
+    }
     .brand-sub { 
       font-size: 10px; 
       color: var(--text-sec); 
@@ -1040,7 +1072,7 @@ function mostraSaluto(){
   const data=`${giorno} ${oggi.getDate()} ${MONTHS_IT[oggi.getMonth()]}`;
   const orario=`${String(oggi.getHours()).padStart(2,'0')}:${String(oggi.getMinutes()).padStart(2,'0')}`;
   const mieiTitoli=(typeof calcolaRecordCasa==='function')?calcolaRecordCasa().filter(c=>c.vincitore===f4Me):[];
-  const medaglia=mieiTitoli.length?` <span onclick="event.stopPropagation();switchView('record')" title="Vedi i tuoi premi nella Hall of Fame" style="cursor:pointer;display:inline-flex;align-items:center;gap:3px;background:linear-gradient(135deg,#ffd54a,#f5a623);color:#3a2a00;font-weight:800;font-size:11px;padding:2px 8px;border-radius:12px;vertical-align:middle;box-shadow:0 2px 6px rgba(245,166,35,0.4)">🏅 ${mieiTitoli.length}</span>`:'';
+  const medaglia=mieiTitoli.length?` <span class="medaglia-hof" onclick="event.stopPropagation();switchView('record')" title="Vedi i tuoi premi nella Hall of Fame"><span class="medaglia-hof-shine"></span><span class="medaglia-hof-num">${mieiTitoli.length}</span></span>`:'';
   el.innerHTML=`${testo}, <b>${escH(m.name)}</b> ${getIcon(m.id)}${medaglia}<br><span style="font-weight:600;opacity:0.65;font-size:11px">${data} · ${orario}</span>`;
 }
 setInterval(mostraSaluto,30000);
