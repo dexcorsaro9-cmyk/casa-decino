@@ -798,9 +798,19 @@
     .foto-del { position:absolute; top:6px; left:6px; background:rgba(90,62,40,0.55); border:none; color:#fff; border-radius:50%; width:22px; height:22px; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.15s; }
     .foto-card:hover .foto-del { opacity:1; }
     @media (hover:none) { .foto-del { opacity:1; } }
+    .foto-move { position:absolute; top:6px; right:6px; background:rgba(90,62,40,0.55); border:none; color:#fff; border-radius:50%; width:22px; height:22px; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.15s; }
+    .foto-card:hover .foto-move { opacity:1; }
+    @media (hover:none) { .foto-move { opacity:1; } }
     .foto-add-btn { flex:0 0 calc(50% - 7px); max-width:calc(50% - 7px); min-height:150px; background:rgba(255,255,255,0.5); border:2px dashed rgba(139,94,60,0.25); border-radius:4px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; cursor:pointer; color:rgba(139,94,60,0.5); font-weight:700; font-size:12px; margin-top:22px; font-family:'Caveat',cursive; font-size:15px; }
     .foto-add-btn:hover { background:rgba(255,255,255,0.75); }
     .foto-upload-progress { text-align:center; padding:20px; color:var(--text-sec); font-weight:600; }
+
+    .ricordi-folders-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+    .ricordi-folder { background:var(--card-bg); border-radius:var(--radius-md); padding:20px 12px; text-align:center; cursor:pointer; box-shadow:var(--shadow-sm); transition:transform 0.12s, box-shadow 0.12s; }
+    .ricordi-folder:hover { transform:translateY(-2px); box-shadow:var(--shadow-md); }
+    .ricordi-folder-icon { font-size:34px; margin-bottom:8px; }
+    .ricordi-folder-label { font-size:13px; font-weight:800; color:var(--text-main); }
+    .ricordi-folder-count { font-size:11px; color:var(--text-sec); font-weight:600; margin-top:2px; }
 
     /* RICORDI WIDGET HOME */
     .ricordi-widget { background:linear-gradient(160deg,#f5efe6 0%,#ede3d6 100%); border-radius:var(--radius-lg); padding:14px 16px 16px; margin-bottom:20px; }
@@ -1279,6 +1289,7 @@ function fabClick(){
 
 function switchView(v,daHistory){
   if(!daHistory && v!==view) viewHistory.push(view);
+  if(v==='ricordi'&&view!=='ricordi') ricordiCartellaAttiva=null;
   view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge','t-bacheca','t-dispensa','t-ricordi','t-viaggi','t-film','t-sondaggi','t-giochi','t-segreteria','t-jukebox','t-record'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
   const tab=document.getElementById('t-'+v); if(tab){ tab.classList.add('active'); tab.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'}); }
   macroArea=VIEW_MACRO[v]||macroArea;
@@ -2489,6 +2500,18 @@ const FOTO_FONTS = [
 function fotoCornice(id){ return FOTO_CORNICI.find(c=>c.id===id)||FOTO_CORNICI[0]; }
 function fotoFont(id){ return FOTO_FONTS.find(f=>f.id===id)||FOTO_FONTS[0]; }
 
+const FOTO_CATEGORIE = [
+  { id:'vacanze',     label:'Vacanze',        icon:'🏖️' },
+  { id:'compleanni',  label:'Compleanni',     icon:'🎂' },
+  { id:'feste',       label:'Feste',          icon:'🎄' },
+  { id:'quotidianita',label:'Quotidianità',   icon:'🏠' },
+  { id:'sport',       label:'Sport',          icon:'⚽' },
+  { id:'scuola',      label:'Scuola/Studio',  icon:'🎓' },
+  { id:'altro',       label:'Altro',          icon:'📌' },
+];
+function fotoCategoria(id){ return FOTO_CATEGORIE.find(c=>c.id===id)||FOTO_CATEGORIE[FOTO_CATEGORIE.length-1]; }
+let ricordiCartellaAttiva=null;
+
 async function loadFotoRicordi(){
   try{
     const records = await atGetAll('FotoRicordi');
@@ -2498,7 +2521,7 @@ async function loadFotoRicordi(){
         const [mid,emoji]=pair.split(':');
         if(mid&&emoji) reazioni[mid]=emoji;
       });
-      return {_recId:r.id, id:r.fields.ID||r.id, url:r.fields.URL||'', autore:r.fields.Autore||'antonio', data:r.fields.Data||'', didascalia:r.fields.Didascalia||'', cornice:r.fields.Cornice||'cream', fontDidascalia:r.fields.FontDidascalia||'caveat', viaggioId:r.fields.ViaggioID||'', reazioni, _created:r.createdTime};
+      return {_recId:r.id, id:r.fields.ID||r.id, url:r.fields.URL||'', autore:r.fields.Autore||'antonio', data:r.fields.Data||'', didascalia:r.fields.Didascalia||'', cornice:r.fields.Cornice||'cream', fontDidascalia:r.fields.FontDidascalia||'caveat', viaggioId:r.fields.ViaggioID||'', categoria:r.fields.Categoria||'altro', reazioni, _created:r.createdTime};
     });
   } catch(e){ fotoRicordi=[]; }
 }
@@ -2508,8 +2531,47 @@ function photoRotation(id){
   return (((h%7)-3)*1.8).toFixed(1);
 }
 
+function apriCartellaRicordi(catId){ ricordiCartellaAttiva=catId; renderView(); }
+function chiudiCartellaRicordi(){ ricordiCartellaAttiva=null; renderView(); }
+
+function ricordiCartelleView(){
+  const conteggi={};
+  fotoRicordi.forEach(f=>{ const c=f.categoria||'altro'; conteggi[c]=(conteggi[c]||0)+1; });
+  const cartelle=FOTO_CATEGORIE.map(c=>{
+    const n=conteggi[c.id]||0;
+    return `<div class="ricordi-folder" onclick="apriCartellaRicordi('${c.id}')">
+      <div class="ricordi-folder-icon">${c.icon}</div>
+      <div class="ricordi-folder-label">${c.label}</div>
+      <div class="ricordi-folder-count">${n} foto</div>
+    </div>`;
+  }).join('');
+  return `<div style="margin-bottom:14px"><div class="sec-lbl">📸 Ricordi di famiglia</div></div>
+    <div class="ricordi-folders-grid">${cartelle}</div>
+    <div class="foto-add-btn" style="margin-top:16px" onclick="openFotoModal()"><span style="font-size:28px">📸</span><span>Aggiungi foto</span></div>`;
+}
+
+function apriMenuSpostaFoto(id){
+  const f=fotoRicordi.find(f=>f.id===id); if(!f) return;
+  const opzioni=FOTO_CATEGORIE.map(c=>`<button onclick="spostaFotoInCartella('${id}','${c.id}')" style="display:flex;align-items:center;gap:10px;width:100%;padding:12px;border:none;background:${f.categoria===c.id?'var(--main-bg)':'transparent'};border-radius:10px;cursor:pointer;font-size:14px;font-weight:700;text-align:left"><span style="font-size:20px">${c.icon}</span>${c.label}${f.categoria===c.id?' ✓':''}</button>`).join('');
+  document.getElementById('modal-box').innerHTML=`
+    <div class="modal-hdr"><div class="modal-ttl">📁 Sposta in cartella</div><button class="cl-btn" onclick="closeModal()">✕</button></div>
+    <div style="display:flex;flex-direction:column;gap:2px">${opzioni}</div>`;
+  showOv();
+}
+
+async function spostaFotoInCartella(id,catId){
+  const f=fotoRicordi.find(f=>f.id===id); if(!f) return;
+  f.categoria=catId;
+  closeModal();
+  renderView();
+  mostraToast('Spostata in '+fotoCategoria(catId).label+' ✓');
+  try{ if(f._recId) await atPatch('FotoRicordi',f._recId,{Categoria:catId}); }catch(e){}
+}
+
 function ricordiView(){
-  const sorted=[...fotoRicordi].sort((a,b)=>b.data.localeCompare(a.data));
+  if(!ricordiCartellaAttiva) return ricordiCartelleView();
+  const cat=fotoCategoria(ricordiCartellaAttiva);
+  const sorted=[...fotoRicordi].filter(f=>(f.categoria||'altro')===ricordiCartellaAttiva).sort((a,b)=>b.data.localeCompare(a.data));
   let cards=sorted.map(f=>{
     const m=M(f.autore);
     const rot=photoRotation(f.id);
@@ -2523,20 +2585,25 @@ function ricordiView(){
         <img class="foto-img" src="${escH(f.url)}" loading="lazy" onerror="this.style.background='#eee'">
         <div class="foto-author-dot" style="background:${m.dot}"></div>
         ${reazBadge}
+        <button class="foto-move" onclick="event.stopPropagation();apriMenuSpostaFoto('${f.id}')" title="Sposta in un'altra cartella">📁</button>
         <button class="foto-del" onclick="event.stopPropagation();deleteFotoRicordo('${f.id}')">✕</button>
         <div class="foto-caption" style="font-family:${fnt.family}">${escH(f.didascalia||m.name)}</div>
       </div>
     </div>`;
   }).join('');
-  cards+=`<div class="foto-add-btn" onclick="openFotoModal()"><span style="font-size:28px">📸</span><span>Aggiungi foto</span></div>`;
-  return `<div style="margin-bottom:14px"><div class="sec-lbl">📸 Ricordi di famiglia</div></div>
+  if(!sorted.length) cards=`<div class="empty-state"><span class="big">${cat.icon}</span><div style="font-size:16px;font-weight:700">Nessuna foto qui</div></div>`;
+  cards+=`<div class="foto-add-btn" onclick="openFotoModal('${'' /* preViaggioId */}','${ricordiCartellaAttiva}')"><span style="font-size:28px">📸</span><span>Aggiungi foto</span></div>`;
+  return `<div style="margin-bottom:14px;display:flex;align-items:center;gap:10px">
+      <button onclick="chiudiCartellaRicordi()" style="background:var(--main-bg);border:none;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer">←</button>
+      <div class="sec-lbl" style="margin:0">${cat.icon} ${cat.label}</div>
+    </div>
     <div class="filo-wrapper"><div class="filo-line"></div><div class="foto-grid">${cards}</div></div>`;
 }
 
-let fotoForm={autore:'antonio',didascalia:'',cornice:'cream',fontDidascalia:'caveat',viaggioId:''};
+let fotoForm={autore:'antonio',didascalia:'',cornice:'cream',fontDidascalia:'caveat',viaggioId:'',categoria:'altro'};
 let fotoSelectedFile=null;
-function openFotoModal(preViaggioId=''){
-  fotoForm={autore:'antonio',didascalia:'',cornice:'cream',fontDidascalia:'caveat',viaggioId:preViaggioId};
+function openFotoModal(preViaggioId='',preCategoria=''){
+  fotoForm={autore:'antonio',didascalia:'',cornice:'cream',fontDidascalia:'caveat',viaggioId:preViaggioId,categoria:preCategoria||'altro'};
   fotoSelectedFile=null;
   renderFotoModal(); showOv();
 }
@@ -2545,6 +2612,7 @@ function renderFotoModal(){
   const mbrBtns=MEMBERS.map(m=>`<button class="tr-btn${fotoForm.autore===m.id?' sel':''}" onclick="fotoForm.autore='${m.id}';renderFotoModal()" style="${fotoForm.autore===m.id?ms(m):''}">${getIcon(m.id)} ${m.name}</button>`).join('');
   const corniceBtns=FOTO_CORNICI.map(c=>`<button onclick="fotoForm.cornice='${c.id}';renderFotoModal()" title="${c.label}" style="width:30px;height:30px;border-radius:50%;background:${c.hex};border:${fotoForm.cornice===c.id?'3px solid #8B5E3C':'2px solid rgba(0,0,0,0.15)'};cursor:pointer;box-shadow:1px 1px 4px rgba(0,0,0,0.15);transition:transform 0.1s;${fotoForm.cornice===c.id?'transform:scale(1.25)':''}"></button>`).join('');
   const fontBtns=FOTO_FONTS.map(f=>`<button class="tr-btn${fotoForm.fontDidascalia===f.id?' sel':''}" onclick="fotoForm.fontDidascalia='${f.id}';renderFotoModal()" style="font-family:${f.family};${fotoForm.fontDidascalia===f.id?'background:#8B5E3C;color:#fff;':''}">${f.label}</button>`).join('');
+  const catBtns=FOTO_CATEGORIE.map(c=>`<button class="tr-btn${fotoForm.categoria===c.id?' sel':''}" onclick="fotoForm.categoria='${c.id}';renderFotoModal()" style="${fotoForm.categoria===c.id?'background:#8B5E3C;color:#fff;':''}">${c.icon} ${c.label}</button>`).join('');
   const previewFont=fotoFont(fotoForm.fontDidascalia);
   const previewCornice=fotoCornice(fotoForm.cornice);
   document.getElementById('modal-box').innerHTML=`
@@ -2557,6 +2625,7 @@ function renderFotoModal(){
     </div>
     <div class="fgrp"><label class="flbl">Colore cornice</label><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:8px">${corniceBtns}<span style="font-size:12px;font-weight:600;color:var(--text-sec);margin-left:4px">${previewCornice.label}</span></div></div>
     <div class="fgrp"><label class="flbl">Font didascalia</label><div class="tr-opts">${fontBtns}</div></div>
+    <div class="fgrp"><label class="flbl">Cartella</label><div class="tr-opts">${catBtns}</div></div>
     <div class="fgrp"><label class="flbl">Caricato da</label><div class="tr-opts">${mbrBtns}</div></div>
     ${viaggi.length?`<div class="fgrp"><label class="flbl">Associa a un viaggio (opzionale)</label>
       <select onchange="fotoForm.viaggioId=this.value" style="width:100%;padding:10px;border:1px solid var(--border-light);border-radius:10px;background:var(--main-bg);font-size:14px;font-weight:600">
@@ -2587,10 +2656,10 @@ async function uploadFoto(){
     const data=await res.json();
     if(!data.secure_url) throw new Error('Upload fallito');
     const id='fr'+Date.now();
-    const flds={ID:id,URL:data.secure_url,Autore:fotoForm.autore,Data:REAL_TODAY,Didascalia:did,Cornice:fotoForm.cornice,FontDidascalia:fotoForm.fontDidascalia};
+    const flds={ID:id,URL:data.secure_url,Autore:fotoForm.autore,Data:REAL_TODAY,Didascalia:did,Cornice:fotoForm.cornice,FontDidascalia:fotoForm.fontDidascalia,Categoria:fotoForm.categoria||'altro'};
     if(fotoForm.viaggioId) flds.ViaggioID=fotoForm.viaggioId;
     const rec=await atPost('FotoRicordi',flds);
-    fotoRicordi.push({id,url:data.secure_url,autore:fotoForm.autore,data:REAL_TODAY,didascalia:did,cornice:fotoForm.cornice,fontDidascalia:fotoForm.fontDidascalia,viaggioId:fotoForm.viaggioId||'',reazioni:{},_recId:rec.records?.[0]?.id});
+    fotoRicordi.push({id,url:data.secure_url,autore:fotoForm.autore,data:REAL_TODAY,didascalia:did,cornice:fotoForm.cornice,fontDidascalia:fotoForm.fontDidascalia,viaggioId:fotoForm.viaggioId||'',categoria:fotoForm.categoria||'altro',reazioni:{},_recId:rec.records?.[0]?.id});
     closeModal(); renderView();
     mostraToast('Salvato ✓');
   } catch(e){ mostraErrore('Errore nel caricamento. Riprova.'); closeModal(); }
