@@ -1616,10 +1616,38 @@ function segreteriaWidget(){
   </div>`;
 }
 
+function videoMsgWidget(){
+  const recent=[...(typeof videoMsgs!=='undefined'?videoMsgs:[])].sort((a,b)=>(b.data+b.ora).localeCompare(a.data+a.ora)).slice(0,6);
+  let inner='';
+  if(!recent.length){
+    inner=`<div class="bacheca-widget-empty">Nessun videomessaggio ancora 🎥</div>`;
+  } else {
+    inner=`<div class="mini-postits">
+      ${recent.map(vm=>{
+        const m=M(vm.autore);
+        return `<div style="text-align:center;flex:0 0 auto;width:76px">
+          <div style="position:relative;width:70px;height:70px;margin:0 auto">
+            <video id="vm-play-${vm.id}" data-vm src="${escH(vm.videoUrl)}" playsinline onclick="event.stopPropagation();toggleVideoMsgPlay('${vm.id}')" style="width:70px;height:70px;border-radius:50%;object-fit:cover;background:#111;cursor:pointer;border:2px solid ${m.dot}"></video>
+            ${decorazioneOverlayHtml(vm.decorazione,70)}
+          </div>
+          <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.9);margin-top:4px">${escH(m.name)}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+  return `<div class="bacheca-widget" style="background:linear-gradient(160deg,#5c3d78,#402a56);border-color:#2e1f3d">
+    <div class="bacheca-widget-hdr">
+      <span class="bacheca-widget-title" style="color:rgba(255,255,255,0.9)">🎥 Videomessaggi</span>
+      <button class="bacheca-widget-link" style="color:rgba(255,255,255,0.75);background:rgba(0,0,0,0.15)" onclick="switchView('videomsg')">Vedi tutti →</button>
+    </div>
+    ${inner}
+  </div>`;
+}
+
 function todayView(){
   const evs=events.filter(e=>e.date===viewDate && e.members.some(m=>filters.includes(m))).sort((a,b)=>a.startTime.localeCompare(b.startTime));
   const byM={};MEMBERS.forEach(m=>byM[m.id]=[]); evs.forEach(e=>{e.members.forEach(mid => {if(byM[mid] && filters.includes(mid)) byM[mid].push(e);});});
-  let h=bachecaWidget()+segreteriaWidget()+bdayBanners(viewDate);
+  let h=bachecaWidget()+segreteriaWidget()+videoMsgWidget()+bdayBanners(viewDate);
   h+=`<div class="sec-lbl" style="display:flex;align-items:center;width:100%">📅 ${new Date(viewDate).toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'})} ${viewDate===REAL_TODAY?'':`<button onclick="viewDate=REAL_TODAY;renderView()" style="margin-left:auto;background:var(--main-bg);border:1px solid var(--border-light);padding:4px 10px;border-radius:20px;color:#378ADD;font-weight:700;font-size:11px;cursor:pointer">TORNA A OGGI</button>`}</div>`;
   let activeHtml='', freeMembers=[];
   MEMBERS.filter(m=>filters.includes(m.id)).forEach(m=>{
@@ -5452,7 +5480,11 @@ const VIDEO_DECORAZIONI=[
   { id:'stelle',   emoji:'✨', label:'Stelle',             tipo:'ring', count:6 },
   { id:'cuori',    emoji:'💕', label:'Cuori',              tipo:'ring', count:6 },
   { id:'occhiali', emoji:'🕶️', label:'Occhiali',           tipo:'center-upper' },
+  { id:'occhialivista', emoji:'👓', label:'Occhiali da vista', tipo:'center-upper' },
+  { id:'maschera', emoji:'🎭', label:'Maschera',           tipo:'center-upper' },
+  { id:'clown',    emoji:'🔴', label:'Naso da clown',      tipo:'center-mid' },
   { id:'orecchie', emoji:'🐰', label:'Orecchie coniglio',  tipo:'ears' },
+  { id:'cornette', emoji:'😈', label:'Corna',              tipo:'ears' },
 ];
 function videoDecorazione(id){ return VIDEO_DECORAZIONI.find(d=>d.id===id)||VIDEO_DECORAZIONI[0]; }
 
@@ -5463,6 +5495,7 @@ function decorazioneOverlayHtml(decId,sizePx){
   if(dec.tipo==='top') return `<span style="position:absolute;top:-8%;left:50%;transform:translateX(-50%) rotate(-8deg);${fs(0.34)};z-index:3;pointer-events:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.3))">${dec.emoji}</span>`;
   if(dec.tipo==='ears') return `<span style="position:absolute;top:-4%;left:16%;${fs(0.26)};z-index:3;pointer-events:none">${dec.emoji}</span><span style="position:absolute;top:-4%;right:16%;transform:scaleX(-1);${fs(0.26)};z-index:3;pointer-events:none">${dec.emoji}</span>`;
   if(dec.tipo==='center-upper') return `<span style="position:absolute;top:30%;left:50%;transform:translateX(-50%);${fs(0.3)};z-index:3;pointer-events:none">${dec.emoji}</span>`;
+  if(dec.tipo==='center-mid') return `<span style="position:absolute;top:52%;left:50%;transform:translateX(-50%);${fs(0.16)};z-index:3;pointer-events:none">${dec.emoji}</span>`;
   if(dec.tipo==='ring'){
     const n=dec.count||8;
     let out='';
