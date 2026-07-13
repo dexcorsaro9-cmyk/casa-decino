@@ -168,6 +168,11 @@
       background: linear-gradient(135deg, #378ADD, #7F77DD);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      animation: brand-name-hue 6s linear infinite;
+    }
+    @keyframes brand-name-hue {
+      0%   { filter: hue-rotate(0deg); }
+      100% { filter: hue-rotate(360deg); }
     }
     .brand-sub { 
       font-size: 10px; 
