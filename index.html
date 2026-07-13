@@ -1034,7 +1034,9 @@ function mostraSaluto(){
   const giorno=['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'][oggi.getDay()];
   const data=`${giorno} ${oggi.getDate()} ${MONTHS_IT[oggi.getMonth()]}`;
   const orario=`${String(oggi.getHours()).padStart(2,'0')}:${String(oggi.getMinutes()).padStart(2,'0')}`;
-  el.innerHTML=`${testo}, <b>${escH(m.name)}</b> ${getIcon(m.id)}<br><span style="font-weight:600;opacity:0.65;font-size:11px">${data} · ${orario}</span>`;
+  const mieiTitoli=(typeof calcolaRecordCasa==='function')?calcolaRecordCasa().filter(c=>c.vincitore===f4Me):[];
+  const medaglia=mieiTitoli.length?` <span onclick="event.stopPropagation();switchView('record')" title="Vedi i tuoi premi nella Hall of Fame" style="cursor:pointer;display:inline-flex;align-items:center;gap:3px;background:linear-gradient(135deg,#ffd54a,#f5a623);color:#3a2a00;font-weight:800;font-size:11px;padding:2px 8px;border-radius:12px;vertical-align:middle;box-shadow:0 2px 6px rgba(245,166,35,0.4)">🏅 ${mieiTitoli.length}</span>`:'';
+  el.innerHTML=`${testo}, <b>${escH(m.name)}</b> ${getIcon(m.id)}${medaglia}<br><span style="font-weight:600;opacity:0.65;font-size:11px">${data} · ${orario}</span>`;
 }
 setInterval(mostraSaluto,30000);
 
