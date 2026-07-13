@@ -5627,7 +5627,7 @@ function openVideoMsgModal(){
 
 async function avviaAnteprimaCameraVideoMsg(){
   try{
-    vmStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:true});
+    vmStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:360,max:480},height:{ideal:360,max:480}},audio:true});
     const v=document.getElementById('vm-live'); if(v){ v.srcObject=vmStream; }
     aggiornaOverlayVideoModal();
   }catch(e){ mostraErrore('Permesso fotocamera negato. Abilita la fotocamera per registrare.'); }
@@ -5645,7 +5645,8 @@ function vmStartStop(){
   if(!vmStream) return;
   if(!vmRecorder||vmRecorder.state==='inactive'){
     vmChunks=[];
-    vmRecorder=new MediaRecorder(vmStream);
+    try{ vmRecorder=new MediaRecorder(vmStream,{videoBitsPerSecond:500000,audioBitsPerSecond:64000}); }
+    catch(e){ vmRecorder=new MediaRecorder(vmStream); }
     vmRecorder.ondataavailable=e=>{ if(e.data.size>0) vmChunks.push(e.data); };
     vmRecorder.onstop=()=>{
       if(vmStream){ vmStream.getTracks().forEach(t=>t.stop()); vmStream=null; }
