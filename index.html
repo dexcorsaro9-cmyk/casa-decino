@@ -3928,11 +3928,20 @@ function controllaSorpassiHallOfFame(){
   localStorage.setItem(key,JSON.stringify(nuovi));
 }
 
+let hofFiltro='tutti';
+function setHofFiltro(id){ hofFiltro=id; renderView(); }
+
 function recordView(){
-  const cats=calcolaRecordCasa();
-  let h=`<div class="section-wrap"><div class="section-hdr"><span class="section-ttl">🏆 Hall of Fame di Casa Decino</span></div><div style="padding:0 16px 16px">`;
+  const tutteCats=calcolaRecordCasa();
+  const cats=hofFiltro==='tutti'?tutteCats:tutteCats.filter(c=>c.vincitore===hofFiltro);
+  const filtriHtml=`<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px">
+    <button onclick="setHofFiltro('tutti')" style="flex:0 0 auto;white-space:nowrap;padding:8px 14px;border:none;border-radius:20px;font-weight:700;font-size:12px;cursor:pointer;background:${hofFiltro==='tutti'?'#f5a623':'var(--main-bg)'};color:${hofFiltro==='tutti'?'#fff':'var(--text-sec)'}">🏆 Tutti</button>
+    ${MEMBERS.map(m=>`<button onclick="setHofFiltro('${m.id}')" style="flex:0 0 auto;white-space:nowrap;padding:8px 14px;border:none;border-radius:20px;font-weight:700;font-size:12px;cursor:pointer;background:${hofFiltro===m.id?'#f5a623':'var(--main-bg)'};color:${hofFiltro===m.id?'#fff':'var(--text-sec)'}">${getIcon(m.id)} ${escH(m.name)}</button>`).join('')}
+  </div>`;
+  let h=`<div class="section-wrap"><div class="section-hdr"><span class="section-ttl">🏆 Hall of Fame di Casa Decino</span></div><div style="padding:0 16px 16px">${filtriHtml}`;
   if(!cats.length){
-    h+=`<div class="empty-state"><span class="big">🏆</span><div style="font-size:15px;font-weight:700">Ancora nessun record</div><div style="font-size:13px;color:var(--text-sec);margin-top:6px">Iniziate a usare l'app per assegnare i primi titoli!</div></div>`;
+    const msg=hofFiltro==='tutti'?"Iniziate a usare l'app per assegnare i primi titoli!":`${M(hofFiltro).name} non ha ancora nessun titolo in Hall of Fame`;
+    h+=`<div class="empty-state"><span class="big">🏆</span><div style="font-size:15px;font-weight:700">Ancora nessun record</div><div style="font-size:13px;color:var(--text-sec);margin-top:6px">${escH(msg)}</div></div>`;
     h+=`</div></div>`;
     return h;
   }
