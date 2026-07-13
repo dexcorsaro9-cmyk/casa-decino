@@ -971,6 +971,7 @@
         <button class="tab" id="t-challenge"  data-macro="svago" onclick="switchView('challenge')">🏆 Challenge</button>
         <button class="tab" id="t-bacheca"    data-macro="liste"   onclick="switchView('bacheca')">📌 Bacheca</button>
         <button class="tab" id="t-segreteria" data-macro="liste"   onclick="switchView('segreteria')">📞 Segreteria</button>
+        <button class="tab" id="t-videomsg"   data-macro="liste"   onclick="switchView('videomsg')">🎥 Video</button>
         <button class="tab" id="t-dispensa"   data-macro="liste"   onclick="switchView('dispensa')">🛒 Dispensa</button>
         <button class="tab" id="t-ricordi"    data-macro="ricordi" onclick="switchView('ricordi')">📸 Ricordi</button>
         <button class="tab" id="t-viaggi"     data-macro="ricordi" onclick="switchView('viaggi')">🌍 Viaggi</button>
@@ -1056,8 +1057,8 @@ let events=[],ricorrenze=[];
 let view='today',filters=MEMBERS.map(m=>m.id);
 let viewHistory=[];
 
-const VIEW_MACRO={today:'home',week:'agenda',month:'agenda',trasporti:'agenda',ricorrenze:'agenda',bacheca:'liste',segreteria:'liste',dispensa:'liste',sondaggi:'liste',giochi:'svago',jukebox:'svago',film:'svago',challenge:'svago',record:'svago',viaggi:'ricordi',ricordi:'ricordi'};
-const MACRO_TABS={home:['today'],agenda:['week','month','trasporti','ricorrenze'],liste:['bacheca','segreteria','dispensa','sondaggi'],svago:['giochi','jukebox','film','challenge','record'],ricordi:['ricordi','viaggi']};
+const VIEW_MACRO={today:'home',week:'agenda',month:'agenda',trasporti:'agenda',ricorrenze:'agenda',bacheca:'liste',segreteria:'liste',videomsg:'liste',dispensa:'liste',sondaggi:'liste',giochi:'svago',jukebox:'svago',film:'svago',challenge:'svago',record:'svago',viaggi:'ricordi',ricordi:'ricordi'};
+const MACRO_TABS={home:['today'],agenda:['week','month','trasporti','ricorrenze'],liste:['bacheca','segreteria','videomsg','dispensa','sondaggi'],svago:['giochi','jukebox','film','challenge','record'],ricordi:['ricordi','viaggi']};
 let macroArea='home';
 
 const MEMBRI_FEMMINILI=['pamela','sara'];
@@ -1329,7 +1330,7 @@ function fabClick(){
 function switchView(v,daHistory){
   if(!daHistory && v!==view) viewHistory.push(view);
   if(v==='ricordi'&&view!=='ricordi') ricordiCartellaAttiva=null;
-  view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge','t-bacheca','t-dispensa','t-ricordi','t-viaggi','t-film','t-sondaggi','t-giochi','t-segreteria','t-jukebox','t-record'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
+  view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge','t-bacheca','t-dispensa','t-ricordi','t-viaggi','t-film','t-sondaggi','t-giochi','t-segreteria','t-videomsg','t-jukebox','t-record'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
   const tab=document.getElementById('t-'+v); if(tab){ tab.classList.add('active'); tab.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'}); }
   macroArea=VIEW_MACRO[v]||macroArea;
   aggiornaMacroUI();
@@ -1434,7 +1435,7 @@ function gestisciPollingGiochi(){
   }
 }
 
-function renderView(silenzioso){ const el=document.getElementById('view'); if(!silenzioso){ el.classList.remove('view-animate'); void el.offsetWidth; el.classList.add('view-animate'); } if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else if(view==='sondaggi')el.innerHTML=sondaggiView(); else if(view==='giochi'){el.innerHTML=giochiView();ripristinaScrollGiochiSubnav();} else if(view==='segreteria'){el.innerHTML=segreteriaView();setTimeout(attivaSwipeSegreteria,50);} else if(view==='jukebox')el.innerHTML=jukeboxView(); else if(view==='record')el.innerHTML=recordView(); else el.innerHTML=ricorrenzeView(); updateGiochiBadge(); renderOnlineWidget(); }
+function renderView(silenzioso){ const el=document.getElementById('view'); if(!silenzioso){ el.classList.remove('view-animate'); void el.offsetWidth; el.classList.add('view-animate'); } if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else if(view==='sondaggi')el.innerHTML=sondaggiView(); else if(view==='giochi'){el.innerHTML=giochiView();ripristinaScrollGiochiSubnav();} else if(view==='segreteria'){el.innerHTML=segreteriaView();setTimeout(attivaSwipeSegreteria,50);} else if(view==='videomsg')el.innerHTML=videoMsgView(); else if(view==='jukebox')el.innerHTML=jukeboxView(); else if(view==='record')el.innerHTML=recordView(); else el.innerHTML=ricorrenzeView(); updateGiochiBadge(); renderOnlineWidget(); }
 
 function updateGiochiBadge(){
   const tab=document.getElementById('t-giochi'); if(!tab) return;
@@ -5436,6 +5437,207 @@ function attivaSwipeSegreteria(){
   });
 }
 
+/* =============================================
+   VIDEOMESSAGGI MODULE — video circolari con decorazioni
+   ============================================= */
+let videoMsgs=[];
+
+const VIDEO_DECORAZIONI=[
+  { id:'nessuna',  emoji:'',   label:'Nessuna',           tipo:'none' },
+  { id:'cappello', emoji:'🎩', label:'Cappello',           tipo:'top' },
+  { id:'corona',   emoji:'👑', label:'Corona',             tipo:'top' },
+  { id:'festa',    emoji:'🎉', label:'Cappellino party',   tipo:'top' },
+  { id:'criniera', emoji:'🦁', label:'Criniera',           tipo:'ring', count:10 },
+  { id:'fiori',    emoji:'🌸', label:'Corona di fiori',    tipo:'ring', count:8 },
+  { id:'stelle',   emoji:'✨', label:'Stelle',             tipo:'ring', count:6 },
+  { id:'cuori',    emoji:'💕', label:'Cuori',              tipo:'ring', count:6 },
+  { id:'occhiali', emoji:'🕶️', label:'Occhiali',           tipo:'center-upper' },
+  { id:'orecchie', emoji:'🐰', label:'Orecchie coniglio',  tipo:'ears' },
+];
+function videoDecorazione(id){ return VIDEO_DECORAZIONI.find(d=>d.id===id)||VIDEO_DECORAZIONI[0]; }
+
+function decorazioneOverlayHtml(decId,sizePx){
+  const dec=videoDecorazione(decId);
+  if(!dec||dec.tipo==='none') return '';
+  const fs=(mult)=>`font-size:${Math.round(sizePx*mult)}px`;
+  if(dec.tipo==='top') return `<span style="position:absolute;top:-8%;left:50%;transform:translateX(-50%) rotate(-8deg);${fs(0.34)};z-index:3;pointer-events:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.3))">${dec.emoji}</span>`;
+  if(dec.tipo==='ears') return `<span style="position:absolute;top:-4%;left:16%;${fs(0.26)};z-index:3;pointer-events:none">${dec.emoji}</span><span style="position:absolute;top:-4%;right:16%;transform:scaleX(-1);${fs(0.26)};z-index:3;pointer-events:none">${dec.emoji}</span>`;
+  if(dec.tipo==='center-upper') return `<span style="position:absolute;top:30%;left:50%;transform:translateX(-50%);${fs(0.3)};z-index:3;pointer-events:none">${dec.emoji}</span>`;
+  if(dec.tipo==='ring'){
+    const n=dec.count||8;
+    let out='';
+    for(let i=0;i<n;i++){
+      const angle=(i/n)*2*Math.PI-Math.PI/2;
+      const cx=50+48*Math.cos(angle), cy=50+48*Math.sin(angle);
+      out+=`<span style="position:absolute;top:${cy}%;left:${cx}%;transform:translate(-50%,-50%);${fs(0.15)};z-index:3;pointer-events:none">${dec.emoji}</span>`;
+    }
+    return out;
+  }
+  return '';
+}
+
+async function loadVideoMsg(){
+  try{
+    const records=await atGetAll('VideoMessaggi');
+    videoMsgs=records.map(r=>({_recId:r.id,id:r.fields.ID||r.id,autore:r.fields.Autore||'antonio',videoUrl:r.fields.VideoURL||'',data:r.fields.Data||'',ora:r.fields.Ora||'',decorazione:r.fields.Decorazione||'nessuna',_created:r.createdTime}));
+  }catch(e){ videoMsgs=[]; }
+}
+
+let vmStream=null, vmRecorder=null, vmChunks=[], vmTimerId=null, vmSecondi=0, vmBlobUrl=null;
+const VIDEOMSG_MAX_SEC=15;
+let videoMsgForm={decorazione:'nessuna'};
+
+function renderVideoDecBtns(){
+  const btns=VIDEO_DECORAZIONI.map(d=>`<button onclick="videoMsgForm.decorazione='${d.id}';renderVideoDecBtns();aggiornaOverlayVideoModal()" class="tr-btn${videoMsgForm.decorazione===d.id?' sel':''}" style="${videoMsgForm.decorazione===d.id?'background:#378ADD;color:#fff;border-color:transparent':''}">${d.emoji?d.emoji+' ':''}${d.label}</button>`).join('');
+  const el=document.getElementById('vm-dec-btns'); if(el) el.innerHTML=btns;
+}
+
+function aggiornaOverlayVideoModal(){
+  const el=document.getElementById('vm-overlay-live'); if(el) el.innerHTML=decorazioneOverlayHtml(videoMsgForm.decorazione,220);
+  const el2=document.getElementById('vm-overlay-preview'); if(el2) el2.innerHTML=decorazioneOverlayHtml(videoMsgForm.decorazione,220);
+}
+
+function openVideoMsgModal(){
+  videoMsgForm={decorazione:'nessuna'}; vmChunks=[]; vmSecondi=0;
+  if(vmBlobUrl){ URL.revokeObjectURL(vmBlobUrl); vmBlobUrl=null; }
+  document.getElementById('modal-box').innerHTML=`
+    <div class="modal-hdr"><span class="modal-ttl">🎥 Nuovo videomessaggio</span><button class="modal-close" onclick="chiudiVideoMsgModal()">✕</button></div>
+    <div style="text-align:center;padding:10px 0">
+      <div style="position:relative;width:220px;height:220px;margin:0 auto 14px">
+        <video id="vm-live" autoplay muted playsinline style="width:220px;height:220px;border-radius:50%;object-fit:cover;background:#111;transform:scaleX(-1)"></video>
+        <div id="vm-overlay-live" style="position:absolute;inset:0;pointer-events:none"></div>
+      </div>
+      <div id="vm-timer" style="font-size:24px;font-weight:900;color:var(--text-main);margin-bottom:10px">00:00</div>
+      <button id="vm-rec-btn" onclick="vmStartStop()" style="width:70px;height:70px;border-radius:50%;border:none;background:#ff3b30;color:#fff;font-size:24px;cursor:pointer;box-shadow:0 6px 16px rgba(255,59,48,0.35)">⏺</button>
+      <div style="font-size:12px;color:var(--text-sec);margin-top:10px" id="vm-hint">Tocca per registrare (max ${VIDEOMSG_MAX_SEC}s)</div>
+    </div>
+    <div class="fgrp"><label class="flbl">Scegli una decorazione</label><div class="tr-opts" id="vm-dec-btns"></div></div>
+    <div id="vm-invia-wrap" style="display:none;text-align:center">
+      <button class="btn-save" onclick="inviaVideoMsg()" style="width:100%">Invia videomessaggio</button>
+    </div>`;
+  renderVideoDecBtns();
+  showOv();
+  avviaAnteprimaCameraVideoMsg();
+}
+
+async function avviaAnteprimaCameraVideoMsg(){
+  try{
+    vmStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:true});
+    const v=document.getElementById('vm-live'); if(v){ v.srcObject=vmStream; }
+    aggiornaOverlayVideoModal();
+  }catch(e){ mostraErrore('Permesso fotocamera negato. Abilita la fotocamera per registrare.'); }
+}
+
+function chiudiVideoMsgModal(){
+  if(vmStream){ vmStream.getTracks().forEach(t=>t.stop()); vmStream=null; }
+  if(vmTimerId){ clearInterval(vmTimerId); vmTimerId=null; }
+  if(vmBlobUrl){ URL.revokeObjectURL(vmBlobUrl); vmBlobUrl=null; }
+  closeModal();
+}
+
+function vmStartStop(){
+  const btn=document.getElementById('vm-rec-btn');
+  if(!vmStream) return;
+  if(!vmRecorder||vmRecorder.state==='inactive'){
+    vmChunks=[];
+    vmRecorder=new MediaRecorder(vmStream);
+    vmRecorder.ondataavailable=e=>{ if(e.data.size>0) vmChunks.push(e.data); };
+    vmRecorder.onstop=()=>{
+      if(vmStream){ vmStream.getTracks().forEach(t=>t.stop()); vmStream=null; }
+      const blob=new Blob(vmChunks,{type:'video/webm'});
+      vmBlobUrl=URL.createObjectURL(blob);
+      document.getElementById('modal-box').querySelector('div[style*="220px"]')?.remove();
+      const wrap=document.createElement('div');
+      wrap.style.cssText='position:relative;width:220px;height:220px;margin:0 auto 14px';
+      wrap.innerHTML=`<video id="vm-preview" src="${vmBlobUrl}" controls loop playsinline style="width:220px;height:220px;border-radius:50%;object-fit:cover;background:#111"></video><div id="vm-overlay-preview" style="position:absolute;inset:0;pointer-events:none"></div>`;
+      document.getElementById('vm-timer').insertAdjacentElement('beforebegin',wrap);
+      aggiornaOverlayVideoModal();
+      document.getElementById('vm-invia-wrap').style.display='block';
+      document.getElementById('vm-hint').textContent='Registrazione pronta. Puoi inviarla.';
+      document.getElementById('vm-rec-btn').style.display='none';
+    };
+    vmRecorder.start();
+    vmSecondi=0;
+    document.getElementById('vm-timer').textContent='00:00';
+    document.getElementById('vm-hint').textContent='Registrazione in corso… tocca per fermare';
+    btn.style.background='#666'; btn.textContent='⏹';
+    vmTimerId=setInterval(()=>{
+      vmSecondi++;
+      const mm=String(Math.floor(vmSecondi/60)).padStart(2,'0');
+      const ss=String(vmSecondi%60).padStart(2,'0');
+      document.getElementById('vm-timer').textContent=`${mm}:${ss}`;
+      if(vmSecondi>=VIDEOMSG_MAX_SEC) vmStartStop();
+    },1000);
+  } else {
+    vmRecorder.stop();
+    if(vmTimerId){ clearInterval(vmTimerId); vmTimerId=null; }
+    btn.disabled=true;
+  }
+}
+
+async function inviaVideoMsg(){
+  if(!vmChunks.length){ alert('Nessuna registrazione trovata'); return; }
+  document.getElementById('modal-box').innerHTML=`<div class="foto-upload-progress">⏳ Caricamento in corso…</div>`;
+  const blob=new Blob(vmChunks,{type:'video/webm'});
+  const formData=new FormData();
+  formData.append('file',blob,'videomsg.webm');
+  formData.append('upload_preset',CL_PRESET);
+  try{
+    const res=await fetch(`https://api.cloudinary.com/v1_1/${CL_CLOUD}/video/upload`,{method:'POST',body:formData});
+    const data=await res.json();
+    if(!data.secure_url) throw new Error('Upload fallito');
+    const id='vm'+Date.now();
+    const now=new Date();
+    const ora=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const flds={ID:id,Autore:f4Me,VideoURL:data.secure_url,Data:REAL_TODAY,Ora:ora,Decorazione:videoMsgForm.decorazione};
+    const rec=await atPost('VideoMessaggi',flds);
+    videoMsgs.unshift({_recId:rec.records?.[0]?.id,id,autore:f4Me,videoUrl:data.secure_url,data:REAL_TODAY,ora,decorazione:videoMsgForm.decorazione});
+    if(vmBlobUrl){ URL.revokeObjectURL(vmBlobUrl); vmBlobUrl=null; }
+    closeModal(); renderView();
+    mostraToast('Salvato ✓');
+  }catch(e){ mostraErrore('Errore nel caricamento. Riprova.'); closeModal(); }
+}
+
+async function eliminaVideoMsg(id){
+  if(!(await confermaCustom('Eliminare questo videomessaggio?'))) return;
+  const v=videoMsgs.find(x=>x.id===id);
+  videoMsgs=videoMsgs.filter(x=>x.id!==id);
+  renderView();
+  if(v?._recId) atDelete('VideoMessaggi',v._recId);
+}
+
+function toggleVideoMsgPlay(id){
+  document.querySelectorAll('video[data-vm]').forEach(v=>{ if(v.id!==`vm-play-${id}`){ v.pause(); v.currentTime=0; } });
+  const v=document.getElementById(`vm-play-${id}`); if(!v) return;
+  if(v.paused) v.play(); else v.pause();
+}
+
+function videoMsgView(){
+  const sorted=[...videoMsgs].sort((a,b)=>(b.data+b.ora).localeCompare(a.data+a.ora));
+  let h=`<div class="section-wrap"><div class="section-hdr"><span class="section-ttl">🎥 Videomessaggi di famiglia</span></div><div style="padding:0 16px 16px">`;
+  if(!sorted.length){
+    h+=`<div class="empty-state"><span class="big">🎥</span><div style="font-size:16px;font-weight:700">Nessun videomessaggio ancora</div><div style="font-size:13px;color:var(--text-sec);margin-top:6px">Registra il primo per la famiglia!</div></div>`;
+  } else {
+    h+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:16px">`;
+    sorted.forEach(vm=>{
+      const m=M(vm.autore);
+      h+=`<div style="text-align:center">
+        <div style="position:relative;width:100px;height:100px;margin:0 auto">
+          <video id="vm-play-${vm.id}" data-vm src="${escH(vm.videoUrl)}" playsinline onclick="toggleVideoMsgPlay('${vm.id}')" style="width:100px;height:100px;border-radius:50%;object-fit:cover;background:#111;cursor:pointer;border:3px solid ${m.dot};box-shadow:0 4px 10px rgba(0,0,0,0.2)"></video>
+          ${decorazioneOverlayHtml(vm.decorazione,100)}
+          <button onclick="event.stopPropagation();eliminaVideoMsg('${vm.id}')" style="position:absolute;top:-4px;right:-4px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:10px;cursor:pointer;z-index:4">✕</button>
+        </div>
+        <div style="font-size:11px;font-weight:700;margin-top:6px">${escH(m.name)}</div>
+        <div style="font-size:10px;color:var(--text-sec)">${fmtDateShort(vm.data)} ${vm.ora}</div>
+      </div>`;
+    });
+    h+=`</div>`;
+  }
+  h+=`<div class="foto-add-btn" style="margin-top:16px" onclick="openVideoMsgModal()"><span style="font-size:28px">🎥</span><span>Nuovo videomessaggio</span></div>`;
+  h+=`</div></div>`;
+  return h;
+}
+
 let invitiPollingId=null;
 function avviaPollingInviti(){
   if(invitiPollingId) return;
@@ -5629,7 +5831,7 @@ async function deleteCanzone(id){
 }
 
 async function init(){
-  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle(),loadSegreteria(),loadJukebox(),loadVittorieGiochi(),loadPresenza()]);
+  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle(),loadSegreteria(),loadVideoMsg(),loadJukebox(),loadVittorieGiochi(),loadPresenza()]);
   render(); loadWeather();
   renderOnlineWidget();
   aggiornaMacroUI();
@@ -5645,7 +5847,7 @@ async function init(){
   controllaSegreteriaUrgenti();
 }
 async function reloadAll(){
-  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle(),loadSegreteria(),loadJukebox(),loadVittorieGiochi(),loadPresenza()]);
+  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle(),loadSegreteria(),loadVideoMsg(),loadJukebox(),loadVittorieGiochi(),loadPresenza()]);
   render();
   renderOnlineWidget();
   controllaSegreteriaUrgenti();
