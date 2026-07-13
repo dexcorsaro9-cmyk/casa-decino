@@ -5541,7 +5541,7 @@ function decorazioneOverlayHtml(decId,sizePx){
   if(!dec||dec.tipo==='none') return '';
   const fs=(mult)=>`font-size:${Math.round(sizePx*mult)}px`;
   if(dec.tipo==='svg'){
-    const w=Math.round(sizePx*0.74), h=Math.round(w*0.4);
+    const w=Math.round(sizePx*0.37), h=Math.round(w*0.4);
     const topPct=dec.svgPos==='mouth'?0.53:0.30;
     const top=Math.round(sizePx*topPct), left=Math.round((sizePx-w)/2);
     return `<svg viewBox="0 0 100 40" style="position:absolute;top:${top}px;left:${left}px;width:${w}px;height:${h}px;z-index:3;pointer-events:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.3))">${svgMaskInner(dec.svgKey)}</svg>`;
