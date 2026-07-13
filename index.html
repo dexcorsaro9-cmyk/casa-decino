@@ -2115,7 +2115,14 @@ const POSTIT_TEXT_COLORS = [
 async function loadBacheca(){
   try{
     const records=await atGetAll('Bacheca');
-    bachecaNotes=records.map(r=>({_recId:r.id,id:r.fields.ID||r.id,text:r.fields.Testo||'',author:r.fields.Autore||'antonio',date:r.fields.Data||'',color:r.fields.Colore||'yellow',font:r.fields.Font||'caveat',textColor:r.fields.ColoreTesto||'dark',fotoUrl:r.fields.FotoURL||'',_created:r.createdTime}));
+    bachecaNotes=records.map(r=>{
+      const reazioni={};
+      (r.fields.Reazioni||'').split(',').forEach(pair=>{
+        const [mid,emoji]=pair.split(':');
+        if(mid&&emoji) reazioni[mid]=emoji;
+      });
+      return {_recId:r.id,id:r.fields.ID||r.id,text:r.fields.Testo||'',author:r.fields.Autore||'antonio',date:r.fields.Data||'',color:r.fields.Colore||'yellow',font:r.fields.Font||'caveat',textColor:r.fields.ColoreTesto||'dark',fotoUrl:r.fields.FotoURL||'',reazioni,_created:r.createdTime};
+    });
   } catch(e){ bachecaNotes=[]; }
 }
 
@@ -2152,6 +2159,7 @@ function bachecaView(){
         <div class="postit-author"><span style="width:8px;height:8px;border-radius:50%;background:${m.dot};display:inline-block"></span>${m.name}</div>
         <span class="postit-date">${fmtDateShort(n.date)}</span>
       </div>
+      <div id="postit-reaz-${n.id}" onclick="event.stopPropagation()">${renderPostitReazioni(n)}</div>
     </div>`;
   }).join('');
 
@@ -2236,9 +2244,40 @@ async function saveBachecaNote(){
   const flds={ID:id,Testo:text,Autore:bachecaForm.author,Data:REAL_TODAY,Colore:bachecaForm.color,Font:bachecaForm.font,ColoreTesto:bachecaForm.textColor};
   if(fotoUrl) flds.FotoURL=fotoUrl;
   const res=await atPost('Bacheca',flds);
-  bachecaNotes.push({id,text,author:bachecaForm.author,date:REAL_TODAY,color:bachecaForm.color,font:bachecaForm.font,textColor:bachecaForm.textColor,fotoUrl,_recId:res.records?.[0]?.id,_created:new Date().toISOString()});
+  bachecaNotes.push({id,text,author:bachecaForm.author,date:REAL_TODAY,color:bachecaForm.color,font:bachecaForm.font,textColor:bachecaForm.textColor,fotoUrl,reazioni:{},_recId:res.records?.[0]?.id,_created:new Date().toISOString()});
   closeModal(); renderView();
   mostraToast('Salvato ✓');
+}
+
+function renderPostitReazioni(n){
+  const mia=n.reazioni?.[f4Me];
+  const conteggi={};
+  Object.values(n.reazioni||{}).forEach(e=>{ conteggi[e]=(conteggi[e]||0)+1; });
+  const riepilogo=Object.keys(conteggi).length?`<div style="display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;justify-content:center">${Object.entries(conteggi).map(([e,c])=>`<span style="background:rgba(0,0,0,0.08);border-radius:10px;padding:1px 6px;font-size:11px">${e} ${c}</span>`).join('')}</div>`:'';
+  return `<div style="display:flex;gap:4px;justify-content:center;margin-top:6px">
+      ${FOTO_EMOJI_REAZIONI.map(e=>`<button onclick="toggleReazionePostit('${n.id}','${e}')" style="background:${mia===e?'#378ADD':'rgba(0,0,0,0.06)'};border:none;border-radius:50%;width:24px;height:24px;font-size:12px;cursor:pointer">${e}</button>`).join('')}
+    </div>${riepilogo}`;
+}
+
+async function toggleReazionePostit(id,emoji){
+  const n=bachecaNotes.find(n=>n.id===id); if(!n) return;
+  if(!n.reazioni) n.reazioni={};
+  const precedente={...n.reazioni};
+  if(n.reazioni[f4Me]===emoji) delete n.reazioni[f4Me];
+  else n.reazioni[f4Me]=emoji;
+  const box=document.getElementById(`postit-reaz-${id}`);
+  if(box) box.innerHTML=renderPostitReazioni(n);
+  try{
+    if(!n._recId) throw new Error('Post-it senza record Airtable collegato');
+    const serial=Object.entries(n.reazioni).map(([mid,e])=>`${mid}:${e}`).join(',');
+    const res=await atPatch('Bacheca',n._recId,{Reazioni:serial});
+    const body=await res.json();
+    if(!res.ok||body.error) throw new Error(body.error?.message||('HTTP '+res.status)+' — probabilmente manca il campo "Reazioni" nella tabella Bacheca su Airtable');
+  } catch(e){
+    n.reazioni=precedente;
+    if(box) box.innerHTML=renderPostitReazioni(n);
+    mostraErrore('Reazione non salvata: '+e.message);
+  }
 }
 
 async function deleteBachecaNote(id){
