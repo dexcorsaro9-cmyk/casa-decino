@@ -5648,7 +5648,7 @@ async function inviaVideoMsg(){
     if(vmBlobUrl){ URL.revokeObjectURL(vmBlobUrl); vmBlobUrl=null; }
     closeModal(); renderView();
     mostraToast('Salvato ✓');
-  }catch(e){ mostraErrore('Errore nel caricamento. Riprova.'); closeModal(); }
+  }catch(e){ mostraErrore('Errore videomessaggio: '+e.message); closeModal(); }
 }
 
 async function eliminaVideoMsg(id){
