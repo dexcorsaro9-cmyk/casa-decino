@@ -2806,12 +2806,22 @@ function renderFotoReazioni(f){
 async function toggleReazioneFoto(id,emoji){
   const f=fotoRicordi.find(f=>f.id===id); if(!f) return;
   if(!f.reazioni) f.reazioni={};
+  const precedente={...f.reazioni};
   if(f.reazioni[f4Me]===emoji) delete f.reazioni[f4Me];
   else f.reazioni[f4Me]=emoji;
   const box=document.getElementById(`foto-lb-reaz-${id}`);
   if(box) box.innerHTML=renderFotoReazioni(f);
-  const serial=Object.entries(f.reazioni).map(([mid,e])=>`${mid}:${e}`).join(',');
-  try{ if(f._recId) await atPatch('FotoRicordi',f._recId,{Reazioni:serial}); }catch(e){}
+  try{
+    if(!f._recId) throw new Error('Foto senza record Airtable collegato');
+    const serial=Object.entries(f.reazioni).map(([mid,e])=>`${mid}:${e}`).join(',');
+    const res=await atPatch('FotoRicordi',f._recId,{Reazioni:serial});
+    const body=await res.json();
+    if(!res.ok||body.error) throw new Error(body.error?.message||('HTTP '+res.status));
+  } catch(e){
+    f.reazioni=precedente;
+    if(box) box.innerHTML=renderFotoReazioni(f);
+    mostraErrore('Reazione non salvata: '+e.message);
+  }
 }
 
 function openFotoLightbox(id){
@@ -4943,7 +4953,7 @@ async function toggleEliminaIC(partitaId,charId){
   else lista.push(charId);
   renderView();
   const fieldName=f4Me===p.giocatore1?'Eliminati':'Eliminati2';
-  try{ await atPatch('IndovinaChi',p._recId,{[fieldName]:p[campo].join(',')}); }catch(e){}
+  try{ await atPatch('IndovinaChi',p._recId,{[fieldName]:p[campo].join(',')}); }catch(e){ mostraErrore('Errore: '+e.message); }
 }
 
 async function inviaDomandaIC(partitaId){
@@ -4952,7 +4962,7 @@ async function inviaDomandaIC(partitaId){
   const testo=input?.value.trim(); if(!testo){ alert('Scrivi una domanda'); return; }
   p.stato='attesa_risposta'; p.domandaPendente=testo; p.chiChiede=f4Me;
   renderView();
-  try{ await atPatch('IndovinaChi',p._recId,{Stato:'attesa_risposta',DomandaPendente:testo,ChiChiede:f4Me}); }catch(e){}
+  try{ await atPatch('IndovinaChi',p._recId,{Stato:'attesa_risposta',DomandaPendente:testo,ChiChiede:f4Me}); }catch(e){ mostraErrore('Errore: '+e.message); }
 }
 
 async function rispondiDomandaIC(partitaId,risposta){
@@ -4961,7 +4971,7 @@ async function rispondiDomandaIC(partitaId,risposta){
   const prossimoTurno=f4Me;
   p.stato='aperta'; p.ultimaDomanda=p.domandaPendente; p.ultimaRisposta=risposta; p.domandaPendente=''; p.turnoDi=prossimoTurno;
   renderView();
-  try{ await atPatch('IndovinaChi',p._recId,{Stato:'aperta',UltimaDomanda:p.ultimaDomanda,UltimaRisposta:risposta,DomandaPendente:'',TurnoDi:prossimoTurno}); }catch(e){}
+  try{ await atPatch('IndovinaChi',p._recId,{Stato:'aperta',UltimaDomanda:p.ultimaDomanda,UltimaRisposta:risposta,DomandaPendente:'',TurnoDi:prossimoTurno}); }catch(e){ mostraErrore('Errore: '+e.message); }
 }
 
 async function tentaRispostaIC(partitaId,charId){
@@ -4972,13 +4982,13 @@ async function tentaRispostaIC(partitaId,charId){
   if(charId===segreto){
     p.stato='vinta'; p.vincitore=f4Me;
     renderView();
-    try{ await atPatch('IndovinaChi',p._recId,{Stato:'vinta',Vincitore:f4Me}); }catch(e){}
+    try{ await atPatch('IndovinaChi',p._recId,{Stato:'vinta',Vincitore:f4Me}); }catch(e){ mostraErrore('Errore: '+e.message); }
     registraVittoriaGioco('indovinachi',f4Me);
   } else {
     const prossimoTurno=icAvversarioDi(p,f4Me);
     p.turnoDi=prossimoTurno;
     renderView();
-    try{ await atPatch('IndovinaChi',p._recId,{TurnoDi:prossimoTurno}); }catch(e){}
+    try{ await atPatch('IndovinaChi',p._recId,{TurnoDi:prossimoTurno}); }catch(e){ mostraErrore('Errore: '+e.message); }
     alert(`❌ Sbagliato! Non è ${personaggio.nome}. Ora tocca all'avversario...`);
   }
 }
