@@ -481,7 +481,7 @@
     .dispensa-empty { text-align:center; color:rgba(255,255,255,0.5); font-size:13px; font-weight:600; padding:8px 0; }
     .pulisci-btn { background:rgba(255,255,255,0.15); border:none; color:#fff; font-size:12px; font-weight:700; padding:5px 12px; border-radius:20px; cursor:pointer; }
 
-    .mini-postits { display:flex; gap:12px; overflow-x:auto; padding-bottom:4px; }
+    .mini-postits { display:flex; gap:12px; overflow-x:auto; padding-bottom:4px; touch-action:pan-x; -webkit-overflow-scrolling:touch; }
     .mini-postit {
       flex-shrink:0; width:130px; min-height:100px;
       border-radius:2px 2px 2px 8px;
@@ -1501,7 +1501,7 @@ function bachecaWidget(){
       return `<div class="mini-postit${spec?' postit-'+n.color:''}" style="${spec?'':'background:'+col.hex+';'}transform:rotate(${rot}deg)">
         ${spec?postitBadgeCorners(spec.icon,14):''}
         <div class="mini-postit-pin"></div>
-        ${n.fotoUrl?`<img src="${n.fotoUrl}" onclick="event.stopPropagation();openFotoLightboxUrl('${n.fotoUrl}')" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:2px;margin-bottom:4px;box-shadow:0 2px 5px rgba(0,0,0,0.2);cursor:pointer">`:''}
+        ${n.fotoUrl?`<img src="${n.fotoUrl}" draggable="false" onclick="event.stopPropagation();openFotoLightboxUrl('${n.fotoUrl}')" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:2px;margin-bottom:4px;box-shadow:0 2px 5px rgba(0,0,0,0.2);cursor:pointer;touch-action:manipulation;-webkit-user-drag:none;-webkit-touch-callout:none;user-select:none">`:''}
         <div class="mini-postit-text" style="font-family:${fnt.family};color:${txc.hex}">${escH(n.text)}</div>
         <div class="mini-postit-author" style="color:${m.dot}">${getIcon(m.id)} ${m.name}</div>
       </div>`;
