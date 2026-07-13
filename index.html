@@ -3600,6 +3600,137 @@ function calcolaRecordCasa(){
   fotoRicordi.forEach(f=>{ Object.keys(f.reazioni||{}).forEach(mid=>{ reagenteCount[mid]=(reagenteCount[mid]||0)+1; }); });
   let reagV=null,reagM=0; Object.entries(reagenteCount).forEach(([k,n])=>{ if(n>reagM){reagM=n;reagV=k;} });
   if(reagV) cats.push({icona:'😂',titolo:'Il Reagente Compulsivo',sub:'reazioni messe alle foto',vincitore:reagV,conteggio:reagM});
+
+  const cinefiloCount={};
+  film.forEach(f=>{ (f.vistiDa||[]).forEach(mid=>{ cinefiloCount[mid]=(cinefiloCount[mid]||0)+1; }); });
+  let cineV=null,cineM=0; Object.entries(cinefiloCount).forEach(([k,n])=>{ if(n>cineM){cineM=n;cineV=k;} });
+  if(cineV) cats.push({icona:'🍿',titolo:'Il Cinefilo',sub:'film/serie visti',vincitore:cineV,conteggio:cineM});
+
+  const tutteAttivita=[
+    ...fotoRicordi.map(x=>({autore:x.autore,_created:x._created})),
+    ...jukebox.map(x=>({autore:x.autore,_created:x._created})),
+    ...dispensaItems.map(x=>({autore:x.autore,_created:x._created})),
+    ...segreteriaMsgs.map(x=>({autore:x.autore,_created:x._created})),
+    ...events.map(x=>({autore:x.autore,_created:x._created})),
+    ...ricorrenze.map(x=>({autore:x.autore,_created:x._created})),
+    ...viaggi.map(x=>({autore:x.autore,_created:x._created})),
+    ...film.map(x=>({autore:x.consigliatoDa,_created:x._created})),
+    ...sondaggi.map(x=>({autore:x.autore,_created:x._created})),
+    ...bachecaNotes.map(x=>({autore:x.author,_created:x._created})),
+  ].filter(x=>x.autore&&x._created);
+
+  const nottambuloCount={};
+  tutteAttivita.forEach(x=>{ const h=new Date(x._created).getHours(); if(h>=22||h<6) nottambuloCount[x.autore]=(nottambuloCount[x.autore]||0)+1; });
+  let nottV=null,nottM=0; Object.entries(nottambuloCount).forEach(([k,n])=>{ if(n>nottM){nottM=n;nottV=k;} });
+  if(nottV) cats.push({icona:'🌙',titolo:'Il Nottambulo',sub:'attività dopo le 22',vincitore:nottV,conteggio:nottM});
+
+  const mattinieroCount={};
+  tutteAttivita.forEach(x=>{ const h=new Date(x._created).getHours(); if(h>=5&&h<8) mattinieroCount[x.autore]=(mattinieroCount[x.autore]||0)+1; });
+  let mattV=null,mattM=0; Object.entries(mattinieroCount).forEach(([k,n])=>{ if(n>mattM){mattM=n;mattV=k;} });
+  if(mattV) cats.push({icona:'☀️',titolo:'Il Mattiniero',sub:'attività prima delle 8',vincitore:mattV,conteggio:mattM});
+
+  const offerte=calcolaRecord(dispensaItems.filter(i=>i.comprato),'autore');
+  if(offerte) cats.push({icona:'🛍️',titolo:'Il Cacciatore di Offerte',sub:'articoli comprati',...offerte});
+
+  const tuttofareCount={};
+  tutteAttivita.forEach(x=>{ tuttofareCount[x.autore]=(tuttofareCount[x.autore]||0)+1; });
+  let tuttoV=null,tuttoM=0; Object.entries(tuttofareCount).forEach(([k,n])=>{ if(n>tuttoM){tuttoM=n;tuttoV=k;} });
+  if(tuttoV) cats.push({icona:'🏅',titolo:'Il Tuttofare',sub:'contributi totali in app',vincitore:tuttoV,conteggio:tuttoM});
+
+  const giorniPerAutore={};
+  tutteAttivita.forEach(x=>{ const g=new Date(x._created).toISOString().slice(0,10); (giorniPerAutore[x.autore]=giorniPerAutore[x.autore]||new Set()).add(g); });
+  let costV=null,costM=0;
+  Object.entries(giorniPerAutore).forEach(([mid,set])=>{
+    const giorni=[...set].sort();
+    let streak=1,best=1;
+    for(let i=1;i<giorni.length;i++){
+      const diff=(new Date(giorni[i])-new Date(giorni[i-1]))/86400000;
+      streak=diff===1?streak+1:1;
+      if(streak>best) best=streak;
+    }
+    if(giorni.length&&best>costM){ costM=best; costV=mid; }
+  });
+  if(costV&&costM>1) cats.push({icona:'🔥',titolo:'Il Costante',sub:'giorni di fila con attività',vincitore:costV,conteggio:costM});
+
+  const precisoCount={};
+  sondaggi.forEach(s=>{ Object.keys(s.voti||{}).forEach(mid=>{ precisoCount[mid]=(precisoCount[mid]||0)+1; }); });
+  let precV=null,precM=0; Object.entries(precisoCount).forEach(([k,n])=>{ if(n>precM){precM=n;precV=k;} });
+  if(precV) cats.push({icona:'🎯',titolo:'Il Preciso',sub:'voti espressi nei sondaggi',vincitore:precV,conteggio:precM});
+
+  const sezioniPerAutore={};
+  const segnaSezione=(mid,sez)=>{ if(!mid) return; (sezioniPerAutore[mid]=sezioniPerAutore[mid]||new Set()).add(sez); };
+  fotoRicordi.forEach(x=>segnaSezione(x.autore,'ricordi'));
+  jukebox.forEach(x=>segnaSezione(x.autore,'jukebox'));
+  dispensaItems.forEach(x=>segnaSezione(x.autore,'dispensa'));
+  segreteriaMsgs.forEach(x=>segnaSezione(x.autore,'segreteria'));
+  events.forEach(x=>segnaSezione(x.autore,'agenda'));
+  ricorrenze.forEach(x=>segnaSezione(x.autore,'ricorrenze'));
+  viaggi.forEach(x=>segnaSezione(x.autore,'viaggi'));
+  film.forEach(x=>segnaSezione(x.consigliatoDa,'film'));
+  sondaggi.forEach(x=>segnaSezione(x.autore,'sondaggi'));
+  bachecaNotes.forEach(x=>segnaSezione(x.author,'bacheca'));
+  vittorieGiochi.forEach(x=>segnaSezione(x.vincitore,'giochi'));
+  challengeLog.filter(l=>l.status==='approved').forEach(x=>segnaSezione(x.member,'sfide'));
+  let poliV=null,poliM=0;
+  Object.entries(sezioniPerAutore).forEach(([mid,set])=>{ if(set.size>poliM){ poliM=set.size; poliV=mid; } });
+  if(poliV) cats.push({icona:'🧩',titolo:'Il Poliedrico',sub:'sezioni diverse usate',vincitore:poliV,conteggio:poliM});
+
+  const diplomaticoCount={};
+  segreteriaMsgs.forEach(m=>{ (m.ascoltatoDa||[]).forEach(mid=>{ diplomaticoCount[mid]=(diplomaticoCount[mid]||0)+1; }); });
+  let diplV=null,diplM=0; Object.entries(diplomaticoCount).forEach(([k,n])=>{ if(n>diplM){diplM=n;diplV=k;} });
+  if(diplV) cats.push({icona:'🎧',titolo:'Il Diplomatico',sub:'messaggi vocali ascoltati',vincitore:diplV,conteggio:diplM});
+
+  const urgente=calcolaRecord(segreteriaMsgs.filter(m=>m.urgente),'autore');
+  if(urgente) cats.push({icona:'🚨',titolo:"L'Urgente",sub:'messaggi urgenti inviati',...urgente});
+
+  let fedV=null,fedM=0;
+  Object.entries(giorniPerAutore).forEach(([mid,set])=>{ if(set.size>fedM){ fedM=set.size; fedV=mid; } });
+  if(fedV) cats.push({icona:'📆',titolo:'Il Fedelissimo',sub:'giorni diversi con attività',vincitore:fedV,conteggio:fedM});
+
+  const emojiPerAutore={};
+  fotoRicordi.forEach(f=>{ Object.entries(f.reazioni||{}).forEach(([mid,emoji])=>{ (emojiPerAutore[mid]=emojiPerAutore[mid]||new Set()).add(emoji); }); });
+  let curV=null,curM=0;
+  Object.entries(emojiPerAutore).forEach(([mid,set])=>{ if(set.size>curM){ curM=set.size; curV=mid; } });
+  if(curV&&curM>1) cats.push({icona:'🎭',titolo:'Il Curioso',sub:'emoji diverse usate per reagire',vincitore:curV,conteggio:curM});
+
+  const testiPerAutore={};
+  const aggiungiTesto=(mid,testo)=>{ if(!mid||!testo) return; const t=(testiPerAutore[mid]=testiPerAutore[mid]||{tot:0,n:0}); t.tot+=testo.length; t.n++; };
+  fotoRicordi.forEach(f=>aggiungiTesto(f.autore,f.didascalia));
+  viaggi.forEach(v=>aggiungiTesto(v.autore,v.nota));
+  events.forEach(e=>aggiungiTesto(e.autore,e.notes));
+  let sceV=null,sceM=0;
+  Object.entries(testiPerAutore).forEach(([mid,t])=>{ if(t.n>=3){ const media=t.tot/t.n; if(media>sceM){ sceM=media; sceV=mid; } } });
+  if(sceV) cats.push({icona:'✍️',titolo:'Lo Sceneggiatore',sub:'caratteri medi per testo scritto',vincitore:sceV,conteggio:Math.round(sceM)});
+
+  const giochiPerVincitore={};
+  vittorieGiochi.forEach(v=>{ if(v.vincitore&&v.gioco) (giochiPerVincitore[v.vincitore]=giochiPerVincitore[v.vincitore]||new Set()).add(v.gioco); });
+  let camV=null,camM=0;
+  Object.entries(giochiPerVincitore).forEach(([mid,set])=>{ if(set.size>camM){ camM=set.size; camV=mid; } });
+  if(camV&&camM>1) cats.push({icona:'🎮',titolo:'Il Camaleonte dei Giochi',sub:'giochi diversi vinti',vincitore:camV,conteggio:camM});
+
+  const vittorieOrdinate=[...vittorieGiochi].filter(v=>v.vincitore&&v.data).sort((a,b)=>a.data.localeCompare(b.data));
+  let serV=null,serM=0,streakAttuale=0,ultimoVincitore=null;
+  vittorieOrdinate.forEach(v=>{
+    streakAttuale=(v.vincitore===ultimoVincitore)?streakAttuale+1:1;
+    ultimoVincitore=v.vincitore;
+    if(streakAttuale>serM){ serM=streakAttuale; serV=v.vincitore; }
+  });
+  if(serV&&serM>1) cats.push({icona:'🏆',titolo:'Il Serial Vincitore',sub:'vittorie di fila ai giochi',vincitore:serV,conteggio:serM});
+
+  const weekendCount={};
+  jukebox.forEach(j=>{ if(!j.data) return; const g=new Date(j.data).getDay(); if(g===0||g===6) weekendCount[j.autore]=(weekendCount[j.autore]||0)+1; });
+  let wkV=null,wkM=0; Object.entries(weekendCount).forEach(([k,n])=>{ if(n>wkM){wkM=n;wkV=k;} });
+  if(wkV) cats.push({icona:'🎶',titolo:'Il DJ del Weekend',sub:'brani aggiunti nel weekend',vincitore:wkV,conteggio:wkM});
+
+  const oggi30=new Date(); oggi30.setDate(oggi30.getDate()-30);
+  const trend=calcolaRecord(vittorieGiochi.filter(v=>v.data&&new Date(v.data)>=oggi30),'vincitore');
+  if(trend) cats.push({icona:'📈',titolo:'Il Trend del Mese',sub:'vittorie negli ultimi 30 giorni',...trend});
+
+  const seraleCount={};
+  jukebox.forEach(j=>{ if(!j._created) return; const h=new Date(j._created).getHours(); if(h>=18&&h<22) seraleCount[j.autore]=(seraleCount[j.autore]||0)+1; });
+  let serC=null,serCM=0; Object.entries(seraleCount).forEach(([k,n])=>{ if(n>serCM){serCM=n;serC=k;} });
+  if(serC) cats.push({icona:'🌆',titolo:'Il DJ Serale',sub:'brani aggiunti tra le 18 e le 22',vincitore:serC,conteggio:serCM});
+
   return cats;
 }
 
