@@ -3935,6 +3935,25 @@ function calcolaRecordCasa(){
   let starV=null,starM=0; Object.entries(puntiPerMembro).forEach(([k,n])=>{ if(n>starM){starM=n;starV=k;} });
   if(starV) cats.push({icona:'🌠',titolo:'La Superstar',sub:'punti totali dalle sfide',vincitore:starV,conteggio:starM});
 
+  const amatoPostitCount={};
+  bachecaNotes.forEach(n=>{ const c=Object.keys(n.reazioni||{}).length; if(c) amatoPostitCount[n.author]=(amatoPostitCount[n.author]||0)+c; });
+  let amPostV=null,amPostM=0; Object.entries(amatoPostitCount).forEach(([k,n])=>{ if(n>amPostM){amPostM=n;amPostV=k;} });
+  if(amPostV) cats.push({icona:'📌',titolo:'Il Post-it Più Amato',sub:'reazioni ricevute sui post-it',vincitore:amPostV,conteggio:amPostM});
+
+  const reagentePostitCount={};
+  bachecaNotes.forEach(n=>{ Object.keys(n.reazioni||{}).forEach(mid=>{ reagentePostitCount[mid]=(reagentePostitCount[mid]||0)+1; }); });
+  let reagPostV=null,reagPostM=0; Object.entries(reagentePostitCount).forEach(([k,n])=>{ if(n>reagPostM){reagPostM=n;reagPostV=k;} });
+  if(reagPostV) cats.push({icona:'💬',titolo:'Il Commentatore',sub:'reazioni messe ai post-it',vincitore:reagPostV,conteggio:reagPostM});
+
+  const videomaker=calcolaRecord(videoMsgs,'autore');
+  if(videomaker) cats.push({icona:'🎥',titolo:'Il Videomaker',sub:'videomessaggi inviati',...videomaker});
+
+  const decorazioniPerAutore={};
+  videoMsgs.forEach(v=>{ if(v.decorazione&&v.decorazione!=='nessuna') (decorazioniPerAutore[v.autore]=decorazioniPerAutore[v.autore]||new Set()).add(v.decorazione); });
+  let costV2=null,costM2=0;
+  Object.entries(decorazioniPerAutore).forEach(([mid,set])=>{ if(set.size>costM2){ costM2=set.size; costV2=mid; } });
+  if(costV2&&costM2>1) cats.push({icona:'🎭',titolo:'Il Costumista',sub:'decorazioni diverse usate nei video',vincitore:costV2,conteggio:costM2});
+
   return cats;
 }
 
@@ -5624,7 +5643,8 @@ async function inviaVideoMsg(){
     const ora=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
     const flds={ID:id,Autore:f4Me,VideoURL:data.secure_url,Data:REAL_TODAY,Ora:ora,Decorazione:videoMsgForm.decorazione};
     const rec=await atPost('VideoMessaggi',flds);
-    videoMsgs.unshift({_recId:rec.records?.[0]?.id,id,autore:f4Me,videoUrl:data.secure_url,data:REAL_TODAY,ora,decorazione:videoMsgForm.decorazione});
+    if(rec.error||!rec.records?.[0]?.id) throw new Error(rec.error?.message||'Salvataggio su Airtable fallito — controlla che la tabella "VideoMessaggi" e i suoi campi esistano esattamente come richiesto');
+    videoMsgs.unshift({_recId:rec.records[0].id,id,autore:f4Me,videoUrl:data.secure_url,data:REAL_TODAY,ora,decorazione:videoMsgForm.decorazione});
     if(vmBlobUrl){ URL.revokeObjectURL(vmBlobUrl); vmBlobUrl=null; }
     closeModal(); renderView();
     mostraToast('Salvato ✓');
