@@ -1501,7 +1501,7 @@ function bachecaWidget(){
       return `<div class="mini-postit${spec?' postit-'+n.color:''}" style="${spec?'':'background:'+col.hex+';'}transform:rotate(${rot}deg)">
         ${spec?postitBadgeCorners(spec.icon,14):''}
         <div class="mini-postit-pin"></div>
-        ${n.fotoUrl?`<img src="${n.fotoUrl}" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:2px;margin-bottom:4px;box-shadow:0 2px 5px rgba(0,0,0,0.2)">`:''}
+        ${n.fotoUrl?`<img src="${n.fotoUrl}" onclick="event.stopPropagation();openFotoLightboxUrl('${n.fotoUrl}')" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:2px;margin-bottom:4px;box-shadow:0 2px 5px rgba(0,0,0,0.2);cursor:pointer">`:''}
         <div class="mini-postit-text" style="font-family:${fnt.family};color:${txc.hex}">${escH(n.text)}</div>
         <div class="mini-postit-author" style="color:${m.dot}">${getIcon(m.id)} ${m.name}</div>
       </div>`;
