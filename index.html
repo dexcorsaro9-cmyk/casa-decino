@@ -233,6 +233,50 @@
     .w-loc { color: #378ADD; margin-right: 6px; }
 
     /* Tasto Fluttuante WhatsApp Style */
+    .tesoro-medaglia {
+      width: 74px; height: 74px; border-radius: 50%; margin: 0 auto;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.28), inset 0 2px 3px rgba(255,255,255,0.5), inset 0 -4px 8px rgba(0,0,0,0.25);
+    }
+    .tesoro-medaglia.oro { background: radial-gradient(circle at 32% 28%, #fff6d8, #f5c93a 55%, #b87d10 100%); }
+    .tesoro-medaglia.ombra { background: radial-gradient(circle at 32% 28%, #e8e8ea, #9a9aa0 55%, #55555c 100%); }
+    .tesoro-medaglia-shine {
+      position: absolute; top: 8%; left: 14%; width: 40%; height: 22%;
+      background: rgba(255,255,255,0.55); border-radius: 50%;
+      filter: blur(3px); transform: rotate(-25deg);
+    }
+    .tesoro-medaglia-inner { font-size: 32px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)); }
+    .tesoro-medaglia-count {
+      position: absolute; bottom: -4px; right: -4px;
+      background: #2b2b2b; color: #fff; font-size: 10px; font-weight: 900;
+      min-width: 18px; height: 18px; border-radius: 9px; padding: 0 4px;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid var(--card-bg, #fff);
+    }
+    .tesoro-fluttuante {
+      position: fixed;
+      left: 20px;
+      bottom: calc(140px + env(safe-area-inset-bottom));
+      z-index: 998;
+      width: 54px; height: 54px;
+      border-radius: 50%;
+      border: none;
+      background: radial-gradient(circle at 35% 30%, #ffe58a, #f5a623);
+      font-size: 26px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(245,166,35,0.5);
+      animation: tesoroFloat 2.2s ease-in-out infinite;
+    }
+    @keyframes tesoroFloat {
+      0%,100% { transform: translateY(0) rotate(-4deg); }
+      50% { transform: translateY(-10px) rotate(4deg); }
+    }
+    @keyframes tesoroPop {
+      0% { transform: scale(0.3) rotate(-15deg); opacity: 0; }
+      60% { transform: scale(1.15) rotate(5deg); opacity: 1; }
+      100% { transform: scale(1) rotate(0deg); }
+    }
     .fab-btn {
       position: fixed;
       bottom: calc(70px + env(safe-area-inset-bottom));
@@ -980,6 +1024,7 @@
         <button class="tab" id="t-giochi"     data-macro="svago"   onclick="switchView('giochi')">🎮 Giochi</button>
         <button class="tab" id="t-jukebox"    data-macro="svago"   onclick="switchView('jukebox')">🎵 Jukebox</button>
         <button class="tab" id="t-record"     data-macro="svago"   onclick="switchView('record')">🏆 Record</button>
+        <button class="tab" id="t-tesori"     data-macro="svago"   onclick="switchView('tesori')">🗺️ Tesori</button>
       </div>
     </div>
     <div class="content" id="view">
@@ -1000,6 +1045,7 @@
     <button class="bn-btn" id="bn-ricordi" onclick="switchMacro('ricordi')"><span class="bn-icon">📸</span>Ricordi</button>
   </div>
 
+  <div id="tesoro-floating"></div>
   <div id="fab-menu" class="fab-menu"></div>
   <button class="fab-btn" id="fab-add" onclick="fabClick()" style="font-size:26px;font-weight:700;line-height:1">+</button>
 
@@ -1057,8 +1103,8 @@ let events=[],ricorrenze=[];
 let view='today',filters=MEMBERS.map(m=>m.id);
 let viewHistory=[];
 
-const VIEW_MACRO={today:'home',week:'agenda',month:'agenda',trasporti:'agenda',ricorrenze:'agenda',bacheca:'liste',segreteria:'liste',videomsg:'liste',dispensa:'liste',sondaggi:'liste',giochi:'svago',jukebox:'svago',film:'svago',challenge:'svago',record:'svago',viaggi:'ricordi',ricordi:'ricordi'};
-const MACRO_TABS={home:['today'],agenda:['week','month','trasporti','ricorrenze'],liste:['bacheca','segreteria','videomsg','dispensa','sondaggi'],svago:['giochi','jukebox','film','challenge','record'],ricordi:['ricordi','viaggi']};
+const VIEW_MACRO={today:'home',week:'agenda',month:'agenda',trasporti:'agenda',ricorrenze:'agenda',bacheca:'liste',segreteria:'liste',videomsg:'liste',dispensa:'liste',sondaggi:'liste',giochi:'svago',jukebox:'svago',film:'svago',challenge:'svago',record:'svago',tesori:'svago',viaggi:'ricordi',ricordi:'ricordi'};
+const MACRO_TABS={home:['today'],agenda:['week','month','trasporti','ricorrenze'],liste:['bacheca','segreteria','videomsg','dispensa','sondaggi'],svago:['giochi','jukebox','film','challenge','record','tesori'],ricordi:['ricordi','viaggi']};
 let macroArea='home';
 
 const MEMBRI_FEMMINILI=['pamela','sara'];
@@ -1077,6 +1123,7 @@ function mostraSaluto(){
   el.innerHTML=`${testo}, <b>${escH(m.name)}</b> ${getIcon(m.id)}${medaglia}<br><span style="font-weight:600;opacity:0.65;font-size:11px">${data} · ${orario}</span>`;
 }
 setInterval(mostraSaluto,30000);
+setInterval(()=>{ if(typeof aggiornaTesoroFluttuante==='function') aggiornaTesoroFluttuante(); },30000);
 
 function switchMacro(m){
   if(m==='svago'&&typeof giochiTab!=='undefined') giochiTab='forza4';
@@ -1331,7 +1378,7 @@ function fabClick(){
 function switchView(v,daHistory){
   if(!daHistory && v!==view) viewHistory.push(view);
   if(v==='ricordi'&&view!=='ricordi') ricordiCartellaAttiva=null;
-  view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge','t-bacheca','t-dispensa','t-ricordi','t-viaggi','t-film','t-sondaggi','t-giochi','t-segreteria','t-videomsg','t-jukebox','t-record'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
+  view=v; ['t-today','t-week','t-month','t-trasporti','t-ricorrenze','t-challenge','t-bacheca','t-dispensa','t-ricordi','t-viaggi','t-film','t-sondaggi','t-giochi','t-segreteria','t-videomsg','t-jukebox','t-record','t-tesori'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
   const tab=document.getElementById('t-'+v); if(tab){ tab.classList.add('active'); tab.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'}); }
   macroArea=VIEW_MACRO[v]||macroArea;
   aggiornaMacroUI();
@@ -1436,7 +1483,7 @@ function gestisciPollingGiochi(){
   }
 }
 
-function renderView(silenzioso){ const el=document.getElementById('view'); if(!silenzioso){ el.classList.remove('view-animate'); void el.offsetWidth; el.classList.add('view-animate'); } if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else if(view==='sondaggi')el.innerHTML=sondaggiView(); else if(view==='giochi'){el.innerHTML=giochiView();ripristinaScrollGiochiSubnav();} else if(view==='segreteria'){el.innerHTML=segreteriaView();setTimeout(attivaSwipeSegreteria,50);} else if(view==='videomsg')el.innerHTML=videoMsgView(); else if(view==='jukebox')el.innerHTML=jukeboxView(); else if(view==='record')el.innerHTML=recordView(); else el.innerHTML=ricorrenzeView(); updateGiochiBadge(); renderOnlineWidget(); }
+function renderView(silenzioso){ const el=document.getElementById('view'); if(!silenzioso){ el.classList.remove('view-animate'); void el.offsetWidth; el.classList.add('view-animate'); } if(view==='today')el.innerHTML=todayView(); else if(view==='week')el.innerHTML=weekView(); else if(view==='month')el.innerHTML=monthView(); else if(view==='trasporti')el.innerHTML=trasportiView(); else if(view==='challenge')el.innerHTML=challengeView(); else if(view==='bacheca')el.innerHTML=bachecaView(); else if(view==='dispensa')el.innerHTML=dispensaView(); else if(view==='ricordi')el.innerHTML=ricordiView(); else if(view==='viaggi'){el.innerHTML=viaggiView();setTimeout(initGlobe,80);} else if(view==='film')el.innerHTML=filmView(); else if(view==='sondaggi')el.innerHTML=sondaggiView(); else if(view==='giochi'){el.innerHTML=giochiView();ripristinaScrollGiochiSubnav();} else if(view==='segreteria'){el.innerHTML=segreteriaView();setTimeout(attivaSwipeSegreteria,50);} else if(view==='videomsg')el.innerHTML=videoMsgView(); else if(view==='jukebox')el.innerHTML=jukeboxView(); else if(view==='record')el.innerHTML=recordView(); else if(view==='tesori')el.innerHTML=tesoriView(); else el.innerHTML=ricorrenzeView(); updateGiochiBadge(); renderOnlineWidget(); aggiornaTesoroFluttuante(); }
 
 function updateGiochiBadge(){
   const tab=document.getElementById('t-giochi'); if(!tab) return;
@@ -4022,6 +4069,176 @@ function recordView(){
   return h;
 }
 
+/* =============================================
+   CACCIA AL TESORO — loot box giornalieri deterministici
+   ============================================= */
+const TESORO_POOL=[
+  { icon:'👑', nome:'Corona del Re',        punti:20 },
+  { icon:'💎', nome:'Diamante',             punti:15 },
+  { icon:'🪙', nome:"Decino d'Oro",         punti:10 },
+  { icon:'🍕', nome:'Fetta di Pizza',       punti:8 },
+  { icon:'🎂', nome:'Fetta di Torta',       punti:5 },
+  { icon:'🎈', nome:'Palloncino',           punti:3 },
+  { icon:'🧦', nome:'Calzino Spaiato',      punti:-2 },
+  { icon:'👻', nome:'Fantasma Dispettoso',  punti:-3 },
+  { icon:'🍌', nome:'Buccia di Banana',     punti:-5 },
+  { icon:'💣', nome:'Bomba',                punti:-10 },
+];
+const TESORO_VIEWS=['today','bacheca','segreteria','dispensa','sondaggi','ricordi','viaggi','film','jukebox','videomsg','challenge'];
+
+function seedFromString(str){ let h=0; for(let i=0;i<str.length;i++){ h=(h*31+str.charCodeAt(i))>>>0; } return h; }
+function mulberry32(seed){
+  return function(){
+    seed|=0; seed=seed+0x6D2B79F5|0;
+    let t=Math.imul(seed^seed>>>15,1|seed);
+    t=t+Math.imul(t^t>>>7,61|t)^t;
+    return ((t^t>>>14)>>>0)/4294967296;
+  };
+}
+function shuffleRng(arr,rng){ const a=[...arr]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(rng()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+let tesoriOggi=[], tesoriTrovati=[];
+
+function generaTesoriOggi(){
+  const oggi=REAL_TODAY;
+  const rng=mulberry32(seedFromString('tesori-'+oggi));
+  const N=5;
+  const startMin=8*60, endMin=21*60;
+  const slotSize=(endMin-startMin)/N;
+  const viste=shuffleRng(TESORO_VIEWS,rng).slice(0,N);
+  const out=[];
+  for(let i=0;i<N;i++){
+    const slotStart=startMin+i*slotSize;
+    const offset=Math.floor(rng()*slotSize);
+    const minuti=slotStart+offset;
+    const item=TESORO_POOL[Math.floor(rng()*TESORO_POOL.length)];
+    out.push({idGiornaliero:`${oggi}_${i}`,minuti,oraLabel:`${String(Math.floor(minuti/60)).padStart(2,'0')}:${String(minuti%60).padStart(2,'0')}`,view:viste[i],icon:item.icon,nome:item.nome,punti:item.punti});
+  }
+  return out;
+}
+
+async function loadTesori(){
+  try{
+    const records=await atGetAll('Tesori');
+    tesoriTrovati=records.map(r=>({_recId:r.id,id:r.fields.ID||r.id,idGiornaliero:r.fields.IDGiornaliero||'',icon:r.fields.Icona||'',nome:r.fields.Nome||'',punti:+r.fields.Punti||0,scopritore:r.fields.Scopritore||'',data:r.fields.Data||'',_created:r.createdTime}));
+  }catch(e){ tesoriTrovati=[]; }
+  tesoriOggi=generaTesoriOggi();
+}
+
+function tesoroSlotsSbloccatiOra(){
+  const now=new Date();
+  const minutiOra=now.getHours()*60+now.getMinutes();
+  const trovatiIds=new Set(tesoriTrovati.map(t=>t.idGiornaliero));
+  return tesoriOggi.filter(s=>s.minuti<=minutiOra&&!trovatiIds.has(s.idGiornaliero));
+}
+
+function aggiornaTesoroFluttuante(){
+  const box=document.getElementById('tesoro-floating'); if(!box) return;
+  const disponibili=tesoroSlotsSbloccatiOra().filter(s=>s.view===view);
+  if(!disponibili.length){ box.innerHTML=''; return; }
+  const slot=disponibili[0];
+  if(box.dataset.slot===slot.idGiornaliero) return;
+  box.dataset.slot=slot.idGiornaliero;
+  box.innerHTML=`<button onclick="riscattaTesoro('${slot.idGiornaliero}')" class="tesoro-fluttuante" title="Cosa sarà mai?">🎁</button>`;
+}
+
+async function riscattaTesoro(idGiornaliero){
+  const slot=tesoriOggi.find(s=>s.idGiornaliero===idGiornaliero); if(!slot) return;
+  if(tesoriTrovati.some(t=>t.idGiornaliero===idGiornaliero)) { mostraErrore('Troppo tardi, qualcuno l\'ha già preso!'); aggiornaTesoroFluttuante(); return; }
+  const box=document.getElementById('tesoro-floating'); if(box) box.innerHTML='';
+  try{
+    const id=uid();
+    const flds={ID:id,IDGiornaliero:idGiornaliero,Icona:slot.icon,Nome:slot.nome,Punti:slot.punti,Scopritore:f4Me,Data:REAL_TODAY};
+    const rec=await atPost('Tesori',flds);
+    if(rec.error||!rec.records?.[0]?.id) throw new Error(rec.error?.message||'Salvataggio fallito');
+    tesoriTrovati.push({_recId:rec.records[0].id,id,idGiornaliero,icon:slot.icon,nome:slot.nome,punti:slot.punti,scopritore:f4Me,data:REAL_TODAY});
+    mostraRivelazioneTesoro(slot);
+    if(view==='tesori') renderView();
+  }catch(e){
+    mostraErrore('Il tesoro è scappato: '+e.message);
+    aggiornaTesoroFluttuante();
+  }
+}
+
+function mostraRivelazioneTesoro(slot){
+  const positivo=slot.punti>=0;
+  vibra(positivo?15:[15,60,15,60,15]);
+  document.getElementById('modal-box').innerHTML=`
+    <div style="text-align:center;padding:24px 10px">
+      <div style="font-size:64px;animation:tesoroPop 0.5s cubic-bezier(.22,1.4,.64,1)">${slot.icon}</div>
+      <div style="font-size:18px;font-weight:900;margin-top:10px">${escH(slot.nome)}</div>
+      <div style="font-size:22px;font-weight:900;margin-top:6px;color:${positivo?'#34C759':'#ff3b30'}">${positivo?'+':''}${slot.punti} punti</div>
+      <div style="font-size:13px;color:var(--text-sec);margin-top:10px">${positivo?'Complimenti, bel bottino! 🎉':'Ahia, stavolta è andata male! 😂'}</div>
+      <button class="btn-save" onclick="closeModal()" style="width:100%;margin-top:18px">Ok</button>
+    </div>`;
+  showOv();
+}
+
+function tesoriView(){
+  const puntiPerMembro={};
+  tesoriTrovati.forEach(t=>{ puntiPerMembro[t.scopritore]=(puntiPerMembro[t.scopritore]||0)+t.punti; });
+  const classifica=MEMBERS.map(m=>({m,pt:puntiPerMembro[m.id]||0})).filter(x=>x.pt!==0).sort((a,b)=>b.pt-a.pt);
+
+  const perTipo={};
+  tesoriTrovati.forEach(t=>{
+    if(!perTipo[t.nome]) perTipo[t.nome]={icon:t.icon,punti:t.punti,membri:{}};
+    perTipo[t.nome].membri[t.scopritore]=(perTipo[t.nome].membri[t.scopritore]||0)+1;
+  });
+  const tipiOrdinati=TESORO_POOL.map(item=>perTipo[item.nome]?{...item,membri:perTipo[item.nome].membri}:null).filter(Boolean);
+
+  let h=`<div class="section-wrap"><div class="section-hdr"><span class="section-ttl">🗺️ Caccia al Tesoro</span></div><div style="padding:0 16px 16px">`;
+  h+=`<div style="font-size:12px;color:var(--text-sec);margin-bottom:14px">Ogni giorno spuntano 5 pacchi 🎁 nascosti in giro per l'app, in orari e sezioni casuali. Aprili prima degli altri… ma occhio, non sono tutti fortunati!</div>`;
+  if(classifica.length){
+    h+=`<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:20px">${classifica.map(x=>`<div style="flex:0 0 auto;background:var(--card-bg);border-radius:14px;padding:8px 14px;text-align:center;box-shadow:var(--shadow-sm)"><div style="font-size:20px">${getIcon(x.m.id)}</div><div style="font-size:11px;font-weight:800;margin-top:2px">${escH(x.m.name)}</div><div style="font-size:13px;font-weight:900;color:${x.pt>=0?'#34C759':'#ff3b30'}">${x.pt>=0?'+':''}${x.pt}</div></div>`).join('')}</div>`;
+  }
+
+  if(!tipiOrdinati.length){
+    h+=`<div class="empty-state"><span class="big">🎁</span><div style="font-size:15px;font-weight:700">Nessun tesoro trovato ancora</div><div style="font-size:13px;color:var(--text-sec);margin-top:6px">Tieni d'occhio le varie sezioni dell'app!</div></div>`;
+  } else {
+    h+=`<div class="sec-lbl" style="margin-bottom:10px">🏅 Medagliere</div>`;
+    h+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:18px 10px;margin-bottom:22px">`;
+    tipiOrdinati.forEach(t=>{
+      const positivo=t.punti>=0;
+      const totale=Object.values(t.membri).reduce((s,n)=>s+n,0);
+      const membriHtml=Object.entries(t.membri).sort((a,b)=>b[1]-a[1]).map(([mid,n])=>{
+        const m=M(mid);
+        return `<span style="display:inline-flex;align-items:center;gap:3px;background:var(--main-bg);border-radius:9px;padding:1px 5px 1px 2px">
+          <span style="width:14px;height:14px;border-radius:50%;${ms(m)};display:flex;align-items:center;justify-content:center;font-size:8px">${getIcon(m.id)}</span>
+          <span style="font-size:9px;font-weight:800">${n}×</span>
+        </span>`;
+      }).join('');
+      h+=`<div style="text-align:center">
+        <div class="tesoro-medaglia ${positivo?'oro':'ombra'}">
+          <div class="tesoro-medaglia-shine"></div>
+          <div class="tesoro-medaglia-inner">${t.icon}</div>
+          <div class="tesoro-medaglia-count">${totale}</div>
+        </div>
+        <div style="font-size:10px;font-weight:800;margin-top:6px;line-height:1.2">${escH(t.nome)}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:3px;justify-content:center;margin-top:5px">${membriHtml}</div>
+      </div>`;
+    });
+    h+=`</div>`;
+
+    const sorted=[...tesoriTrovati].sort((a,b)=>(b.data+b._created).localeCompare(a.data+a._created)).slice(0,12);
+    h+=`<div class="sec-lbl" style="margin-bottom:10px">🕐 Ultimi ritrovamenti</div>`;
+    h+=`<div style="display:flex;flex-direction:column;gap:8px">`;
+    sorted.forEach(t=>{
+      const m=M(t.scopritore);
+      h+=`<div style="display:flex;align-items:center;gap:10px;background:var(--card-bg);border-radius:12px;padding:8px 12px;box-shadow:var(--shadow-sm)">
+        <span style="font-size:22px">${t.icon}</span>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:800">${escH(t.nome)} <span style="font-weight:900;color:${t.punti>=0?'#34C759':'#ff3b30'}">${t.punti>=0?'+':''}${t.punti}</span></div>
+          <div style="font-size:10px;color:var(--text-sec)">${escH(m.name)} · ${fmtDateShort(t.data)}</div>
+        </div>
+        <span style="width:18px;height:18px;border-radius:50%;${ms(m)};display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0">${getIcon(m.id)}</span>
+      </div>`;
+    });
+    h+=`</div>`;
+  }
+  h+=`</div></div>`;
+  return h;
+}
+
 function statisticheGiochiView(){
   const vittorie=tutteLeVittorie();
   const contaVittorie=(fn)=>{
@@ -5970,7 +6187,7 @@ async function deleteCanzone(id){
 }
 
 async function init(){
-  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle(),loadSegreteria(),loadVideoMsg(),loadJukebox(),loadVittorieGiochi(),loadPresenza()]);
+  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle(),loadSegreteria(),loadVideoMsg(),loadJukebox(),loadTesori(),loadVittorieGiochi(),loadPresenza()]);
   render(); loadWeather();
   renderOnlineWidget();
   aggiornaMacroUI();
@@ -5986,7 +6203,7 @@ async function init(){
   controllaSegreteriaUrgenti();
 }
 async function reloadAll(){
-  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle(),loadSegreteria(),loadVideoMsg(),loadJukebox(),loadVittorieGiochi(),loadPresenza()]);
+  await Promise.all([loadEvents(),loadRic(),loadChallenge(),loadBacheca(),loadDispensa(),loadFotoRicordi(),loadViaggi(),loadFilm(),loadSondaggi(),loadForza4(),loadTris(),loadImpiccato(),loadMorra(),loadIndovinaChi(),loadWordle(),loadSegreteria(),loadVideoMsg(),loadJukebox(),loadTesori(),loadVittorieGiochi(),loadPresenza()]);
   render();
   renderOnlineWidget();
   controllaSegreteriaUrgenti();
